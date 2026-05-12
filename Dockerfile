@@ -37,4 +37,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8501
 
-CMD ["videolens", "ui", "--host", "0.0.0.0", "--port", "8501", "--no-open"]
+CMD ["sh", "-c", "videolens ui --host 0.0.0.0 --port ${PORT:-8501} --no-open"]
