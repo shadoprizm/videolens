@@ -84,7 +84,7 @@ brew install ffmpeg
 # Clone and install with uv
 git clone https://github.com/shadoprizm/videolens.git
 cd videolens
-uv sync
+uv sync --extra ui
 ```
 
 Set your OpenAI API key:
@@ -104,6 +104,20 @@ uv run videolens ui
 ```
 
 Opens http://localhost:8501. Drop a video, set a prompt and mode, hit Analyze.
+
+### Vercel deployment
+
+Vercel runs the root FastAPI entrypoint declared in `pyproject.toml`:
+
+```toml
+[tool.vercel]
+entrypoint = "app:app"
+```
+
+The Vercel deployment exposes a lightweight HTTP surface at `/` and `/api/health`.
+The full upload/analyze Streamlit UI remains a local app launched with `uv run videolens ui`.
+Keeping the UI dependencies in the optional `ui` extra prevents Vercel's Python
+function bundle from pulling in Streamlit, pandas, pyarrow, and PDF rendering packages.
 
 ### CLI
 

@@ -409,7 +409,10 @@ def render_results(result: ExtractionResult) -> None:
     cols[4].metric("Timeline segments", len(result.timeline.segments))
 
     if result.resolved.limitations:
-        st.warning("Limitations:\n" + "\n".join(f"- {l}" for l in result.resolved.limitations))
+        st.warning(
+            "Limitations:\n"
+            + "\n".join(f"- {limitation}" for limitation in result.resolved.limitations)
+        )
 
     tab_report, tab_timeline, tab_frames, tab_transcript, tab_raw = st.tabs(
         ["**Report**", "Timeline", "Frames", "Transcript", "Cache"]

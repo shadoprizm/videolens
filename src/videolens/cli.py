@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from importlib.util import find_spec
 from pathlib import Path
 
 import typer
@@ -34,6 +35,11 @@ def ui(
     open_browser: bool = typer.Option(True, "--open/--no-open", help="Auto-open browser."),
 ) -> None:
     """Launch the local web UI (Streamlit)."""
+    if find_spec("streamlit") is None:
+        console.print("[red]Streamlit is not installed.[/red]")
+        console.print("Install the UI dependencies with: [bold]uv sync --extra ui[/bold]")
+        raise typer.Exit(code=1)
+
     app_path = Path(__file__).parent / "web" / "app.py"
     cmd = [
         sys.executable, "-m", "streamlit", "run", str(app_path),
