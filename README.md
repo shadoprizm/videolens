@@ -132,7 +132,7 @@ In Railway:
 1. Create a new project from `github.com/shadoprizm/videolens`.
 2. Add `OPENAI_API_KEY` in the service Variables tab.
 3. Deploy. Railway will build with the root `Dockerfile`.
-4. In Networking, generate a public domain.
+4. In Networking, generate a public domain with target port `8501`.
 
 Optional: add a Railway volume mounted at `/app/.videolens` if you want processed-video
 cache files to survive redeploys.
