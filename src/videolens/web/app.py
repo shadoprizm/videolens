@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 from pathlib import Path
@@ -10,6 +11,7 @@ import streamlit as st
 
 from videolens import __version__
 from videolens.config import Config, Defaults, Models
+from videolens.outputs import render_pdf
 from videolens.pipeline import ExtractionResult, run_extraction
 from videolens.types import AnalysisMode
 
@@ -49,6 +51,37 @@ def _fmt_ts(seconds: float) -> str:
 
 def _strip_rich_tags(s: str) -> str:
     return re.sub(r"\[/?[a-zA-Z0-9 _#]+\]", "", s)
+
+
+def _sanitize_filename(s: str) -> str:
+    """Strip down to filesystem-safe ASCII-ish characters, collapse whitespace, cap length."""
+    s = re.sub(r"[^\w\-.\s]", "", s, flags=re.UNICODE)
+    s = re.sub(r"\s+", "_", s.strip())
+    s = s.strip("._-")
+    return (s[:80] or "videolens_analysis")
+
+
+def _output_basename(result: ExtractionResult) -> str:
+    """Derive a sensible base filename from the source. Priority:
+    1. yt-dlp title (best for YouTube)
+    2. video_path stem (uploaded files keep their original name)
+    3. generic fallback
+    """
+    info_path = result.cache.path("ytdlp_info.json")
+    if info_path.exists():
+        try:
+            info = json.loads(info_path.read_text())
+            title = (info.get("title") or "").strip()
+            if title:
+                return _sanitize_filename(title)
+        except Exception:
+            pass
+
+    stem = result.video_path.stem
+    if stem and stem.lower() != "video":
+        return _sanitize_filename(stem)
+
+    return "videolens_analysis"
 
 
 def _save_upload(uploaded) -> Path:
@@ -354,6 +387,12 @@ def _run_pipeline(
     state = ["complete"] * len(STEP_KEYS)
     stepper_slot.markdown(_render_stepper(state), unsafe_allow_html=True)
     st.session_state["result"] = result
+    st.session_state["pdf_bytes"] = None
+    if result.analysis is not None:
+        try:
+            st.session_state["pdf_bytes"] = render_pdf(result.analysis)
+        except Exception as exc:
+            st.session_state["pdf_error"] = str(exc)
 
 
 # ───────────────────────── results ─────────────────────────
@@ -486,18 +525,36 @@ def render_report_tab(result: ExtractionResult) -> None:
 
     if result.report_markdown:
         st.divider()
-        dl_cols = st.columns(2)
-        dl_cols[0].download_button(
-            "Download report.md",
+        basename = _output_basename(result)
+        st.caption(f"Downloads named after the source: `{basename}_*`")
+
+        pdf_bytes = st.session_state.get("pdf_bytes")
+        pdf_error = st.session_state.get("pdf_error")
+
+        dl_cols = st.columns(3)
+        if pdf_bytes:
+            dl_cols[0].download_button(
+                "📄 Download PDF",
+                data=pdf_bytes,
+                file_name=f"{basename}_report.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+            )
+        else:
+            dl_cols[0].button("PDF unavailable", disabled=True, use_container_width=True)
+            if pdf_error:
+                dl_cols[0].caption(f"PDF error: {pdf_error}")
+        dl_cols[1].download_button(
+            "📝 Download Markdown",
             data=result.report_markdown,
-            file_name="report.md",
+            file_name=f"{basename}_report.md",
             mime="text/markdown",
             use_container_width=True,
         )
-        dl_cols[1].download_button(
-            "Download analysis.json",
+        dl_cols[2].download_button(
+            "🗂 Download JSON",
             data=analysis.model_dump_json(indent=2),
-            file_name="analysis.json",
+            file_name=f"{basename}_analysis.json",
             mime="application/json",
             use_container_width=True,
         )
