@@ -18,11 +18,6 @@ classifiers = [
     "Topic :: Multimedia :: Video",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-
-[project.urls]
-Homepage = "https://github.com/shadoprizm/videolens"
-Repository = "https://github.com/shadoprizm/videolens"
-Issues = "https://github.com/shadoprizm/videolens/issues"
 dependencies = [
     "typer>=0.15.0",
     "pydantic>=2.9.0",
@@ -33,6 +28,11 @@ dependencies = [
     "streamlit>=1.40.0",
     "pandas>=2.2.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/shadoprizm/videolens"
+Repository = "https://github.com/shadoprizm/videolens"
+Issues = "https://github.com/shadoprizm/videolens/issues"
 
 [project.scripts]
 videolens = "videolens.cli:app"
