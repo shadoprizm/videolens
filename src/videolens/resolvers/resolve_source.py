@@ -10,6 +10,24 @@ YOUTUBE_HOSTS = {"youtube.com", "www.youtube.com", "youtu.be", "m.youtube.com"}
 
 # Hosts that yt-dlp is known to handle well. Used purely for nicer UI labels —
 # the downloader will still attempt yt-dlp on any HTTP URL.
+# Session-replay services store events, not video. yt-dlp can't help — these
+# need a dedicated event-JSON parser (roadmap) or a Playwright browser capture.
+# Detected so we give a clear error instead of a generic "Unsupported URL".
+SESSION_REPLAY_HOSTS: dict[str, str] = {
+    "posthog.com": "PostHog",
+    "us.posthog.com": "PostHog",
+    "eu.posthog.com": "PostHog",
+    "app.posthog.com": "PostHog",
+    "www.fullstory.com": "FullStory",
+    "app.fullstory.com": "FullStory",
+    "insights.hotjar.com": "Hotjar",
+    "clarity.microsoft.com": "Microsoft Clarity",
+    "app.logrocket.com": "LogRocket",
+    "openreplay.com": "OpenReplay",
+    "app.openreplay.com": "OpenReplay",
+}
+
+
 KNOWN_PLATFORMS: dict[str, str] = {
     "loom.com": "Loom",
     "vimeo.com": "Vimeo",
@@ -45,6 +63,16 @@ def _detect_platform(host: str) -> str | None:
     return None
 
 
+def _detect_session_replay(host: str) -> str | None:
+    host = host.lower()
+    if host in SESSION_REPLAY_HOSTS:
+        return SESSION_REPLAY_HOSTS[host]
+    for known_host, label in SESSION_REPLAY_HOSTS.items():
+        if host.endswith("." + known_host):
+            return label
+    return None
+
+
 def resolve_source(source: str) -> ResolvedSource:
     """Classify a source. Any HTTP/HTTPS URL is treated as a yt-dlp candidate —
     yt-dlp supports ~1,500 sites and will raise a clear error if it cannot
@@ -73,6 +101,22 @@ def resolve_source(source: str) -> ResolvedSource:
         )
 
     host = (parsed.hostname or "").lower()
+
+    replay_platform = _detect_session_replay(host)
+    if replay_platform:
+        return ResolvedSource(
+            source_url=source,
+            source_type=SourceType.REPLAY_JSON,
+            access_level=AccessLevel.BLOCKED,
+            artifacts_available=ArtifactsAvailable(),
+            platform=replay_platform,
+            limitations=[
+                f"{replay_platform} session replays are event streams, not video — "
+                "yt-dlp can't help. Workaround for now: screen-record the replay "
+                "playing in your browser (macOS Cmd+Shift+5 → Record selected portion), "
+                "save the .mov, then upload that file. Native replay-event support is on the roadmap."
+            ],
+        )
 
     if host in YOUTUBE_HOSTS:
         return ResolvedSource(

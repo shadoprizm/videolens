@@ -21,6 +21,7 @@ from videolens.processors.extract_metadata import probe_metadata
 from videolens.processors.transcribe_audio import transcribe
 from videolens.resolvers import resolve_source
 from videolens.types import (
+    AccessLevel,
     Analysis,
     AnalysisMode,
     Frame,
@@ -69,6 +70,12 @@ def run_extraction(
     )
     for lim in resolved.limitations:
         console.print(f"  [yellow]limitation:[/yellow] {lim}")
+
+    if resolved.access_level == AccessLevel.BLOCKED:
+        # Pipeline can't proceed — surface the resolver's limitation as the error
+        # message rather than failing later with a generic downloader error.
+        why = "; ".join(resolved.limitations) or f"Source ({platform_label}) is not supported."
+        raise RuntimeError(why)
 
     cache_key = compute_cache_key(
         resolved.source_url,
