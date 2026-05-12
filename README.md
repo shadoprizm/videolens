@@ -119,6 +119,24 @@ The full upload/analyze Streamlit UI remains a local app launched with `uv run v
 Keeping the UI dependencies in the optional `ui` extra prevents Vercel's Python
 function bundle from pulling in Streamlit, pandas, pyarrow, and PDF rendering packages.
 
+### Railway deployment
+
+Railway is the recommended hosted path for the full Streamlit UI. The repo includes:
+
+- `Dockerfile` — installs Python dependencies, `ffmpeg`, and PDF-rendering system libraries
+- `railway.json` — tells Railway to use the Dockerfile and health-check Streamlit
+- `.dockerignore` — keeps local caches, videos, and virtualenvs out of the image
+
+In Railway:
+
+1. Create a new project from `github.com/shadoprizm/videolens`.
+2. Add `OPENAI_API_KEY` in the service Variables tab.
+3. Deploy. Railway will build with the root `Dockerfile`.
+4. In Networking, generate a public domain.
+
+Optional: add a Railway volume mounted at `/app/.videolens` if you want processed-video
+cache files to survive redeploys.
+
 ### CLI
 
 ```bash

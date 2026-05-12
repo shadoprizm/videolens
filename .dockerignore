@@ -1,0 +1,13 @@
+.git
+.pytest_cache
+.ruff_cache
+.venv
+.vercel
+.videolens
+__pycache__
+*.pyc
+.DS_Store
+build
+dist
+output
+wheels
