@@ -54,6 +54,7 @@ class ResolvedSource(BaseModel):
     title: str | None = None
     author: str | None = None
     duration_seconds: float | None = None
+    platform: str | None = None
 
 
 class Metadata(BaseModel):

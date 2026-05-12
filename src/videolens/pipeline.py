@@ -62,8 +62,10 @@ def run_extraction(
 
     console.print(f"[bold]Resolving:[/bold] {source}")
     resolved = resolve_source(source)
+    platform_label = resolved.platform or resolved.source_type.value
     console.print(
-        f"  type={resolved.source_type.value} access={resolved.access_level.value}"
+        f"  platform={platform_label} type={resolved.source_type.value} "
+        f"access={resolved.access_level.value}"
     )
     for lim in resolved.limitations:
         console.print(f"  [yellow]limitation:[/yellow] {lim}")

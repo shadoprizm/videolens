@@ -400,11 +400,13 @@ def _run_pipeline(
 
 def render_results(result: ExtractionResult) -> None:
     md = result.metadata
-    cols = st.columns(4)
-    cols[0].metric("Duration", f"{md.duration_seconds:.1f}s" if md.duration_seconds else "?")
-    cols[1].metric("Resolution", f"{md.width}×{md.height}" if md.width else "?")
-    cols[2].metric("Frames analyzed", len(result.frame_summaries))
-    cols[3].metric("Timeline segments", len(result.timeline.segments))
+    cols = st.columns(5)
+    platform = result.resolved.platform or result.resolved.source_type.value
+    cols[0].metric("Source", platform)
+    cols[1].metric("Duration", f"{md.duration_seconds:.1f}s" if md.duration_seconds else "?")
+    cols[2].metric("Resolution", f"{md.width}×{md.height}" if md.width else "?")
+    cols[3].metric("Frames analyzed", len(result.frame_summaries))
+    cols[4].metric("Timeline segments", len(result.timeline.segments))
 
     if result.resolved.limitations:
         st.warning("Limitations:\n" + "\n".join(f"- {l}" for l in result.resolved.limitations))

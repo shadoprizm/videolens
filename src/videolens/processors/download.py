@@ -23,9 +23,9 @@ def fetch_to_local(source: ResolvedSource, dest_dir: Path) -> tuple[Path, dict[s
             raise DownloadError(f"Local file missing: {source.source_url}")
         return source.local_path, {}
 
-    if source.source_type not in (SourceType.YOUTUBE, SourceType.DIRECT_URL):
+    if source.source_type not in (SourceType.YOUTUBE, SourceType.DIRECT_URL, SourceType.WEBPAGE):
         raise DownloadError(
-            f"Cannot download source of type {source.source_type.value} in MVP."
+            f"Cannot download source of type {source.source_type.value}."
         )
 
     dest_dir.mkdir(parents=True, exist_ok=True)
