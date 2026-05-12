@@ -30,7 +30,6 @@ dependencies = [
 
 [project.optional-dependencies]
 ui = [
-    "cryptography>=44.0.0",
     "streamlit>=1.40.0",
     "pandas>=2.2.0",
     "markdown>=3.7",

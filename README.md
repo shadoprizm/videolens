@@ -130,17 +130,15 @@ Railway is the recommended hosted path for the full Streamlit UI. The repo inclu
 In Railway:
 
 1. Create a new project from `github.com/shadoprizm/videolens`.
-2. Add `VIDEOLENS_SECRET_KEY` in the service Variables tab. Use a long random value,
-   such as the output of `openssl rand -base64 48`.
-3. Deploy. Railway will build with the root `Dockerfile`.
-4. In Networking, generate a public domain with target port `8501`.
+2. Deploy. Railway will build with the root `Dockerfile`.
+3. In Networking, generate a public domain with target port `8501`.
 
 Do not set a shared `OPENAI_API_KEY` for the hosted app. VideoLens is BYOK:
-users create an account, save their own OpenAI key, and each analysis uses that
-user's encrypted key.
+users paste their own OpenAI key into the UI, use the tool, and the key is kept
+only in that browser session.
 
-Add a Railway volume mounted at `/app/.videolens` if you want user accounts,
-saved encrypted keys, uploads, and processed-video cache files to survive redeploys.
+Optional: add a Railway volume mounted at `/app/.videolens` if you want uploads
+and processed-video cache files to survive redeploys.
 
 ### CLI
 
