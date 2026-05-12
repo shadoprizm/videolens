@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
 from pathlib import Path
 
@@ -14,6 +13,14 @@ from videolens.config import Config, Defaults, Models
 from videolens.outputs import render_pdf
 from videolens.pipeline import ExtractionResult, run_extraction
 from videolens.types import AnalysisMode
+from videolens.web.auth import (
+    AuthError,
+    AuthStore,
+    AuthUser,
+    DuplicateUserError,
+    KeyDecryptError,
+    app_data_dir,
+)
 
 
 st.set_page_config(
@@ -89,7 +96,7 @@ def _save_upload(uploaded) -> Path:
     reruns and can be replayed in the video player."""
     data = bytes(uploaded.getbuffer())
     h = hashlib.sha256(data).hexdigest()[:16]
-    upload_dir = Path.cwd() / ".videolens" / "uploads" / h
+    upload_dir = app_data_dir() / "uploads" / h
     upload_dir.mkdir(parents=True, exist_ok=True)
     dest = upload_dir / uploaded.name
     if not dest.exists():
@@ -166,11 +173,14 @@ def _mode_description(mode: str) -> str:
 
 def main() -> None:
     _render_header()
+    auth_store = AuthStore.default()
+    user = _require_auth(auth_store)
+    if user is None:
+        return
 
     with st.sidebar:
-        _render_sidebar_config()
+        _render_sidebar_config(auth_store, user)
 
-    api_key = st.session_state.get("api_key", "")
     mode = st.session_state.get("mode", "general")
     max_frames = st.session_state.get("max_frames", 20)
     frame_interval = st.session_state.get("frame_interval", 5.0)
@@ -223,8 +233,14 @@ def main() -> None:
     )
 
     if run:
+        try:
+            api_key = auth_store.get_api_key(user.id)
+        except KeyDecryptError as exc:
+            st.error(str(exc))
+            return
+
         if not api_key:
-            st.error("Set an OpenAI API key in the sidebar.")
+            st.error("Save your OpenAI API key in Account settings.")
             return
         if source_path is None:
             st.error("Upload a file or paste a URL.")
@@ -267,15 +283,112 @@ def _render_header() -> None:
     )
 
 
-def _render_sidebar_config() -> None:
-    env_key = os.environ.get("OPENAI_API_KEY", "")
-    api_key = st.text_input(
-        "OpenAI API key",
-        value=st.session_state.get("api_key", env_key),
-        type="password",
-        help="Stored only in this browser session. Sourced from OPENAI_API_KEY env if set.",
+def _require_auth(auth_store: AuthStore) -> AuthUser | None:
+    user_id = st.session_state.get("auth_user_id")
+    user_email = st.session_state.get("auth_user_email")
+    if isinstance(user_id, int) and isinstance(user_email, str):
+        return AuthUser(id=user_id, email=user_email)
+
+    login_tab, create_tab = st.tabs(["**Log in**", "Create account"])
+
+    with login_tab:
+        with st.form("login_form"):
+            email = st.text_input("Email", key="login_email")
+            password = st.text_input("Password", type="password", key="login_password")
+            submitted = st.form_submit_button("Log in", type="primary")
+
+        if submitted:
+            user = auth_store.authenticate(email, password)
+            if user is None:
+                st.error("Invalid email or password.")
+            else:
+                _set_auth_session(user)
+                st.rerun()
+
+    with create_tab:
+        with st.form("create_account_form"):
+            email = st.text_input("Email", key="create_email")
+            password = st.text_input("Password", type="password", key="create_password")
+            confirm = st.text_input("Confirm password", type="password", key="confirm_password")
+            submitted = st.form_submit_button("Create account", type="primary")
+
+        if submitted:
+            if password != confirm:
+                st.error("Passwords do not match.")
+            else:
+                try:
+                    user = auth_store.create_user(email, password)
+                except DuplicateUserError as exc:
+                    st.error(str(exc))
+                except AuthError as exc:
+                    st.error(str(exc))
+                else:
+                    _set_auth_session(user)
+                    st.rerun()
+
+    return None
+
+
+def _set_auth_session(user: AuthUser) -> None:
+    st.session_state["auth_user_id"] = user.id
+    st.session_state["auth_user_email"] = user.email
+    st.session_state.pop("result", None)
+    st.session_state.pop("pdf_bytes", None)
+    st.session_state.pop("pdf_error", None)
+
+
+def _clear_auth_session() -> None:
+    for key in (
+        "auth_user_id",
+        "auth_user_email",
+        "result",
+        "pdf_bytes",
+        "pdf_error",
+        "seek_to",
+    ):
+        st.session_state.pop(key, None)
+
+
+def _render_sidebar_config(auth_store: AuthStore, user: AuthUser) -> None:
+    st.caption(f"Signed in as `{user.email}`")
+    if st.button("Sign out", use_container_width=True):
+        _clear_auth_session()
+        st.rerun()
+
+    st.divider()
+    st.subheader("Account settings")
+    key_saved = auth_store.has_api_key(user.id)
+    if key_saved:
+        st.success("OpenAI key saved")
+    else:
+        st.warning("Add your OpenAI API key to analyze videos.")
+
+    with st.form("api_key_form", clear_on_submit=True):
+        api_key = st.text_input(
+            "OpenAI API key",
+            type="password",
+            placeholder="sk-...",
+            help="Saved encrypted for your account. VideoLens does not use a shared server key.",
+        )
+        save_key = st.form_submit_button("Save key", type="primary")
+
+    if save_key:
+        try:
+            auth_store.save_api_key(user.id, api_key)
+        except AuthError as exc:
+            st.error(str(exc))
+        else:
+            st.success("OpenAI key saved.")
+            st.rerun()
+
+    if key_saved and st.button("Remove saved key", use_container_width=True):
+        auth_store.delete_api_key(user.id)
+        st.success("OpenAI key removed.")
+        st.rerun()
+
+    st.caption(
+        "Keys are encrypted at rest and used only for requests made while signed in."
     )
-    st.session_state["api_key"] = api_key
 
     st.divider()
 
@@ -328,7 +441,7 @@ def _run_pipeline(
     config = Config(
         models=Models(),
         defaults=Defaults(),
-        cache_root=Path.cwd() / ".videolens" / "cache",
+        cache_root=app_data_dir() / "cache",
         openai_api_key=api_key,
     )
 
