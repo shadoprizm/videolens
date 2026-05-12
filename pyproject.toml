@@ -1,0 +1,36 @@
+[project]
+name = "videolens"
+version = "0.1.0"
+description = "Universal video intelligence CLI — prompt-directed analysis of video sources"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "Jeramy Ratelle", email = "ratelle.ja@gmail.com" }
+]
+dependencies = [
+    "typer>=0.15.0",
+    "pydantic>=2.9.0",
+    "openai>=1.55.0",
+    "yt-dlp>=2024.12.0",
+    "httpx>=0.27.0",
+    "rich>=13.9.0",
+    "streamlit>=1.40.0",
+    "pandas>=2.2.0",
+]
+
+[project.scripts]
+videolens = "videolens.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.9.18,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "ruff>=0.8.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
