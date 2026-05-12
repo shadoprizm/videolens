@@ -64,6 +64,8 @@ def analyze(
         console.print("[red]OPENAI_API_KEY is not set in the environment.[/red]")
         raise typer.Exit(code=1)
 
+    effective_output = output_dir or (Path.cwd() / "output" / "videolens")
+
     try:
         result = run_extraction(
             source,
@@ -73,6 +75,8 @@ def analyze(
             max_frames=max_frames,
             force=force,
             console=console,
+            prompt=prompt,
+            output_dir=effective_output,
         )
     except Exception as exc:
         console.print(f"[red]Pipeline failed:[/red] {exc}")
@@ -90,15 +94,19 @@ def analyze(
     table.add_row("Frames", str(len(result.frames)))
     table.add_row("Frame summaries", str(len(result.frame_summaries)))
     table.add_row("Timeline segments", str(len(result.timeline.segments)))
+    if result.analysis is not None:
+        table.add_row("Findings", str(len(result.analysis.findings)))
+        table.add_row("Recommendations", str(len(result.analysis.recommendations)))
+        table.add_row("Tasks", str(len(result.analysis.tasks)))
+        table.add_row("Overall confidence", result.analysis.confidence)
     table.add_row("Cache", str(result.cache.dir))
+    table.add_row("Report", str(effective_output))
     console.print(table)
 
-    console.print(
-        f"\n[yellow]Phase 2 — extraction + timeline complete. Synthesis + reports come in Phase 3.[/yellow]"
-    )
-    console.print(f"Prompt (queued): {prompt!r}")
-    console.print(f"Output dir (queued): {output_dir or '(not set)'}")
-    console.print(f"JSON only (queued): {json_only}")
+    if result.analysis is not None and not json_only:
+        console.print()
+        console.print("[bold]Executive Summary[/bold]")
+        console.print(result.analysis.summary)
 
 
 if __name__ == "__main__":

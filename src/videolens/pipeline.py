@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+import hashlib
+import json as _json
 from dataclasses import dataclass
 from pathlib import Path
 
 from openai import OpenAI
 from rich.console import Console
 
+from videolens.analysis import analyze_timeline
 from videolens.cache import Cache, compute_cache_key
 from videolens.config import Config
+from videolens.outputs import render_markdown, write_json, write_markdown
 from videolens.processors.build_timeline import build_timeline
 from videolens.processors.describe_frames import describe_frames
 from videolens.processors.download import fetch_to_local
@@ -17,6 +21,7 @@ from videolens.processors.extract_metadata import probe_metadata
 from videolens.processors.transcribe_audio import transcribe
 from videolens.resolvers import resolve_source
 from videolens.types import (
+    Analysis,
     AnalysisMode,
     Frame,
     FrameSummary,
@@ -37,6 +42,8 @@ class ExtractionResult:
     frame_summaries: list[FrameSummary]
     timeline: Timeline
     cache: Cache
+    analysis: Analysis | None = None
+    report_markdown: str | None = None
 
 
 def run_extraction(
@@ -48,6 +55,8 @@ def run_extraction(
     max_frames: int = 40,
     force: bool = False,
     console: Console | None = None,
+    prompt: str | None = None,
+    output_dir: Path | None = None,
 ) -> ExtractionResult:
     console = console or Console()
 
@@ -88,6 +97,20 @@ def run_extraction(
         frame_summaries, transcript, metadata.duration_seconds, cache, force, console
     )
 
+    analysis: Analysis | None = None
+    report_md: str | None = None
+    if prompt:
+        analysis = _ensure_analysis(
+            timeline, resolved, mode, prompt, cache, force, client, config, console
+        )
+        report_md = render_markdown(analysis)
+        if output_dir is not None:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            write_markdown(analysis, output_dir / "report.md")
+            write_json(analysis, output_dir / "analysis.json")
+            console.print(f"[green]wrote[/green] {output_dir}/report.md + analysis.json")
+        cache.path("report.md").write_text(report_md)
+
     return ExtractionResult(
         resolved=resolved,
         video_path=video_path,
@@ -97,6 +120,8 @@ def run_extraction(
         frame_summaries=frame_summaries,
         timeline=timeline,
         cache=cache,
+        analysis=analysis,
+        report_markdown=report_md,
     )
 
 
@@ -236,6 +261,40 @@ def _ensure_timeline(
     cache.write_json("timeline.json", timeline)
     console.print(f"  → {len(timeline.segments)} segments")
     return timeline
+
+
+def _ensure_analysis(
+    timeline: Timeline,
+    source: ResolvedSource,
+    mode: AnalysisMode,
+    prompt: str,
+    cache: Cache,
+    force: bool,
+    client: OpenAI,
+    config: Config,
+    console: Console,
+) -> Analysis:
+    cache_key_inputs = {"prompt": prompt, "mode": mode.value, "model": config.models.synthesize}
+    prompt_hash = hashlib.sha256(
+        _json.dumps(cache_key_inputs, sort_keys=True).encode()
+    ).hexdigest()[:8]
+    cache_name = f"analysis-{prompt_hash}.json"
+
+    if not force:
+        cached = cache.read_model(cache_name, Analysis)
+        if cached is not None:
+            console.print(f"[green]cached[/green] analysis (prompt hash {prompt_hash})")
+            return cached
+
+    console.print(f"[cyan]synthesizing analysis ({config.models.synthesize})…[/cyan]")
+    analysis = analyze_timeline(timeline, source, mode, prompt, client, config.models)
+    cache.write_json(cache_name, analysis)
+    cache.write_json("analysis.json", analysis)
+    console.print(
+        f"  → {len(analysis.findings)} findings, {len(analysis.recommendations)} recommendations, "
+        f"{len(analysis.tasks)} tasks"
+    )
+    return analysis
 
 
 def _transcribe_model_for(mode: AnalysisMode, config: Config) -> str:

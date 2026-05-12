@@ -143,6 +143,8 @@ def main() -> None:
                 max_frames=int(max_frames),
                 force=force,
                 console=StatusConsole(),  # type: ignore[arg-type]
+                prompt=prompt,
+                output_dir=None,
             )
             status.update(label="Extraction complete", state="complete", expanded=False)
         except Exception as exc:
@@ -169,9 +171,12 @@ def render_results(result: ExtractionResult) -> None:
     if result.resolved.limitations:
         st.warning("Limitations:\n" + "\n".join(f"- {l}" for l in result.resolved.limitations))
 
-    tab_timeline, tab_frames, tab_transcript, tab_raw = st.tabs(
-        ["Timeline", "Frames", "Transcript", "Cache files"]
+    tab_report, tab_timeline, tab_frames, tab_transcript, tab_raw = st.tabs(
+        ["Report", "Timeline", "Frames", "Transcript", "Cache files"]
     )
+
+    with tab_report:
+        render_report_tab(result)
 
     with tab_timeline:
         if not result.timeline.segments:
@@ -235,6 +240,76 @@ def render_results(result: ExtractionResult) -> None:
         for f in sorted(result.cache.dir.glob("*.json")):
             with st.expander(f.name):
                 st.code(f.read_text(), language="json")
+
+
+def render_report_tab(result: ExtractionResult) -> None:
+    analysis = result.analysis
+    if analysis is None:
+        st.info("No analysis produced — provide a prompt and re-run.")
+        return
+
+    st.markdown(f"### Executive Summary  \n*Overall confidence: **{analysis.confidence}***")
+    st.write(analysis.summary or "_(no summary)_")
+
+    st.divider()
+
+    cols = st.columns(2)
+    with cols[0]:
+        st.subheader("Findings")
+        if not analysis.findings:
+            st.caption("_(none)_")
+        for i, f in enumerate(analysis.findings, 1):
+            with st.expander(f"{i}. {f.finding}  ·  {f.confidence}", expanded=(i <= 2)):
+                if f.evidence:
+                    for e in f.evidence:
+                        st.markdown(f"- `{_fmt_ts(e.timestamp)}` — {e.detail}")
+                else:
+                    st.caption("_(no evidence cited)_")
+
+    with cols[1]:
+        st.subheader("Recommendations")
+        if not analysis.recommendations:
+            st.caption("_(none)_")
+        for r in analysis.recommendations:
+            st.markdown(f"- **{r.recommendation}**  \n  _{r.rationale or ''}_  \n  Conf: {r.confidence}")
+
+        st.subheader("Tasks")
+        if not analysis.tasks:
+            st.caption("_(none)_")
+        for t in analysis.tasks:
+            if t.detail:
+                st.markdown(f"- **{t.title}** — {t.detail}")
+            else:
+                st.markdown(f"- {t.title}")
+
+    if analysis.limitations:
+        st.divider()
+        st.subheader("Limitations")
+        for lim in analysis.limitations:
+            st.markdown(f"- {lim}")
+
+    if result.report_markdown:
+        st.divider()
+        col1, col2 = st.columns(2)
+        col1.download_button(
+            "Download report.md",
+            data=result.report_markdown,
+            file_name="report.md",
+            mime="text/markdown",
+        )
+        col2.download_button(
+            "Download analysis.json",
+            data=analysis.model_dump_json(indent=2),
+            file_name="analysis.json",
+            mime="application/json",
+        )
+
+
+def _fmt_ts(seconds: float) -> str:
+    s = max(0.0, float(seconds))
+    minutes = int(s // 60)
+    secs = s - minutes * 60
+    return f"{minutes:02d}:{secs:05.2f}"
 
 
 def _strip_rich_tags(s: str) -> str:
