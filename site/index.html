@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VideoLens — Universal video intelligence for humans and AI agents</title>
+  <meta name="description" content="Drop any video, ask any question. Get a timestamped, evidence-grounded report. Open source, MIT licensed, built for AI agents.">
+  <meta name="theme-color" content="#0891B2">
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:title" content="VideoLens — Universal video intelligence">
+  <meta property="og:description" content="Drop any video, ask any question. Get a timestamped, evidence-grounded report.">
+  <meta property="og:url" content="https://videolens.io">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://videolens.io/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230891B2'/%3E%3Cstop offset='100%25' stop-color='%236366F1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M24 18l24 14-24 14V18z' fill='white'/%3E%3C/svg%3E">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50:'#ECFEFF', 100:'#CFFAFE', 200:'#A5F3FC', 400:'#22D3EE', 500:'#06B6D4', 600:'#0891B2', 700:'#0E7490', 800:'#155E75', 900:'#164E63' },
+          },
+          fontFamily: {
+            sans: ['Inter','-apple-system','BlinkMacSystemFont','Segoe UI','sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <style>
+    html { font-family: 'Inter', sans-serif; }
+    @supports (font-variation-settings: normal) { html { font-family: 'Inter var', sans-serif; } }
+    .gradient-text { background: linear-gradient(135deg, #0891B2 0%, #6366F1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .gradient-bg { background: linear-gradient(135deg, #0891B2 0%, #6366F1 100%); }
+    .hover-lift { transition: transform .15s ease, box-shadow .15s ease; }
+    .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(8,145,178,0.12); }
+    .grid-pattern {
+      background-image:
+        linear-gradient(rgba(8,145,178,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(8,145,178,0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+  </style>
+</head>
+<body class="bg-white text-slate-900 antialiased">
+
+  <!-- Nav -->
+  <header class="sticky top-0 z-40 backdrop-blur bg-white/80 border-b border-slate-100">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2">
+        <span class="inline-block w-7 h-7 rounded-md gradient-bg flex items-center justify-center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+        <span class="text-xl font-extrabold tracking-tight gradient-text">VideoLens</span>
+        <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 rounded-md tracking-wide">v0.1 · ALPHA</span>
+      </a>
+      <nav class="flex items-center gap-6 text-sm">
+        <a href="#features" class="hidden md:inline text-slate-600 hover:text-slate-900">Features</a>
+        <a href="#how" class="hidden md:inline text-slate-600 hover:text-slate-900">How it works</a>
+        <a href="#install" class="hidden md:inline text-slate-600 hover:text-slate-900">Install</a>
+        <a href="#hosted" class="hidden md:inline text-slate-600 hover:text-slate-900">Hosted</a>
+        <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener" class="text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.28-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.21.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.31-.54-1.53.11-3.19 0 0 1.01-.32 3.3 1.23a11.42 11.42 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.19.77.84 1.24 1.92 1.24 3.23 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22 0 1.6-.01 2.89-.01 3.28 0 .32.21.7.83.58A12 12 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+        <a href="#hosted" class="inline-flex items-center gap-1 px-3.5 py-1.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition">
+          Try it →
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 grid-pattern"></div>
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-100/40 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-100/40 rounded-full blur-3xl"></div>
+
+    <div class="relative max-w-6xl mx-auto px-6 pt-20 pb-20 md:pt-28 md:pb-24">
+      <div class="max-w-3xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-700 mb-6 shadow-sm">
+          <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+          Open source · MIT licensed · ~1,500 video platforms supported
+        </div>
+
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] mb-6">
+          Turn any video into a <span class="gradient-text">timestamped</span>,<br class="hidden md:inline">
+          evidence-grounded report.
+        </h1>
+
+        <p class="text-lg md:text-xl text-slate-600 mb-9 leading-relaxed max-w-2xl">
+          Drop a bug recording, a meeting, a demo, a tutorial. Ask anything. VideoLens returns a structured analysis with citations to specific moments in the video — for humans or AI agents.
+        </p>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 px-5 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition hover-lift">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.28-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.21.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.31-.54-1.53.11-3.19 0 0 1.01-.32 3.3 1.23a11.42 11.42 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.19.77.84 1.24 1.92 1.24 3.23 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22 0 1.6-.01 2.89-.01 3.28 0 .32.21.7.83.58A12 12 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+          <a href="#install"
+             class="inline-flex items-center gap-2 px-5 py-3 bg-white border border-slate-300 text-slate-900 font-semibold rounded-lg hover:bg-slate-50 transition hover-lift">
+            Quickstart
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+
+        <div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-500">
+          <span class="flex items-center gap-1.5"><span class="text-emerald-500">✓</span> Local files</span>
+          <span class="flex items-center gap-1.5"><span class="text-emerald-500">✓</span> YouTube</span>
+          <span class="flex items-center gap-1.5"><span class="text-emerald-500">✓</span> Loom</span>
+          <span class="flex items-center gap-1.5"><span class="text-emerald-500">✓</span> Vimeo</span>
+          <span class="flex items-center gap-1.5"><span class="text-emerald-500">✓</span> TikTok</span>
+          <span class="flex items-center gap-1.5"><span class="text-emerald-500">✓</span> Twitch</span>
+          <span class="flex items-center gap-1.5"><span class="text-emerald-500">✓</span> Twitter/X</span>
+          <span class="text-slate-400">+ 1,490 more</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="border-t border-slate-100 bg-slate-50/50">
+    <div class="max-w-6xl mx-auto px-6 py-20 md:py-24">
+      <div class="max-w-2xl mb-14">
+        <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">What it does</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Three steps from video to insight.</h2>
+        <p class="text-lg text-slate-600">Most video tools wrap Whisper and stop. VideoLens combines transcription, frame-level vision, and prompt-directed analysis into one cached pipeline.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-5">
+        <div class="bg-white border border-slate-200 rounded-xl p-7 hover-lift">
+          <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 mb-5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          </div>
+          <h3 class="text-lg font-bold mb-2">Drop any video</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Local files, YouTube, Loom, Vimeo, TikTok, Twitter/X, Twitch, Reddit, Google Drive, direct URLs. Roughly 1,500 platforms via yt-dlp.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-7 hover-lift">
+          <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 mb-5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+          </div>
+          <h3 class="text-lg font-bold mb-2">Ask anything</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Three modes built in — General, Bug, Meeting — plus your free-form prompt. Each mode tunes the analyst for what matters: repro steps, decisions, frictions, claims.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-7 hover-lift">
+          <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 mb-5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          </div>
+          <h3 class="text-lg font-bold mb-2">Evidence at every step</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Every finding cites a specific timestamp. Click any citation in the UI to jump the player to that moment. Output as PDF, Markdown, or JSON.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how" class="border-t border-slate-100">
+    <div class="max-w-6xl mx-auto px-6 py-20 md:py-24">
+      <div class="max-w-2xl mb-14">
+        <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">How it works</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">A cached pipeline you can trust.</h2>
+        <p class="text-lg text-slate-600">Resolve the source. Extract everything. Build a timeline. Synthesize a report. Each step is cached at <code class="px-1.5 py-0.5 bg-slate-100 rounded text-sm font-mono text-brand-700">.videolens/cache/&lt;hash&gt;/</code> so re-runs are cheap and follow-up questions cost cents.</p>
+      </div>
+
+      <div class="grid md:grid-cols-4 gap-3">
+        <div class="bg-white border-2 border-slate-200 rounded-xl p-5 relative">
+          <div class="absolute -top-3 left-5 px-2 py-0.5 bg-brand-600 text-white text-[10px] font-bold rounded">1 · RESOLVE</div>
+          <h4 class="font-bold mt-3 mb-2">Source classification</h4>
+          <p class="text-sm text-slate-600 leading-relaxed">Detects local file, YouTube, Loom, Vimeo, direct URL, generic page. Reports limitations clearly when a site isn't fully supported.</p>
+        </div>
+
+        <div class="bg-white border-2 border-slate-200 rounded-xl p-5 relative">
+          <div class="absolute -top-3 left-5 px-2 py-0.5 bg-brand-600 text-white text-[10px] font-bold rounded">2 · EXTRACT</div>
+          <h4 class="font-bold mt-3 mb-2">Audio + frames + OCR</h4>
+          <p class="text-sm text-slate-600 leading-relaxed">yt-dlp fetches remote video, ffmpeg samples frames and chunks audio, OpenAI transcribes each chunk, GPT-5.4-mini describes every frame and reads any visible text.</p>
+        </div>
+
+        <div class="bg-white border-2 border-slate-200 rounded-xl p-5 relative">
+          <div class="absolute -top-3 left-5 px-2 py-0.5 bg-brand-600 text-white text-[10px] font-bold rounded">3 · TIMELINE</div>
+          <h4 class="font-bold mt-3 mb-2">Time-windowed merge</h4>
+          <p class="text-sm text-slate-600 leading-relaxed">Frame summaries and transcript segments are merged into time-windowed segments — each with visual, OCR, transcript, scene type, and confidence.</p>
+        </div>
+
+        <div class="bg-white border-2 border-slate-200 rounded-xl p-5 relative">
+          <div class="absolute -top-3 left-5 px-2 py-0.5 bg-brand-600 text-white text-[10px] font-bold rounded">4 · ANALYZE</div>
+          <h4 class="font-bold mt-3 mb-2">Mode-driven synthesis</h4>
+          <p class="text-sm text-slate-600 leading-relaxed">One GPT-5.5 call against the timeline, your prompt, and the active mode → structured findings, evidence citations, recommendations, and ticket-ready tasks.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modes -->
+  <section class="border-t border-slate-100 bg-slate-50/50">
+    <div class="max-w-6xl mx-auto px-6 py-20 md:py-24">
+      <div class="max-w-2xl mb-14">
+        <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">Built-in modes</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">A different analyst for each kind of video.</h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-5">
+        <div class="bg-white border border-slate-200 rounded-xl p-7 hover-lift">
+          <div class="text-2xl mb-3">🎬</div>
+          <h3 class="text-lg font-bold mb-2">General</h3>
+          <p class="text-sm text-slate-500 mb-4 font-mono">--mode general</p>
+          <p class="text-slate-600 text-[15px] leading-relaxed mb-4">Broad review: what's happening, what stands out, what's worth knowing.</p>
+          <p class="text-xs text-slate-500 italic">Use for: tutorials, demos, content reviews, any video you just want explained.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-7 hover-lift">
+          <div class="text-2xl mb-3">🐛</div>
+          <h3 class="text-lg font-bold mb-2">Bug</h3>
+          <p class="text-sm text-slate-500 mb-4 font-mono">--mode bug</p>
+          <p class="text-slate-600 text-[15px] leading-relaxed mb-4">Bug recordings → reproduction steps, severity hint, ticket-ready summary, possible root-cause areas.</p>
+          <p class="text-xs text-slate-500 italic">Use for: screen recordings of broken UIs, crashes, session replays of failed flows.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-7 hover-lift">
+          <div class="text-2xl mb-3">🗣️</div>
+          <h3 class="text-lg font-bold mb-2">Meeting</h3>
+          <p class="text-sm text-slate-500 mb-4 font-mono">--mode meeting</p>
+          <p class="text-slate-600 text-[15px] leading-relaxed mb-4">Decisions, objections, commitments, follow-ups. Uses diarized transcription when available.</p>
+          <p class="text-xs text-slate-500 italic">Use for: Zoom / Teams / Meet recordings, standups, briefings, sales calls.</p>
+        </div>
+      </div>
+
+      <div class="mt-10 p-5 bg-white border border-slate-200 rounded-xl flex items-center gap-4 text-sm text-slate-600">
+        <span class="text-2xl">🛠️</span>
+        <div>
+          <strong class="text-slate-900">Coming next:</strong> UX (session-replay analysis), Tutorial (step extraction), Product Demo (feature inventory), Content Critique, Privacy (sensitive-info redaction). Each mode is a small prompt-fragment file — adding a new one is ~30 lines.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Install / Quickstart -->
+  <section id="install" class="border-t border-slate-100">
+    <div class="max-w-6xl mx-auto px-6 py-20 md:py-24">
+      <div class="max-w-2xl mb-12">
+        <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">Quickstart</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Run it locally in two minutes.</h2>
+        <p class="text-lg text-slate-600">Python 3.12+, ffmpeg, and an OpenAI API key. That's the whole list.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-5">
+        <div class="bg-slate-900 rounded-xl p-6 text-slate-100 font-mono text-sm overflow-x-auto">
+          <div class="text-slate-500 text-xs mb-3 uppercase tracking-wide">1 · Install</div>
+<pre class="leading-relaxed"><span class="text-slate-500"># macOS</span>
+brew install ffmpeg
+git clone https://github.com/shadoprizm/videolens.git
+cd videolens
+uv sync --extra ui</pre>
+        </div>
+
+        <div class="bg-slate-900 rounded-xl p-6 text-slate-100 font-mono text-sm overflow-x-auto">
+          <div class="text-slate-500 text-xs mb-3 uppercase tracking-wide">2 · Run</div>
+<pre class="leading-relaxed">export OPENAI_API_KEY=sk-...
+
+<span class="text-slate-500"># Web UI</span>
+uv run videolens ui
+
+<span class="text-slate-500"># Or CLI</span>
+uv run videolens analyze ./bug.mov \
+  --mode bug --prompt "What broke?"</pre>
+        </div>
+      </div>
+
+      <div class="mt-6 p-5 bg-brand-50 border border-brand-100 rounded-xl flex items-start gap-3 text-sm text-slate-700">
+        <span class="text-brand-600 text-lg leading-none mt-0.5">💡</span>
+        <div>
+          <strong>Rough cost:</strong> a 5-minute video with 20 frames ≈ $0.20 via OpenAI. A 30-minute meeting ≈ $0.50–$1.50. Per-prompt analysis cache means follow-up questions on the same video cost only cents.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hosted version waitlist -->
+  <section id="hosted" class="border-t border-slate-100">
+    <div class="max-w-4xl mx-auto px-6 py-20 md:py-24 text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-50 border border-brand-100 rounded-full text-xs font-semibold text-brand-700 mb-6">
+        <span class="w-1.5 h-1.5 bg-brand-500 rounded-full"></span>
+        Hosted version
+      </div>
+
+      <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-5">
+        Don't want to self-host?
+      </h2>
+      <p class="text-lg md:text-xl text-slate-600 mb-9 max-w-2xl mx-auto">
+        VideoLens Cloud is on the way — drop a video in the browser, get the same analysis without managing infra. Get notified when it's live.
+      </p>
+
+      <!-- Waitlist form: replace action= with your Formspree / Tally / etc. endpoint -->
+      <form action="mailto:ratelle.ja@gmail.com?subject=VideoLens%20Cloud%20waitlist" method="post" enctype="text/plain"
+            class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+        <input type="email" name="email" required placeholder="you@work.com"
+               class="flex-1 px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+        <button type="submit"
+                class="px-5 py-3 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 transition whitespace-nowrap hover-lift">
+          Notify me →
+        </button>
+      </form>
+
+      <p class="text-xs text-slate-500 mt-4">No spam. One email when it launches.</p>
+    </div>
+  </section>
+
+  <!-- Roadmap teaser -->
+  <section class="border-t border-slate-100 bg-slate-50/50">
+    <div class="max-w-6xl mx-auto px-6 py-20 md:py-24">
+      <div class="max-w-2xl mb-12">
+        <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">Roadmap</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Where this is going.</h2>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-5">
+        <div class="flex gap-4 p-5 bg-white border border-slate-200 rounded-xl">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div>
+            <h4 class="font-bold mb-1">Q&amp;A loop</h4>
+            <p class="text-sm text-slate-600">"Analyze once, ask many times" — follow-up questions reuse the cached timeline for cents instead of dollars.</p>
+          </div>
+        </div>
+
+        <div class="flex gap-4 p-5 bg-white border border-slate-200 rounded-xl">
+          <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+          </div>
+          <div>
+            <h4 class="font-bold mb-1">MCP server</h4>
+            <p class="text-sm text-slate-600">Native Model Context Protocol server so Claude Code, Cursor, and other agents can analyze video as a first-class tool.</p>
+          </div>
+        </div>
+
+        <div class="flex gap-4 p-5 bg-white border border-slate-200 rounded-xl">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
+          </div>
+          <div>
+            <h4 class="font-bold mb-1">Semantic search</h4>
+            <p class="text-sm text-slate-600">Embeddings over processed timelines: "find where they talked about pricing", "find every error message", across your whole library.</p>
+          </div>
+        </div>
+
+        <div class="flex gap-4 p-5 bg-white border border-slate-200 rounded-xl">
+          <div class="w-10 h-10 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600 shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8"/></svg>
+          </div>
+          <div>
+            <h4 class="font-bold mb-1">Session-replay parsers</h4>
+            <p class="text-sm text-slate-600">PostHog, Clarity, Hotjar, FullStory, LogRocket, OpenReplay — read event exports, not just rendered video.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 text-center">
+        <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 text-brand-600 font-semibold hover:text-brand-700 transition">
+          Read the full roadmap on GitHub
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-100">
+    <div class="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-5 h-5 rounded gradient-bg flex items-center justify-center">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+        <span class="font-bold text-slate-700">VideoLens</span>
+        <span>· MIT License · © 2026</span>
+      </div>
+      <div class="flex items-center gap-5">
+        <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener" class="hover:text-slate-900">GitHub</a>
+        <a href="https://github.com/shadoprizm/videolens/issues" target="_blank" rel="noopener" class="hover:text-slate-900">Issues</a>
+        <a href="https://github.com/shadoprizm/videolens/blob/main/LICENSE" target="_blank" rel="noopener" class="hover:text-slate-900">License</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
