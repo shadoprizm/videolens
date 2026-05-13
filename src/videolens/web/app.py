@@ -157,6 +157,11 @@ def _mode_description(mode: str) -> str:
         "general": "Broad review: what's happening, what stands out, what's worth knowing.",
         "bug": "Bug recording: repro steps, severity, ticket-ready summary.",
         "meeting": "Decisions, objections, commitments, follow-ups (diarized transcript when available).",
+        "ux": "Session replay: user intent, friction points, abandoned flows, UI/copy fixes.",
+        "tutorial": "How-to video: tools, commands, ordered steps, prerequisites, agent-ready checklist.",
+        "product_demo": "Product demo: feature inventory, positioning, strengths/weaknesses, opportunities.",
+        "content": "Content critique: hook, pacing, clarity, claims/proof, suggested edits.",
+        "privacy": "Privacy review: visible secrets, credentials, PII, internal URLs — redaction plan.",
     }.get(mode, "")
 
 
@@ -204,11 +209,42 @@ def main() -> None:
         if url.strip() and source_path is None:
             source_path = url.strip()
 
+    if "prompt_value" not in st.session_state:
+        st.session_state["prompt_value"] = (
+            "Review this video and tell me what is happening, what's notable, and any concerns."
+        )
+
     prompt = st.text_area(
         "What do you want to know about this video?",
-        value="Review this video and tell me what is happening, what's notable, and any concerns.",
+        value=st.session_state["prompt_value"],
         height=100,
+        key="prompt_input",
     )
+    st.session_state["prompt_value"] = prompt
+
+    enhance_col, _spacer = st.columns([1, 4])
+    if enhance_col.button("✨ Enhance prompt", use_container_width=True, help="Rewrite your prompt to be sharper and mode-aware. Costs less than a cent."):
+        if not api_key:
+            st.warning("Enter your OpenAI API key in the sidebar before enhancing.")
+        elif not prompt.strip():
+            st.warning("Type a prompt first, then click Enhance.")
+        else:
+            with st.spinner("Enhancing prompt…"):
+                from openai import OpenAI as _OpenAI
+                from videolens.analysis import enhance_prompt as _enhance_prompt
+                from videolens.analysis.enhance_prompt import EnhancePromptError as _EnhancePromptError
+                try:
+                    client = _OpenAI(api_key=api_key)
+                    new_prompt = _enhance_prompt(
+                        prompt,
+                        AnalysisMode(mode),
+                        client,
+                        Models(),
+                    )
+                    st.session_state["prompt_value"] = new_prompt
+                    st.rerun()
+                except _EnhancePromptError as exc:
+                    st.error(f"Enhance failed: {exc}")
 
     cost_low, cost_high = _estimate_cost(max_frames)
     run_col, cost_col = st.columns([1, 2])

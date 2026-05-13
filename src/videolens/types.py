@@ -28,7 +28,11 @@ class AnalysisMode(str, Enum):
     GENERAL = "general"
     BUG = "bug"
     MEETING = "meeting"
-    # Deferred for v2: ux, tutorial, product_demo, content, privacy
+    UX = "ux"
+    TUTORIAL = "tutorial"
+    PRODUCT_DEMO = "product_demo"
+    CONTENT = "content"
+    PRIVACY = "privacy"
 
 
 Confidence = Literal["high", "medium", "low"]
