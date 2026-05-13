@@ -266,6 +266,7 @@ def main() -> None:
             return
 
         st.session_state.pop("result", None)
+        st.session_state["qa_history"] = []
         st.session_state["seek_to"] = 0
         _run_pipeline(source_path, prompt, mode, max_frames, frame_interval, force, api_key)
 
@@ -601,6 +602,75 @@ def render_report_tab(result: ExtractionResult) -> None:
             mime="application/json",
             use_container_width=True,
         )
+
+    _render_qa_section(result)
+
+
+def _render_qa_section(result: ExtractionResult) -> None:
+    """Q&A loop: ask follow-up questions against the cached timeline + prior
+    analysis. Each Q&A is one cheap synthesis call; the heavy extraction never
+    re-runs."""
+    st.divider()
+    st.subheader("💬 Ask a follow-up question")
+    st.caption(
+        "Costs a few cents per question. The video isn't re-processed — only the "
+        "synthesis call runs again."
+    )
+
+    qa_history: list[dict[str, str]] = st.session_state.setdefault("qa_history", [])
+
+    for entry in qa_history:
+        with st.chat_message("user"):
+            st.markdown(entry["question"])
+        with st.chat_message("assistant"):
+            st.markdown(entry["answer"])
+
+    if "qa_input" not in st.session_state:
+        st.session_state["qa_input"] = ""
+
+    new_question = st.text_input(
+        "Your question",
+        value=st.session_state["qa_input"],
+        key="qa_input_widget",
+        placeholder="e.g. What specifically went wrong at the 1:20 mark?",
+        label_visibility="collapsed",
+    )
+
+    api_key = st.session_state.get("api_key", "")
+
+    if st.button("Ask", type="secondary"):
+        if not api_key:
+            st.warning("Enter your OpenAI API key in the sidebar before asking.")
+        elif not new_question.strip():
+            st.warning("Type a question first.")
+        else:
+            with st.spinner("Thinking…"):
+                from openai import OpenAI as _OpenAI
+                from videolens.analysis import ask_question as _ask_question
+                from videolens.analysis.ask_question import (
+                    AskQuestionError as _AskQuestionError,
+                )
+
+                try:
+                    client = _OpenAI(api_key=api_key)
+                    answer = _ask_question(
+                        new_question,
+                        result.timeline,
+                        result.analysis,
+                        client,
+                        Models(),
+                    )
+                    qa_history.append({"question": new_question, "answer": answer})
+                    st.session_state["qa_history"] = qa_history
+                    st.session_state["qa_input"] = ""
+                    st.rerun()
+                except _AskQuestionError as exc:
+                    st.error(f"Q&A failed: {exc}")
+
+    if qa_history:
+        if st.button("Clear conversation", type="secondary"):
+            st.session_state["qa_history"] = []
+            st.rerun()
 
 
 def render_timeline_tab(result: ExtractionResult) -> None:
