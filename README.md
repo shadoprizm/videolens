@@ -207,12 +207,36 @@ Rough order-of-magnitude:
 
 Per-prompt analysis cache means asking a second question of an already-extracted video costs only the synthesis call (cents).
 
+## MCP server (Claude Code / Cursor / Windsurf)
+
+VideoLens ships a [Model Context Protocol](https://modelcontextprotocol.io) server so AI agents can analyse videos as a first-class tool.
+
+```bash
+uv sync --extra mcp
+```
+
+Available tools:
+
+| Tool | What it does |
+|---|---|
+| `analyze_video` | Run the full pipeline against a source + prompt + mode |
+| `ask_video` | Follow-up question against a previously analysed video |
+| `get_timeline` | Fetch the cached timeline (segments with visual/OCR/transcript) |
+| `get_transcript` | Fetch the cached transcript |
+| `get_frames` | Fetch frame summaries |
+| `list_cached` | List all videos with cached extraction artifacts |
+
+Add it to Claude Code:
+
+```bash
+claude mcp add videolens -- videolens-mcp
+```
+
+Or wire it into Cursor / Windsurf / any MCP-aware host the same way as any stdio MCP server.
+
 ## Roadmap
 
 - **Robustness:** soft-fail transcription so frame-only videos still produce a report; clearer error surfaces in the UI
-- **More modes:** UX, tutorial, product-demo, content, privacy
-- **Q&A loop:** "analyze once, ask many times" — second prompt input that reuses cached extraction
-- **MCP server wrapper:** expose `analyze_video` / `ask_video` / `get_timeline` etc. as tools Claude Code can call
 - **More sources:** webpage-rendered embedded video (Playwright), session-replay JSON exports (PostHog / Clarity / Hotjar / FullStory / LogRocket / OpenReplay), Zoom/Meet/Teams recordings
 - **Scene-change frame selection:** smarter than the adaptive interval used in v0.1
 - **Embeddings + semantic search** over processed timelines

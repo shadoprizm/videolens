@@ -35,6 +35,12 @@ ui = [
     "markdown>=3.7",
     "weasyprint>=63.0",
 ]
+mcp = [
+    "mcp>=1.0.0",
+]
+capture = [
+    "playwright>=1.45.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/shadoprizm/videolens"
@@ -43,6 +49,7 @@ Issues = "https://github.com/shadoprizm/videolens/issues"
 
 [project.scripts]
 videolens = "videolens.cli:app"
+videolens-mcp = "videolens.mcp_server:main"
 
 [build-system]
 requires = ["uv_build>=0.9.18,<0.10.0"]
