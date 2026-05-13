@@ -67,11 +67,15 @@ def analyze(
     output_dir: Path | None = typer.Option(None, "--output-dir", "-o", help="Where to write report.md / analysis.json."),
     frame_interval: float = typer.Option(5.0, "--frame-interval", help="Seconds between sampled frames."),
     max_frames: int = typer.Option(40, "--max-frames", help="Hard cap on frames sent to the vision model (cost control)."),
+    capture_duration: float = typer.Option(60.0, "--capture-duration", help="Seconds of browser capture for session-replay sources (PostHog, Hotjar, Clarity, etc.). Real-time."),
     force: bool = typer.Option(False, "--force", help="Bypass cache and reprocess."),
     json_only: bool = typer.Option(False, "--json", help="Emit JSON only (skip markdown)."),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose logging."),
 ) -> None:
     """Analyze a video source against a prompt."""
+    import os
+    os.environ["VIDEOLENS_CAPTURE_DURATION"] = str(capture_duration)
+
     config = Config.load()
 
     if config.openai_api_key is None:

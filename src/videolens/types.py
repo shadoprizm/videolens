@@ -13,6 +13,7 @@ class SourceType(str, Enum):
     YOUTUBE = "youtube"
     WEBPAGE = "webpage"
     REPLAY_JSON = "replay_json"
+    BROWSER_CAPTURE = "browser_capture"
     UNKNOWN = "unknown"
 
 

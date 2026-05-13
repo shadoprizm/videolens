@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+from importlib.util import find_spec
 from pathlib import Path
 from urllib.parse import urlparse
 
 from videolens.types import AccessLevel, ArtifactsAvailable, ResolvedSource, SourceType
+
+
+def _playwright_available() -> bool:
+    return find_spec("playwright") is not None
 
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".webm", ".mkv", ".m4v", ".avi"}
 YOUTUBE_HOSTS = {"youtube.com", "www.youtube.com", "youtu.be", "m.youtube.com"}
@@ -104,6 +109,21 @@ def resolve_source(source: str) -> ResolvedSource:
 
     replay_platform = _detect_session_replay(host)
     if replay_platform:
+        if _playwright_available():
+            return ResolvedSource(
+                source_url=source,
+                source_type=SourceType.BROWSER_CAPTURE,
+                access_level=AccessLevel.FULL_VIDEO,
+                artifacts_available=ArtifactsAvailable(
+                    video=True, audio=True, metadata=True
+                ),
+                platform=replay_platform,
+                limitations=[
+                    f"{replay_platform} replays are event streams, not video. "
+                    "Capturing the rendered replay via headless Chromium — recording "
+                    "happens in real time, so a 5-minute replay takes 5 minutes."
+                ],
+            )
         return ResolvedSource(
             source_url=source,
             source_type=SourceType.REPLAY_JSON,
@@ -112,9 +132,9 @@ def resolve_source(source: str) -> ResolvedSource:
             platform=replay_platform,
             limitations=[
                 f"{replay_platform} session replays are event streams, not video — "
-                "yt-dlp can't help. Workaround for now: screen-record the replay "
-                "playing in your browser (macOS Cmd+Shift+5 → Record selected portion), "
-                "save the .mov, then upload that file. Native replay-event support is on the roadmap."
+                "yt-dlp can't help. Install the capture extra (uv sync --extra "
+                "capture && playwright install chromium) for browser-based capture, "
+                "or screen-record the replay in your browser and upload that file."
             ],
         )
 

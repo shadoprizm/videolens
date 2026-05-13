@@ -23,6 +23,9 @@ def fetch_to_local(source: ResolvedSource, dest_dir: Path) -> tuple[Path, dict[s
             raise DownloadError(f"Local file missing: {source.source_url}")
         return source.local_path, {}
 
+    if source.source_type == SourceType.BROWSER_CAPTURE:
+        return _browser_capture(source, dest_dir)
+
     if source.source_type not in (SourceType.YOUTUBE, SourceType.DIRECT_URL, SourceType.WEBPAGE):
         raise DownloadError(
             f"Cannot download source of type {source.source_type.value}."
@@ -66,3 +69,23 @@ def _find_video_file(dest_dir: Path) -> Path | None:
         if candidates:
             return candidates[0]
     return None
+
+
+def _browser_capture(source: ResolvedSource, dest_dir: Path) -> tuple[Path, dict[str, Any]]:
+    """Route BROWSER_CAPTURE sources through Playwright. Duration is read from
+    the env var VIDEOLENS_CAPTURE_DURATION (set by the CLI flag), defaulting
+    to 60 seconds — enough for short replays without surprising the user with
+    a long real-time capture."""
+    import os
+
+    from videolens.processors.browser_capture import (
+        BrowserCaptureError,
+        capture_url,
+    )
+
+    duration = float(os.environ.get("VIDEOLENS_CAPTURE_DURATION", "60"))
+    try:
+        path = capture_url(source.source_url, dest_dir, duration_seconds=duration)
+    except BrowserCaptureError as exc:
+        raise DownloadError(str(exc)) from exc
+    return path, {"platform": source.platform, "captured_duration": duration}

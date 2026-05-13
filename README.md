@@ -207,6 +207,19 @@ Rough order-of-magnitude:
 
 Per-prompt analysis cache means asking a second question of an already-extracted video costs only the synthesis call (cents).
 
+## Session replays (PostHog / Hotjar / Clarity / FullStory / LogRocket / OpenReplay)
+
+These services store user-session events, not video — yt-dlp can't extract them. VideoLens ships an optional **browser-capture** fallback that opens the replay URL in headless Chromium, starts playback, and records the viewport in real time:
+
+```bash
+uv sync --extra capture
+uv run playwright install chromium
+```
+
+After installation, paste any PostHog/Hotjar/etc. share URL and VideoLens routes it through Chromium automatically. Tune the recording window via `--capture-duration <seconds>` on the CLI (default 60s).
+
+> **Self-host only for now.** Real-time capture takes as long as the replay itself, which conflicts with the request lifecycle of the managed-PaaS deployment at app.videolens.io. The hosted instance falls back to the existing "screen-record manually and upload" workflow for replay services.
+
 ## MCP server (Claude Code / Cursor / Windsurf)
 
 VideoLens ships a [Model Context Protocol](https://modelcontextprotocol.io) server so AI agents can analyse videos as a first-class tool.
