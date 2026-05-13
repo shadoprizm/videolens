@@ -4,7 +4,7 @@
     "builder": "DOCKERFILE"
   },
   "deploy": {
-    "startCommand": "videolens ui --host 0.0.0.0 --no-open",
+    "startCommand": "sh -c 'videolens ui --host 0.0.0.0 --port ${PORT:-8501} --no-open'",
     "healthcheckPath": "/_stcore/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
