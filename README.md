@@ -247,6 +247,30 @@ claude mcp add videolens -- videolens-mcp
 
 Or wire it into Cursor / Windsurf / any MCP-aware host the same way as any stdio MCP server.
 
+## Chrome extension (VideoLens Pro)
+
+VideoLens Pro runs the whole pipeline **inside the browser** as a side-panel
+Chrome extension — no Python, no ffmpeg, no server. It analyzes the video on
+the current tab (YouTube captions + canvas frame sampling) or a local file
+(in-browser audio decode → transcription), using your own OpenAI key, which
+never leaves your device.
+
+- 3 free analyses, then a **$29 one-time** license (Lemon Squeezy, up to 3 devices)
+- Same 8 analysis modes, follow-up Q&A, markdown/JSON export
+- Source lives in [`extension/`](extension/) (MIT, like everything here)
+
+```bash
+cd extension
+npm install
+npm run build     # → extension/dist, load it unpacked via chrome://extensions
+```
+
+See [`extension/PUBLISHING.md`](extension/PUBLISHING.md) for the release
+runbook and [`extension/STORE_LISTING.md`](extension/STORE_LISTING.md) for the
+Chrome Web Store listing. Known limits: DRM-protected players (Netflix etc.)
+can't be captured; live streams aren't supported; non-YouTube in-page videos
+are analyzed frames-only (no audio transcription).
+
 ## Roadmap
 
 - **Robustness:** soft-fail transcription so frame-only videos still produce a report; clearer error surfaces in the UI

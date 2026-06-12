@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — VideoLens</title>
+  <meta name="description" content="Privacy policy for VideoLens, the VideoLens hosted app, and the VideoLens Chrome extension.">
+  <meta name="theme-color" content="#0891B2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230891B2'/%3E%3Cstop offset='100%25' stop-color='%236366F1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M24 18l24 14-24 14V18z' fill='white'/%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <style>
+    html { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  </style>
+</head>
+<body class="bg-white text-slate-900 antialiased">
+  <header class="border-b border-slate-100">
+    <div class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2">
+        <span class="inline-block w-7 h-7 rounded-md flex items-center justify-center" style="background:linear-gradient(135deg,#0891B2,#6366F1)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+        <span class="text-xl font-extrabold tracking-tight">VideoLens</span>
+      </a>
+      <a href="/" class="text-sm text-slate-600 hover:text-slate-900">← Back to videolens.io</a>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-6 py-14 prose-slate">
+    <h1 class="text-4xl font-extrabold tracking-tight mb-2">Privacy Policy</h1>
+    <p class="text-sm text-slate-500 mb-10">Last updated: June 12, 2026 · Applies to videolens.io, the hosted app, and the VideoLens Chrome extension.</p>
+
+    <div class="space-y-10 text-slate-700 leading-relaxed">
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">The short version</h2>
+        <p>VideoLens is built so that we don't have your data. Your videos are processed either on your own machine, in your own browser (the extension), or in an ephemeral session (the hosted app). Your OpenAI API key is yours: the extension stores it only on your device, and the hosted app holds it only for the duration of your session. We run no analytics on your video content and we never see your reports.</p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Chrome extension</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li><strong>Video content.</strong> Frames and audio are processed entirely inside your browser. They are sent to exactly one place: OpenAI's API (api.openai.com), using your own API key, to generate transcripts, frame descriptions, and the analysis. They are never sent to VideoLens servers — we don't have any.</li>
+          <li><strong>Your OpenAI API key.</strong> Stored in <code>chrome.storage.local</code> on your device only. It is not synced between browsers and is transmitted only to api.openai.com. Remove it any time in Settings.</li>
+          <li><strong>Analysis results.</strong> Reports, timelines, and Q&amp;A history exist only in your browser. Exporting saves files to your device.</li>
+          <li><strong>License checks.</strong> If you buy VideoLens Pro, your license key and a random instance identifier are sent to Lemon Squeezy (our payment provider) to activate and periodically re-validate the license. No video content, no API key, and no browsing data are ever included.</li>
+          <li><strong>Trial counter.</strong> The number of free analyses used is stored locally on your device.</li>
+          <li><strong>Browsing data.</strong> The extension reads a page only when you invoke it on that page (Chrome's activeTab permission), solely to find the video element, captions, and page title. It does not track your browsing, run in the background, or inject anything into pages you haven't invoked it on.</li>
+          <li><strong>Analytics.</strong> The extension contains no analytics, telemetry, or error reporting of any kind.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Purchases</h2>
+        <p>Payments are processed by Lemon Squeezy as merchant of record. When you buy VideoLens Pro, Lemon Squeezy collects your email and payment details under <a class="text-cyan-700 font-semibold hover:underline" href="https://www.lemonsqueezy.com/privacy" target="_blank" rel="noopener">their privacy policy</a> and emails you a license key. We can see order records (email, license key, country) in our Lemon Squeezy dashboard; we use them only for support and refunds.</p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Hosted app (app.videolens.io)</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li>Your OpenAI API key is held in session memory only and is never written to a database. Closing the tab discards it.</li>
+          <li>Uploaded videos and generated artifacts live in an ephemeral per-session cache used to make re-runs cheap, and are not retained as a dataset or shared.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Third parties</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li><strong>OpenAI</strong> — processes the audio chunks and frames you analyze, under your own account and <a class="text-cyan-700 font-semibold hover:underline" href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">OpenAI's privacy policy</a>.</li>
+          <li><strong>Lemon Squeezy</strong> — payments and license validation.</li>
+          <li>There are no other third parties: no ad networks, no analytics providers, no data brokers.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Your choices</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li>Remove your API key or uninstall the extension at any time — all locally stored data (key, trial counter, license state) is deleted with it.</li>
+          <li>Deactivate your license on a device from Settings to free the seat.</li>
+          <li>For refunds (14 days) or any privacy question, email <a class="text-cyan-700 font-semibold hover:underline" href="mailto:support@videolens.io">support@videolens.io</a>.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Changes</h2>
+        <p>If this policy changes materially, the "last updated" date above will change and the new version will be posted at this URL. The extension never gains new data collection silently — Chrome requires updated permissions to be re-approved.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-100 mt-10">
+    <div class="max-w-3xl mx-auto px-6 py-8 text-sm text-slate-500 flex items-center justify-between">
+      <span>VideoLens · MIT License · © 2026</span>
+      <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener" class="hover:text-slate-900">GitHub</a>
+    </div>
+  </footer>
+</body>
+</html>
