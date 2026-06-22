@@ -6,7 +6,7 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)]()
 
-VideoLens turns any video — a bug recording, a meeting, a demo, a tutorial, a session replay — into a structured artifact an AI agent (or you) can reason over. It does this with a resolver → extraction → timeline → analysis pipeline that produces both a human-readable Markdown report and a machine-readable JSON analysis.
+VideoLens turns any video — a bug recording, a meeting, a demo, a tutorial, a reference video, a session replay — into a structured artifact an AI agent (or you) can reason over. It does this with a resolver → extraction → timeline → analysis pipeline that produces both a human-readable Markdown report and a machine-readable JSON analysis.
 
 ```bash
 videolens analyze ./bug-recording.mov \
@@ -35,7 +35,7 @@ Most "video summarizer" tools wrap Whisper and call it a day. VideoLens is built
 - **Multi-source input** — local files (`.mp4` / `.mov` / `.webm` / `.mkv`), direct video URLs, YouTube
 - **Cloud-only pipeline** — OpenAI for transcription, frame description (+ OCR), and synthesis
 - **Timestamped timeline** — every finding cites evidence at a specific second of the video
-- **Three analysis modes** in v0.1: `general`, `bug`, `meeting` (UX / tutorial / product-demo / content / privacy on the roadmap)
+- **Four analysis modes** in v0.1: `general`, `bug`, `meeting`, `production_recipe` (UX / tutorial / product-demo / content / privacy on the roadmap)
 - **Local web UI** (Streamlit) — drag-and-drop upload, mode/frame sliders, tabbed results (Report / Timeline / Frames / Transcript / Cache)
 - **Per-step caching** — re-runs are cheap; per-prompt analysis cache means "ask many questions of one extraction" is free after the first
 - **Cost-aware frame budgeting** — `--max-frames` caps vision-API calls; adaptive interval
@@ -143,7 +143,7 @@ and processed-video cache files to survive redeploys.
 ### CLI
 
 ```bash
-uv run videolens analyze <source> --prompt "<your question>" [--mode general|bug|meeting]
+uv run videolens analyze <source> --prompt "<your question>" [--mode general|bug|meeting|production_recipe]
 ```
 
 Useful flags:
@@ -181,6 +181,7 @@ videolens analyze "https://www.youtube.com/watch?v=..." \
 | `general` | Broad review: what's happening, what's notable, what's worth knowing |
 | `bug` | Bug recordings → repro steps, severity hint, ticket-ready summary |
 | `meeting` | Calls/standups/briefings → decisions, objections, commitments, follow-ups (uses diarized transcription) |
+| `production_recipe` | Reference videos → how the video itself was made: script spine, shot inventory, edit rhythm, likely tools, asset checklist, and recreation recipe |
 
 Each mode is a small prompt-fragment file under `src/videolens/analysis/modes/`. Adding a new mode is ~30 lines.
 
