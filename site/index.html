@@ -4,18 +4,37 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>VideoLens — Universal video intelligence for humans and AI agents</title>
-  <meta name="description" content="Drop any video, ask any question. Get a timestamped, evidence-grounded report. Open source, MIT licensed, built for AI agents.">
+  <meta name="description" content="VideoLens turns any video into a timestamped, evidence-grounded report. Drop a local file or a link from ~1,500 platforms, ask any question, and get structured findings that cite specific moments. Open source, MIT licensed, bring your own OpenAI key.">
   <meta name="theme-color" content="#0891B2">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="author" content="VideoLens">
+  <meta name="application-name" content="VideoLens">
+  <link rel="canonical" href="https://videolens.io/">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
 
   <!-- Open Graph / Twitter -->
   <meta property="og:title" content="VideoLens — Universal video intelligence">
-  <meta property="og:description" content="Drop any video, ask any question. Get a timestamped, evidence-grounded report.">
-  <meta property="og:url" content="https://videolens.io">
+  <meta property="og:description" content="Drop any video, ask any question. Get a timestamped, evidence-grounded report — for humans or AI agents.">
+  <meta property="og:url" content="https://videolens.io/">
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="VideoLens">
+  <meta property="og:locale" content="en_US">
   <meta property="og:image" content="https://videolens.io/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="VideoLens — turn any video into a timestamped, evidence-grounded report">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="VideoLens — Universal video intelligence">
+  <meta name="twitter:description" content="Drop any video, ask any question. Get a timestamped, evidence-grounded report — for humans or AI agents.">
+  <meta name="twitter:image" content="https://videolens.io/og.png">
 
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230891B2'/%3E%3Cstop offset='100%25' stop-color='%236366F1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M24 18l24 14-24 14V18z' fill='white'/%3E%3C/svg%3E">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -48,6 +67,136 @@
       background-size: 32px 32px;
     }
   </style>
+
+  <!-- Structured data for AI / search engines -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://videolens.io/#organization",
+        "name": "VideoLens",
+        "url": "https://videolens.io/",
+        "logo": "https://videolens.io/android-chrome-512x512.png",
+        "description": "VideoLens is open-source video intelligence software that turns any video into a timestamped, evidence-grounded report for humans and AI agents.",
+        "sameAs": [
+          "https://github.com/shadoprizm/videolens"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://videolens.io/#website",
+        "url": "https://videolens.io/",
+        "name": "VideoLens",
+        "description": "Universal video intelligence for humans and AI agents.",
+        "publisher": { "@id": "https://videolens.io/#organization" },
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://videolens.io/#software",
+        "name": "VideoLens",
+        "url": "https://videolens.io/",
+        "applicationCategory": "MultimediaApplication",
+        "applicationSubCategory": "Video analysis",
+        "operatingSystem": "Web, macOS, Linux, Windows, Chrome",
+        "description": "VideoLens turns any video into a timestamped, evidence-grounded report. It combines transcription, frame-level vision, and OCR into a cached pipeline, then runs prompt-directed analysis that cites specific moments in the video. Works on local files and roughly 1,500 platforms via yt-dlp.",
+        "softwareVersion": "0.1",
+        "license": "https://github.com/shadoprizm/videolens/blob/main/LICENSE",
+        "publisher": { "@id": "https://videolens.io/#organization" },
+        "featureList": [
+          "Timestamped, evidence-grounded video reports",
+          "Transcription, frame-level vision, and OCR in one cached pipeline",
+          "Analysis modes: general, bug, meeting, UX, tutorial, demo, content, privacy",
+          "Supports local files and ~1,500 video platforms via yt-dlp",
+          "Bring your own OpenAI API key — keys are never stored",
+          "Follow-up Q&A over a cached timeline",
+          "Export to PDF, Markdown, and JSON",
+          "Chrome side-panel extension and Model Context Protocol (MCP) server"
+        ],
+        "offers": [
+          {
+            "@type": "Offer",
+            "name": "VideoLens (open source)",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "Free, MIT-licensed core tool. Self-host or use the hosted app with your own OpenAI API key."
+          },
+          {
+            "@type": "Offer",
+            "name": "VideoLens Pro (Chrome extension)",
+            "price": "29",
+            "priceCurrency": "USD",
+            "description": "One-time purchase. In-browser side-panel workflow with all analysis modes and unlimited analyses. Bring your own OpenAI key."
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://videolens.io/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is VideoLens?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "VideoLens is an open-source video intelligence tool that turns any video into a timestamped, evidence-grounded report. You drop in a video — a local file or a link from roughly 1,500 supported platforms — ask a question, and it returns structured findings that cite specific moments in the video. It is MIT licensed and built for both humans and AI agents."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does VideoLens work?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "VideoLens runs a four-stage cached pipeline. It resolves the video source, extracts audio, sampled frames, and on-screen text (OCR), merges them into a time-windowed timeline, then runs one analysis pass against your prompt and chosen mode to produce findings with timestamp citations. Each step is cached so re-runs are cheap and follow-up questions cost only cents."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is VideoLens free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. The core tool is free and open source under the MIT license — self-host it or use the hosted app with your own OpenAI API key. You pay only OpenAI's usage, roughly $0.05 to $1.50 per video. A one-time $29 VideoLens Pro Chrome extension adds an in-browser side-panel workflow."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What video platforms does VideoLens support?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Local files plus roughly 1,500 platforms via yt-dlp, including YouTube, Loom, Vimeo, TikTok, Twitch, Twitter/X, Reddit, and Google Drive. DRM-protected players such as Netflix and Disney+, and live streams, are not supported."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does VideoLens store my videos or my OpenAI API key?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Videos are processed on your own machine, in your browser (the extension), or in an ephemeral session (the hosted app). Your OpenAI API key stays on your device or in session memory only and is sent only to OpenAI. VideoLens runs no analytics on your video content and never stores your reports."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How much does it cost to analyze a video?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Analysis costs go straight to your own OpenAI account, typically $0.05 to $1.50 per video. A 5-minute clip with 20 frames is about $0.20; a 30-minute meeting is roughly $0.50 to $1.50. Cached timelines make follow-up questions on the same video cost only cents."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can AI agents use VideoLens?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. VideoLens outputs structured JSON with evidence citations and ships a native Model Context Protocol (MCP) server, so agents such as Claude Code and Cursor can analyze video as a first-class tool."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body class="bg-white text-slate-900 antialiased">
 
@@ -66,6 +215,7 @@
         <a href="#how" class="hidden md:inline text-slate-600 hover:text-slate-900">How it works</a>
         <a href="#install" class="hidden md:inline text-slate-600 hover:text-slate-900">Install</a>
         <a href="#extension" class="hidden md:inline text-slate-600 hover:text-slate-900">Extension</a>
+        <a href="#faq" class="hidden md:inline text-slate-600 hover:text-slate-900">FAQ</a>
         <a href="https://app.videolens.io" target="_blank" rel="noopener" class="hidden md:inline text-slate-600 hover:text-slate-900">Hosted app</a>
         <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener" class="text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.28-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.21.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.31-.54-1.53.11-3.19 0 0 1.01-.32 3.3 1.23a11.42 11.42 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.19.77.84 1.24 1.92 1.24 3.23 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22 0 1.6-.01 2.89-.01 3.28 0 .32.21.7.83.58A12 12 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -458,6 +608,54 @@ uv run videolens analyze ./bug.mov \
           Read the full roadmap on GitHub
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="border-t border-slate-100">
+    <div class="max-w-4xl mx-auto px-6 py-20 md:py-24">
+      <div class="max-w-2xl mb-12">
+        <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">FAQ</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Questions, answered.</h2>
+        <p class="text-lg text-slate-600">Everything you need to know about how VideoLens works, what it costs, and how your data is handled.</p>
+      </div>
+
+      <div class="space-y-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">What is VideoLens?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">VideoLens is an open-source video intelligence tool that turns any video into a timestamped, evidence-grounded report. You drop in a video — a local file or a link from roughly 1,500 supported platforms — ask a question, and it returns structured findings that cite specific moments in the video. It's MIT licensed and built for both humans and AI agents.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">How does VideoLens work?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">VideoLens runs a four-stage cached pipeline. It resolves the video source, extracts audio, sampled frames, and on-screen text (OCR), merges them into a time-windowed timeline, then runs one analysis pass against your prompt and chosen mode to produce findings with timestamp citations. Each step is cached, so re-runs are cheap and follow-up questions cost only cents.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">Is VideoLens free?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Yes. The core tool is free and open source under the MIT license — self-host it or use the hosted app with your own OpenAI API key. You pay only OpenAI's usage, roughly $0.05–$1.50 per video. A one-time $29 VideoLens Pro Chrome extension adds an in-browser side-panel workflow.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">What video platforms does VideoLens support?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Local files plus roughly 1,500 platforms via yt-dlp, including YouTube, Loom, Vimeo, TikTok, Twitch, Twitter/X, Reddit, and Google Drive. DRM-protected players such as Netflix and Disney+, and live streams, are not supported.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">Does VideoLens store my videos or my OpenAI API key?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">No. Videos are processed on your own machine, in your browser (the extension), or in an ephemeral session (the hosted app). Your OpenAI API key stays on your device or in session memory only and is sent only to OpenAI. VideoLens runs no analytics on your video content and never stores your reports.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">How much does it cost to analyze a video?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Analysis costs go straight to your own OpenAI account, typically $0.05–$1.50 per video. A 5-minute clip with 20 frames is about $0.20; a 30-minute meeting is roughly $0.50–$1.50. Cached timelines make follow-up questions on the same video cost only cents.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">Can AI agents use VideoLens?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Yes. VideoLens outputs structured JSON with evidence citations and ships a native Model Context Protocol (MCP) server, so agents such as Claude Code and Cursor can analyze video as a first-class tool.</p>
+        </div>
       </div>
     </div>
   </section>

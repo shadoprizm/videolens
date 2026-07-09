@@ -1,0 +1,49 @@
+# VideoLens
+
+> VideoLens is open-source video intelligence software that turns any video into a timestamped, evidence-grounded report. Drop a local file or a link from roughly 1,500 platforms, ask any question, and get structured findings that cite specific moments in the video — built for both humans and AI agents. MIT licensed, bring your own OpenAI API key.
+
+VideoLens combines transcription, frame-level vision, and OCR into a single cached pipeline, then runs prompt-directed analysis. Its distinguishing feature is merging transcript, OCR, frame descriptions, and your prompt into a timestamped timeline with verifiable citations — not generic transcription. It ships in forms that share the same code: a free open-source CLI/UI you self-host, a hosted app (bring your own key), a Chrome extension, and an MCP server for AI agents.
+
+Key facts:
+
+- **Pricing:** Core tool is free (MIT). VideoLens Pro Chrome extension is $29 one-time. All AI usage is billed by OpenAI directly to your own key — typically $0.05–$1.50 per video.
+- **Privacy:** Videos are processed on your machine, in your browser, or in an ephemeral session. Your OpenAI API key is never stored or seen by VideoLens. No analytics run on your video content; reports are never stored.
+- **Sources supported:** Local files plus ~1,500 platforms via yt-dlp (YouTube, Loom, Vimeo, TikTok, Twitch, Twitter/X, Reddit, Google Drive, and more). Not supported: DRM-protected players (Netflix, Disney+) and live streams.
+- **Pipeline:** resolve source → extract audio, frames, and OCR → build a time-windowed timeline → analyze against your prompt and mode → structured findings with timestamp citations. Every step is cached, so re-runs are cheap and follow-up questions cost cents.
+- **Outputs:** PDF, Markdown, and JSON, plus a follow-up Q&A loop over the cached timeline.
+- **License:** MIT.
+
+## Product surfaces
+
+- Python CLI: prompt-directed local video analysis.
+- Web UI: local upload and URL analysis interface.
+- Hosted app (app.videolens.io): the same code, hosted; bring your own OpenAI key, held in session memory only.
+- Chrome extension (VideoLens Pro): 100% in-browser side-panel analysis using your own OpenAI key.
+- MCP server: exposes VideoLens as tools for AI agents such as Claude Code and Cursor.
+
+## Analysis modes
+
+- General: broad video summary and notable findings.
+- Bug: reproduction steps, failure mode, severity hint, and ticket-ready tasks.
+- Meeting: decisions, objections, commitments, and follow-up actions.
+- UX: user friction, repeated actions, pauses, and flow recommendations.
+- Tutorial: ordered implementation steps, commands, and prerequisites.
+- Demo: feature inventory, positioning, and competitive opportunities.
+- Content: hook, pacing, clarity, claims, proof, and call to action.
+- Privacy: exposed secrets, credentials, PII, internal URLs, and redaction tasks.
+
+## Pages
+
+- [Homepage](https://videolens.io/): Overview, features, how it works, modes, quickstart, hosted app, extension, roadmap, and FAQ.
+- [Privacy Policy](https://videolens.io/privacy): How VideoLens handles data across the tool, the hosted app, and the extension.
+
+## Resources
+
+- [GitHub repository](https://github.com/shadoprizm/videolens): Source, docs, roadmap, and issues.
+- [MIT License](https://github.com/shadoprizm/videolens/blob/main/LICENSE): Full license text.
+- [Hosted app](https://app.videolens.io): Try VideoLens in the browser with your own OpenAI key.
+- [Sitemap](https://videolens.io/sitemap.xml): XML sitemap.
+
+## Contact
+
+- Support and privacy questions: support@videolens.io
