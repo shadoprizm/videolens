@@ -6,8 +6,8 @@ VideoLens combines transcription, frame-level vision, and OCR into a single cach
 
 Key facts:
 
-- **Pricing:** Core tool is free (MIT). VideoLens Pro Chrome extension is $29 one-time. All AI usage is billed by OpenAI directly to your own key — typically $0.05–$1.50 per video.
-- **Privacy:** Videos are processed on your machine, in your browser, or in an ephemeral session. Your OpenAI API key is never stored or seen by VideoLens. No analytics run on your video content; reports are never stored.
+- **Pricing:** Core tool is free (MIT). VideoLens Pro Chrome extension is also free during early access. All AI usage is billed by OpenAI directly to your own key — typically $0.05–$1.50 per video.
+- **Privacy:** Videos are processed on your machine, in your browser, or in an ephemeral session. Your OpenAI API key is never stored or seen by VideoLens. No analytics run on video content or reports. The public marketing site uses Vercel's anonymized, cookie-free Web Analytics and Speed Insights.
 - **Sources supported:** Local files plus ~1,500 platforms via yt-dlp (YouTube, Loom, Vimeo, TikTok, Twitch, Twitter/X, Reddit, Google Drive, and more). Not supported: DRM-protected players (Netflix, Disney+) and live streams.
 - **Pipeline:** resolve source → extract audio, frames, and OCR → build a time-windowed timeline → analyze against your prompt and mode → structured findings with timestamp citations. Every step is cached, so re-runs are cheap and follow-up questions cost cents.
 - **Outputs:** PDF, Markdown, and JSON, plus a follow-up Q&A loop over the cached timeline.
@@ -35,6 +35,14 @@ Key facts:
 ## Pages
 
 - [Homepage](https://videolens.io/): Overview, features, how it works, modes, quickstart, hosted app, extension, roadmap, and FAQ.
+- [AI Video Analyzer](https://videolens.io/ai-video-analyzer): Multimodal video analysis with transcript, frame vision, OCR, structured reports, and timestamp evidence.
+- [Screen Recording Analyzer](https://videolens.io/screen-recording-analyzer): Bug reproduction, UI evidence, UX friction, and ticket-ready tasks from screen recordings.
+- [Session Replay Analyzer](https://videolens.io/session-replay-analyzer): Qualitative review of PostHog, Clarity, Hotjar, FullStory, LogRocket, and OpenReplay sessions.
+- [Video Analysis MCP](https://videolens.io/video-analysis-mcp): MCP tools that let AI agents analyze video and ask grounded follow-up questions.
+- [YouTube Video Analyzer](https://videolens.io/youtube-video-analyzer): Transcript-and-visual YouTube analysis with timestamped Q&A and exports.
+- [Loom Video Analyzer](https://videolens.io/loom-video-analyzer): Structured bug, demo, tutorial, meeting, and handoff reports from accessible Loom recordings.
+- [Meeting Video Analyzer](https://videolens.io/meeting-video-analyzer): Decisions, objections, commitments, and actions from meeting recordings.
+- [Video Privacy Analyzer](https://videolens.io/video-privacy-analyzer): Pre-publication review for possible sensitive information visible or spoken in video.
 - [Privacy Policy](https://videolens.io/privacy): How VideoLens handles data across the tool, the hosted app, and the extension.
 
 ## Resources

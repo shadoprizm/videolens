@@ -54,8 +54,6 @@ body {
   color: var(--muted);
   border: 1px solid var(--line);
 }
-.brand-badge.pro { background: #ecfdf5; color: var(--green); border-color: #a7f3d0; }
-
 .icon-btn {
   display: inline-flex;
   padding: 6px;
@@ -66,8 +64,63 @@ body {
   cursor: pointer;
 }
 .icon-btn:hover { background: var(--bg-soft); color: var(--ink); }
+.icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 main { padding: 14px; }
+
+.privacy-disclosure {
+  padding: 18px 4px 6px;
+}
+.privacy-lock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 19px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+}
+.privacy-disclosure h1 { margin: 0 0 7px; font-size: 19px; }
+.privacy-disclosure > p { color: var(--muted); line-height: 1.55; }
+.privacy-list {
+  margin: 14px 0;
+  padding: 0;
+  list-style: none;
+}
+.privacy-list li {
+  position: relative;
+  margin-bottom: 10px;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.privacy-list li::before {
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--brand);
+  content: "";
+}
+.privacy-list b { color: var(--ink); }
+.privacy-note {
+  margin: 14px 0;
+  padding: 10px 11px;
+  border: 1px solid #bae6fd;
+  border-radius: 9px;
+  color: #155e75;
+  background: #ecfeff;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.privacy-links { margin: 10px 0 0; text-align: center; font-size: 11.5px; }
+.privacy-links a { color: var(--brand); text-decoration: none; }
 
 .section { margin-bottom: 14px; }
 .label {
@@ -157,18 +210,6 @@ textarea { resize: vertical; min-height: 60px; }
 .banner.trial { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
 .banner.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 .banner.ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-
-.paywall {
-  text-align: center;
-  padding: 22px 16px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--bg-soft);
-}
-.paywall h2 { margin: 0 0 6px; font-size: 16px; }
-.paywall p { margin: 0 0 14px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
-.paywall .price { font-size: 26px; font-weight: 800; margin-bottom: 2px; }
-.paywall .price small { font-size: 12px; font-weight: 500; color: var(--muted); }
 
 .steps { list-style: none; margin: 0; padding: 0; }
 .steps li {

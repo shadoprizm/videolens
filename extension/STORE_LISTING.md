@@ -35,16 +35,16 @@ EIGHT ANALYSIS MODES
 • General — ask anything
 
 BRING YOUR OWN KEY — TRULY PRIVATE
-The entire pipeline runs inside your browser. Your video frames and audio are
-sent to exactly one place: OpenAI's API, using your own API key. No VideoLens
+The entire pipeline runs inside your browser. The selected video's frames,
+audio or captions, page title, and your prompt are sent to exactly one place:
+OpenAI's API, using your own API key. No VideoLens
 servers exist. No account, no telemetry, no analytics. Your key is stored
 only on your device. A typical video costs $0.05–$1.50 in OpenAI usage,
 billed straight to your own OpenAI account — estimates are shown before
 every run.
 
 PRICING
-3 free analyses to try it. Then a single $29 one-time purchase unlocks
-unlimited analyses on up to 3 devices. No subscription. No markup on usage.
+Free during early access — unlimited analyses, no account, no license key.
 
 ALSO IN THE BOX
 • Follow-up Q&A: ask more questions against the analyzed timeline for cents
@@ -63,23 +63,26 @@ Audio transcription of in-page videos uses the platform's caption track
 | Permission | Justification |
 |---|---|
 | `sidePanel` | The entire product UI lives in the side panel so the report can sit next to the video being analyzed. |
-| `storage` | Stores the user's own OpenAI API key, license state, and trial counter locally on the device. Nothing is synced or transmitted to us. |
+| `storage` | Stores the user's own OpenAI API key and settings locally on the device. Nothing is synced or transmitted to us. |
 | `activeTab` | Grants access to the current tab only when the user clicks the VideoLens toolbar icon, so the extension can find the video element on the page the user chose. No persistent host access is requested. |
 | `scripting` | Injects the frame-capture routine (canvas sampling of the page's `<video>` element) and caption reader into the active tab, only after the user invokes the extension there. |
 | Host `api.openai.com` | All AI processing (transcription, frame description, analysis) is performed with the user's own OpenAI API key, called directly from the browser. |
-| Host `api.lemonsqueezy.com` | One-time-purchase license activation and validation (Lemon Squeezy public license API). Only the license key and a random instance ID are transmitted. |
 
 **Single purpose description:** AI analysis of videos (on-page or local files) into timestamped reports, using the user's own OpenAI API key.
 
-**Remote code:** None. All code ships in the package; the extension calls remote *data* APIs (OpenAI, Lemon Squeezy) only.
+**Remote code:** None. All code ships in the package; the extension calls the OpenAI data API only.
 
 **Data usage disclosures (Privacy tab):**
-- Does NOT collect personally identifiable information, health, financial, authentication, communications, location, web history, user activity → check "website content" only if required: video frames/captions from the page the user invokes it on are transmitted to OpenAI at the user's direction, using the user's own key. Not sold, not used for unrelated purposes, not transferred for creditworthiness.
+- Check **Authentication information**: the user enters an OpenAI API key, stored locally and sent only to OpenAI.
+- Check **Website content**: the selected video's frames, audio or captions, and page title are sent directly to OpenAI at the user's direction.
+- Check **User-provided content** if the dashboard offers that category: the analysis prompt and follow-up questions are sent directly to OpenAI at the user's direction.
+- Do not check personally identifiable information, health, financial information, communications, location, web history, or user activity. Nothing is sold, used for unrelated purposes, advertising, or creditworthiness.
+- The first-run disclosure obtains affirmative consent before any analysis-related data handling occurs.
 - Privacy policy URL: `https://videolens.io/privacy.html`
 
 ## Assets checklist
 
 - [x] Icon 128×128 — `public/icons/icon128.png`
 - [ ] Screenshots, 1280×800 (3–5): main panel on a YouTube video, progress view, results with findings, Q&A, settings/BYOK
-- [ ] Small promo tile 440×280 (optional but recommended)
+- [ ] Small promo tile 440×280 (required)
 - [ ] Marquee 1400×560 (optional)

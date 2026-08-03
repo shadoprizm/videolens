@@ -6,8 +6,7 @@
   "minimum_chrome_version": "116",
   "permissions": ["sidePanel", "storage", "activeTab", "scripting"],
   "host_permissions": [
-    "https://api.openai.com/*",
-    "https://api.lemonsqueezy.com/*"
+    "https://api.openai.com/*"
   ],
   "background": {
     "service_worker": "background.js",

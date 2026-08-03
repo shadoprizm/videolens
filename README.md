@@ -255,7 +255,7 @@ the current tab (YouTube captions + canvas frame sampling) or a local file
 (in-browser audio decode → transcription), using your own OpenAI key, which
 never leaves your device.
 
-- 3 free analyses, then a **$29 one-time** license (Lemon Squeezy, up to 3 devices)
+- Free during early access — unlimited analyses, no account or license key
 - Same 8 analysis modes, follow-up Q&A, markdown/JSON export
 - Source lives in [`extension/`](extension/) (MIT, like everything here)
 

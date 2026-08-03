@@ -7,9 +7,8 @@ import {
   planFrameTimestamps,
   probeTabVideo,
 } from "../lib/capture";
-import { DEFAULTS, LEMON, LINKS, TRIAL_ANALYSES } from "../lib/config";
+import { DEFAULTS, LINKS } from "../lib/config";
 import { describeFrames } from "../lib/describeFrames";
-import { activateLicense, deactivateLicense, getEntitlement, type Entitlement } from "../lib/license";
 import {
   captureLocalFrames,
   closeLocalVideo,
@@ -21,11 +20,11 @@ import {
 import { verifyApiKey } from "../lib/openai";
 import { download, toMarkdown } from "../lib/report";
 import {
+  acceptPrivacyDisclosure,
   getApiKey,
-  getLicense,
   getMaxFrames,
-  getTrialUsed,
-  incrementTrialUsed,
+  hasAcceptedPrivacyDisclosure,
+  resetPrivacyDisclosure,
   setApiKey,
   setMaxFrames,
 } from "../lib/storage";
@@ -42,10 +41,10 @@ interface State {
   prompt: string;
   maxFrames: number;
   localVideo: LocalVideo | null;
-  entitlement: Entitlement;
   analysis: Analysis | null;
   qa: QaEntry[];
   error: string | null;
+  privacyDisclosureAccepted: boolean;
 }
 
 const state: State = {
@@ -55,44 +54,74 @@ const state: State = {
   prompt: "",
   maxFrames: DEFAULTS.maxFrames,
   localVideo: null,
-  entitlement: { kind: "trial", remaining: TRIAL_ANALYSES },
   analysis: null,
   qa: [],
   error: null,
+  privacyDisclosureAccepted: false,
 };
 
 const root = document.getElementById("view-root")!;
 const badge = document.getElementById("entitlement-badge")!;
-document.getElementById("btn-settings")!.addEventListener("click", () => {
+const settingsButton = document.getElementById("btn-settings") as HTMLButtonElement;
+settingsButton.addEventListener("click", () => {
+  if (!state.privacyDisclosureAccepted) return;
   state.view = state.view === "settings" ? "main" : "settings";
   render();
 });
 
 void (async () => {
+  state.privacyDisclosureAccepted = await hasAcceptedPrivacyDisclosure();
+  if (!state.privacyDisclosureAccepted) {
+    render();
+    return;
+  }
   state.maxFrames = await getMaxFrames(DEFAULTS.maxFrames);
-  state.entitlement = await getEntitlement();
   render();
 })();
 
 // ── rendering ───────────────────────────────────────────────────────────────
 
 function render(): void {
+  settingsButton.disabled = !state.privacyDisclosureAccepted;
   renderBadge();
   root.replaceChildren();
-  if (state.view === "settings") renderSettings();
+  if (!state.privacyDisclosureAccepted) renderPrivacyDisclosure();
+  else if (state.view === "settings") renderSettings();
   else if (state.view === "results" && state.analysis) renderResults();
   else renderMain();
 }
 
+function renderPrivacyDisclosure(): void {
+  badge.textContent = "Privacy first";
+  badge.className = "brand-badge";
+
+  const disclosure = el(
+    `<section class="privacy-disclosure" aria-labelledby="privacy-title">
+      <div class="privacy-lock" aria-hidden="true">✓</div>
+      <h1 id="privacy-title">Before you analyze</h1>
+      <p>VideoLens needs your permission to handle the data required for AI video analysis.</p>
+      <ul class="privacy-list">
+        <li><b>Sent directly to OpenAI:</b> the selected video's frames, audio or captions, page title, and your prompt. OpenAI processes them using your own API key.</li>
+        <li><b>Stored only in Chrome on this device:</b> your OpenAI API key, consent, and settings.</li>
+      </ul>
+      <div class="privacy-note">VideoLens has no video-analysis server and no extension analytics. We never receive your videos, prompts, API key, or reports.</div>
+      <button class="btn btn-primary" id="accept-privacy">I agree to this data use — Continue</button>
+      <p class="privacy-links"><a href="${LINKS.privacy}" target="_blank">Read the full privacy policy</a></p>
+    </section>`,
+  );
+  root.appendChild(disclosure);
+
+  disclosure.querySelector("#accept-privacy")!.addEventListener("click", async () => {
+    await acceptPrivacyDisclosure();
+    state.privacyDisclosureAccepted = true;
+    state.maxFrames = await getMaxFrames(DEFAULTS.maxFrames);
+    render();
+  });
+}
+
 function renderBadge(): void {
-  if (state.entitlement.kind === "licensed") {
-    badge.textContent = "PRO";
-    badge.className = "brand-badge pro";
-  } else if (state.entitlement.kind === "trial") {
-    badge.textContent = `Trial · ${state.entitlement.remaining} left`;
-    badge.className = "brand-badge";
-  } else {
-    badge.textContent = "Trial ended";
+  if (state.privacyDisclosureAccepted) {
+    badge.textContent = "";
     badge.className = "brand-badge";
   }
 }
@@ -100,19 +129,6 @@ function renderBadge(): void {
 function renderMain(): void {
   if (state.error) {
     root.appendChild(el(`<div class="banner error">${esc(state.error)}</div>`));
-  }
-
-  if (state.entitlement.kind === "locked") {
-    renderPaywall();
-    return;
-  }
-  if (state.entitlement.kind === "trial") {
-    root.appendChild(
-      el(
-        `<div class="banner trial">Free trial: <b>&nbsp;${state.entitlement.remaining} of ${TRIAL_ANALYSES}&nbsp;</b> analyses left. ` +
-          `<a href="${LEMON.checkoutUrl}" target="_blank" style="color:inherit;font-weight:600">Get VideoLens Pro →</a></div>`,
-      ),
-    );
   }
 
   // Source picker
@@ -222,25 +238,6 @@ function renderMain(): void {
   const run = el(`<button class="btn btn-primary">Analyze video</button>`) as HTMLButtonElement;
   run.addEventListener("click", () => void runAnalysis());
   root.append(run, cost);
-}
-
-function renderPaywall(): void {
-  root.appendChild(
-    el(
-      `<div class="paywall">
-        <h2>Your free trial has ended</h2>
-        <div class="price">$29 <small>one-time</small></div>
-        <p>Unlimited analyses, forever. You bring your own OpenAI key — no subscription, no markup on usage.</p>
-        <a class="btn btn-primary" href="${LEMON.checkoutUrl}" target="_blank" style="text-decoration:none">Buy VideoLens Pro</a>
-        <p style="margin-top:14px;margin-bottom:0">Already bought it? <a href="#" id="goto-activate" style="color:var(--brand);font-weight:600">Enter your license key</a></p>
-      </div>`,
-    ),
-  );
-  root.querySelector("#goto-activate")!.addEventListener("click", (e) => {
-    e.preventDefault();
-    state.view = "settings";
-    render();
-  });
 }
 
 interface StepHandle {
@@ -431,51 +428,20 @@ function renderSettings(): void {
     keyStatus.innerHTML = `<div class="banner ok" style="margin:8px 0 0">Key verified and saved.</div>`;
   });
 
-  // License
-  const licCard = el(`<div class="card"><h3>License</h3><div id="lic-body"></div></div>`);
-  root.appendChild(licCard);
-  const licBody = licCard.querySelector<HTMLElement>("#lic-body")!;
-
-  void (async () => {
-    const license = await getLicense();
-    const used = await getTrialUsed();
-    if (license?.valid) {
-      licBody.appendChild(el(`<div class="banner ok">VideoLens Pro is active. Key: <code>…${esc(license.licenseKey.slice(-8))}</code></div>`));
-      const deact = el(`<button class="btn btn-secondary btn-sm">Deactivate on this device</button>`);
-      deact.addEventListener("click", async () => {
-        await deactivateLicense();
-        state.entitlement = await getEntitlement();
-        render();
-      });
-      licBody.appendChild(deact);
-    } else {
-      licBody.appendChild(
-        el(
-          `<p class="hint" style="margin:0 0 8px">Trial: ${Math.min(used, TRIAL_ANALYSES)} of ${TRIAL_ANALYSES} free analyses used. ` +
-            `<a href="${LEMON.checkoutUrl}" target="_blank">Buy VideoLens Pro ($29 one-time) →</a> Your license key arrives by email.</p>`,
-        ),
-      );
-      const row = el(`<div class="row"></div>`);
-      const licInput = el(`<input type="text" class="grow" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX">`) as HTMLInputElement;
-      const actBtn = el(`<button class="btn btn-secondary btn-sm">Activate</button>`) as HTMLButtonElement;
-      const status = el(`<div></div>`);
-      actBtn.addEventListener("click", async () => {
-        actBtn.disabled = true;
-        status.innerHTML = `<div class="banner trial" style="margin:8px 0 0">Activating…</div>`;
-        try {
-          await activateLicense(licInput.value);
-          state.entitlement = await getEntitlement();
-          state.view = "main";
-          render();
-        } catch (e) {
-          status.innerHTML = `<div class="banner error" style="margin:8px 0 0">${esc((e as Error).message)}</div>`;
-          actBtn.disabled = false;
-        }
-      });
-      row.append(licInput, actBtn);
-      licBody.append(row, status);
-    }
-  })();
+  const privacyCard = el(
+    `<div class="card"><h3>Privacy &amp; data use</h3>
+      <p class="hint" style="margin:0 0 8px">Review what VideoLens sends to OpenAI, and what stays on this device.</p>
+      <button class="btn btn-secondary btn-sm" id="review-privacy">Review disclosure</button>
+      <a class="btn btn-ghost btn-sm" href="${LINKS.privacy}" target="_blank">Full privacy policy</a>
+    </div>`,
+  );
+  root.appendChild(privacyCard);
+  privacyCard.querySelector("#review-privacy")!.addEventListener("click", async () => {
+    await resetPrivacyDisclosure();
+    state.privacyDisclosureAccepted = false;
+    state.view = "main";
+    render();
+  });
 
   root.appendChild(
     el(
@@ -488,14 +454,6 @@ function renderSettings(): void {
 
 async function runAnalysis(): Promise<void> {
   state.error = null;
-
-  const entitlement = await getEntitlement();
-  state.entitlement = entitlement;
-  if (entitlement.kind === "locked") {
-    state.view = "main";
-    render();
-    return;
-  }
 
   const apiKey = await getApiKey();
   if (!apiKey) {
@@ -520,10 +478,6 @@ async function runAnalysis(): Promise<void> {
     } else {
       await runFileAnalysis(apiKey, prompt);
     }
-    if (entitlement.kind === "trial") {
-      await incrementTrialUsed();
-    }
-    state.entitlement = await getEntitlement();
     state.qa = [];
     state.view = "results";
   } catch (e) {
