@@ -1,4 +1,4 @@
-export const lastmod = "2026-07-18";
+export const lastmod = "2026-08-15";
 
 export const pages = [
   {
@@ -21,9 +21,9 @@ export const pages = [
       "Add a local file or a supported video URL.",
       "Choose an analysis mode and describe what you need to learn.",
       "VideoLens transcribes audio, samples frames, reads visible text, and builds a timestamped timeline.",
-      "Review the evidence-grounded report, ask follow-up questions, or export Markdown, PDF, or JSON."
+      "Review the evidence-grounded report, ask follow-up questions, or export professional HTML, PDF, Markdown, or JSON."
     ],
-    deliverables: ["Concise video summary", "Timestamped findings and evidence", "Recommendations and next actions", "Markdown, PDF, and structured JSON exports"],
+    deliverables: ["Concise video summary", "Timestamped findings and evidence", "Recommendations and next actions", "Professional HTML, PDF, Markdown, and structured JSON exports"],
     limitation: "VideoLens samples frames rather than interpreting every frame of a video. Results depend on source accessibility, audio and image quality, sampling settings, and the clarity of the question. DRM-protected players and live streams are not supported.",
     faqs: [
       ["Can AI actually understand what is visible in the video?", "VideoLens sends sampled frames to a vision-capable model, records visual descriptions and on-screen text, and merges that evidence with the transcript. It can therefore reason about more than spoken words, while still being limited by frame sampling."],
@@ -127,32 +127,32 @@ export const pages = [
   },
   {
     slug: "youtube-video-analyzer",
-    title: "YouTube Video Analyzer with Timestamps and Q&A | VideoLens",
-    description: "Analyze accessible YouTube videos with transcript, sampled frames, OCR, follow-up questions, and timestamped evidence. Export results as Markdown, PDF, or JSON.",
-    eyebrow: "YouTube analysis beyond transcripts",
-    h1: "Ask a YouTube video a question—and check the evidence.",
-    lead: "VideoLens analyzes accessible YouTube videos using the transcript plus sampled visual frames and on-screen text, then returns answers and findings linked to specific timestamps.",
+    title: "YouTube Video Summarizer & Written Report Generator | VideoLens",
+    description: "Turn accessible YouTube videos into professional written reports with transcript, sampled frames, OCR, timestamp evidence, and HTML or PDF export.",
+    eyebrow: "YouTube videos, turned into useful reports",
+    h1: "Turn a long YouTube video into something worth reading.",
+    lead: "VideoLens combines the transcript, sampled visual frames, and on-screen text into a structured written report with links back to the exact moments that support it.",
     summary: [
-      "Transcript-only YouTube summaries work for spoken lectures, but they can miss slides, demonstrations, code, charts, captions, and silent changes. VideoLens adds frame-level vision and OCR to the analysis timeline.",
-      "Choose a mode for tutorials, product demos, content critique, privacy review, or general understanding. Then ask follow-up questions without repeating the extraction."
+      "Transcript-only YouTube summaries can miss slides, demonstrations, code, charts, captions, and silent changes. VideoLens adds frame-level vision and OCR before it writes the report.",
+      "Choose Detailed Report, Key Insights, Tutorial Guide, or Interview / Podcast. Then read it in the app, ask follow-up questions, or export a polished standalone document."
     ],
     benefits: [
       ["Visual-aware summaries", "Include important information that appears on screen but is not said aloud."],
       ["Clickable evidence", "Use timestamps to jump back to the relevant part of the original video."],
-      ["Purpose-built modes", "Extract tutorial steps, demo features, content feedback, claims, risks, or custom findings."]
+      ["Professional artifact", "Open or share a polished standalone HTML report and print the same design as a PDF."]
     ],
     workflow: [
       "Paste an accessible YouTube URL into the hosted app, CLI, or supported extension workflow.",
-      "Choose the mode and ask a specific question.",
+      "Choose a report style and optionally refine the prompt.",
       "VideoLens retrieves the media, transcribes audio, samples frames, and merges the evidence by time.",
       "Review, question, and export the resulting report."
     ],
-    deliverables: ["Timestamped summary", "Visual and transcript evidence", "Mode-specific findings and recommendations", "Reusable Markdown, PDF, or JSON artifact"],
+    deliverables: ["Executive summary and key findings", "Visual and transcript evidence", "Practical takeaways and follow-up ideas", "Professional HTML, PDF, Markdown, or JSON artifact"],
     limitation: "Availability depends on the source and yt-dlp support. Private, age-gated, region-restricted, removed, live, or DRM-protected content may not be accessible. Respect the rights and terms that apply to the source video.",
     faqs: [
       ["Is VideoLens just a YouTube transcript summarizer?", "No. It combines transcription with sampled-frame descriptions and OCR, which helps when meaning is carried by slides, interfaces, demonstrations, or visible text."],
       ["Can I ask questions about a long YouTube video?", "Yes, within the practical context and cost limits of the pipeline. Sampling, audio chunking, and caching are designed to make longer sources manageable."],
-      ["Can I export the result?", "Yes. VideoLens supports Markdown, PDF, and JSON outputs, and follow-up answers can reuse the cached timeline."]
+      ["Can I export the result?", "Yes. VideoLens creates a branded standalone HTML report and matching print-quality PDF, plus Markdown and JSON. Follow-up answers can reuse the cached timeline."]
     ],
     related: ["ai-video-analyzer", "video-analysis-mcp", "meeting-video-analyzer"]
   },

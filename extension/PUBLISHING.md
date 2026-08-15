@@ -1,12 +1,11 @@
 # Publishing runbook — VideoLens
 
-The extension currently ships free, with no license or purchase flow — the
+The extension is part of the free, open-source VideoLens product, with no license or purchase flow. The
 Lemon Squeezy checkout never got fully wired up and was pulled out of the
 codebase (`extension/src/lib/license.ts`, `LEMON`/`TRIAL_ANALYSES` in
 `config.ts`, and the license/paywall UI in `sidepanel/main.ts`). If a paid
-tier comes back, it should go through Stripe rather than Lemon Squeezy; that
-work hasn't started, and this runbook only covers building and publishing
-the free extension.
+future business model is intentionally undecided; this runbook only covers building and publishing
+the current extension.
 
 ## 1. Build & verify
 

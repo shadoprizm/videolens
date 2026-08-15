@@ -2,7 +2,7 @@
   "name": "videolens-extension",
   "version": "0.1.0",
   "private": true,
-  "description": "VideoLens Pro — analyze any video on the page with AI (Chrome extension, BYOK)",
+  "description": "Turn videos into useful written reports with AI (Chrome extension, BYOK)",
   "type": "module",
   "scripts": {
     "build": "node build.mjs",

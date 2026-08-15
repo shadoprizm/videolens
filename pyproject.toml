@@ -1,7 +1,7 @@
 [project]
 name = "videolens"
 version = "0.1.0"
-description = "Universal video intelligence — prompt-directed analysis of video sources for AI agents"
+description = "Turn long videos into professional written reports with timestamped evidence"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -9,7 +9,7 @@ requires-python = ">=3.12"
 authors = [
     { name = "Jeramy Ratelle", email = "ratelle.ja@gmail.com" }
 ]
-keywords = ["video", "transcription", "ocr", "openai", "ai-agents", "mcp", "video-intelligence", "streamlit"]
+keywords = ["video", "youtube", "summarizer", "report", "pdf", "transcription", "ocr", "openai", "mcp", "streamlit"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -57,6 +57,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "pypdf>=6.0.0",
     "pytest>=8.3.0",
     "ruff>=0.8.0",
     "videolens[ui]",

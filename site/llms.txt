@@ -1,16 +1,16 @@
 # VideoLens
 
-> VideoLens is open-source video intelligence software that turns any video into a timestamped, evidence-grounded report. Drop a local file or a link from roughly 1,500 platforms, ask any question, and get structured findings that cite specific moments in the video — built for both humans and AI agents. MIT licensed, bring your own OpenAI API key.
+> VideoLens turns long videos into professional written reports with the important ideas, visual context, and timestamped evidence preserved. Paste a YouTube link, choose a report style, and export a polished HTML, PDF, Markdown, or JSON artifact. MIT licensed, bring your own OpenAI API key.
 
-VideoLens combines transcription, frame-level vision, and OCR into a single cached pipeline, then runs prompt-directed analysis. Its distinguishing feature is merging transcript, OCR, frame descriptions, and your prompt into a timestamped timeline with verifiable citations — not generic transcription. It ships in forms that share the same code: a free open-source CLI/UI you self-host, a hosted app (bring your own key), a Chrome extension, and an MCP server for AI agents.
+VideoLens combines transcription, frame-level vision, and OCR into a single cached pipeline, then writes an evidence-grounded report. The simplest entry point is YouTube; local files and roughly 1,500 supported video sites remain available. Detailed Report, Key Insights, Tutorial Guide, and Interview / Podcast are the primary report styles, with specialized modes for product and engineering work.
 
 Key facts:
 
-- **Pricing:** Core tool is free (MIT). VideoLens Pro Chrome extension is also free during early access. All AI usage is billed by OpenAI directly to your own key — typically $0.05–$1.50 per video.
+- **Availability:** The product is free and open source under the MIT license. There is no paid tier today. AI usage is billed by OpenAI directly to your own key — typically $0.05–$1.50 per video.
 - **Privacy:** Videos are processed on your machine, in your browser, or in an ephemeral session. Your OpenAI API key is never stored or seen by VideoLens. No analytics run on video content or reports. The public marketing site uses Vercel's anonymized, cookie-free Web Analytics and Speed Insights.
 - **Sources supported:** Local files plus ~1,500 platforms via yt-dlp (YouTube, Loom, Vimeo, TikTok, Twitch, Twitter/X, Reddit, Google Drive, and more). Not supported: DRM-protected players (Netflix, Disney+) and live streams.
 - **Pipeline:** resolve source → extract audio, frames, and OCR → build a time-windowed timeline → analyze against your prompt and mode → structured findings with timestamp citations. Every step is cached, so re-runs are cheap and follow-up questions cost cents.
-- **Outputs:** PDF, Markdown, and JSON, plus a follow-up Q&A loop over the cached timeline.
+- **Outputs:** Standalone professional HTML, print-quality PDF, Markdown, and JSON, plus follow-up Q&A over the cached timeline.
 - **License:** MIT.
 
 ## Product surfaces
@@ -18,16 +18,21 @@ Key facts:
 - Python CLI: prompt-directed local video analysis.
 - Web UI: local upload and URL analysis interface.
 - Hosted app (app.videolens.io): the same code, hosted; bring your own OpenAI key, held in session memory only.
-- Chrome extension (VideoLens Pro): 100% in-browser side-panel analysis using your own OpenAI key.
+- Chrome extension: 100% in-browser side-panel analysis using your own OpenAI key.
 - MCP server: exposes VideoLens as tools for AI agents such as Claude Code and Cursor.
 
-## Analysis modes
+## Report styles
 
-- General: broad video summary and notable findings.
+- Detailed Report: comprehensive explanation of the video's main ideas, examples, context, caveats, and conclusions.
+- Key Insights: removes repetition and filler while preserving the information worth remembering.
+- Tutorial Guide: prerequisites, ordered steps, exact commands, warnings, and verification checks.
+- Interview / Podcast: themes, claims, disagreements, notable quotes, and follow-up questions.
+
+## Specialized analysis modes
+
 - Bug: reproduction steps, failure mode, severity hint, and ticket-ready tasks.
 - Meeting: decisions, objections, commitments, and follow-up actions.
 - UX: user friction, repeated actions, pauses, and flow recommendations.
-- Tutorial: ordered implementation steps, commands, and prerequisites.
 - Demo: feature inventory, positioning, and competitive opportunities.
 - Content: hook, pacing, clarity, claims, proof, and call to action.
 - Privacy: exposed secrets, credentials, PII, internal URLs, and redaction tasks.

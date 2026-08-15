@@ -10,7 +10,7 @@ Everything to paste into the Chrome Web Store developer console.
 
 ## Summary (132 chars max)
 
-> Turn any video into a timestamped, evidence-grounded report. Bug repros, meeting notes, UX friction. Uses your own OpenAI key.
+> Turn YouTube and other videos into useful, timestamped written reports. Uses your own OpenAI key.
 
 ## Description
 
@@ -18,17 +18,20 @@ Everything to paste into the Chrome Web Store developer console.
 VideoLens analyzes the video you're already watching and returns a structured,
 timestamped report — right in Chrome's side panel.
 
-Open a YouTube video or any HTML5 player, pick an analysis mode, and ask
+Open a YouTube video or any HTML5 player, choose a report style, and ask
 anything. VideoLens samples frames, reads captions, and synthesizes an
 evidence-grounded analysis where every finding cites the exact moment in the
 video. Local video files work too (mp4 / webm / mov), including audio
 transcription.
 
-EIGHT ANALYSIS MODES
+REPORT STYLES AND SPECIALIZED MODES
+• Detailed report — main ideas, context, examples, caveats, and conclusions
+• Key insights — signal without repetition or filler
+• Tutorial guide — ordered steps, commands, warnings, and verification
+• Interview / podcast — themes, claims, quotes, and follow-up questions
 • Bug report — repro steps, failure modes, severity
 • Meeting — decisions, commitments, follow-up actions
 • UX review — user friction in session replays and screen recordings
-• Tutorial — agent-ready step-by-step checklists with exact commands
 • Product demo — feature inventory and positioning analysis
 • Content review — hook, pacing, claims, call-to-action critique
 • Privacy scan — find secrets, credentials, and PII before you share
@@ -43,12 +46,12 @@ only on your device. A typical video costs $0.05–$1.50 in OpenAI usage,
 billed straight to your own OpenAI account — estimates are shown before
 every run.
 
-PRICING
-Free during early access — unlimited analyses, no account, no license key.
+OPEN SOURCE
+Free under the MIT license — unlimited analyses, no account, no product tier.
 
 ALSO IN THE BOX
 • Follow-up Q&A: ask more questions against the analyzed timeline for cents
-• Export reports as Markdown or JSON
+• Export reports as HTML, PDF, Markdown, or JSON where supported
 • Open source (MIT): github.com/shadoprizm/videolens
 
 LIMITS WORTH KNOWING

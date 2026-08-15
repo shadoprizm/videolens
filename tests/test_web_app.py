@@ -11,8 +11,12 @@ def test_first_run_exposes_sample_without_api_key() -> None:
 
     assert not app.exception
     assert "View a sample report" in [button.label for button in app.button]
-    assert "Create evidence report" in [button.label for button in app.button]
+    assert "Create written report" in [button.label for button in app.button]
     assert any("sample report needs no key" in info.value for info in app.info)
+    assert [tab.label for tab in app.tabs[:2]] == [
+        "**Paste a YouTube URL**",
+        "**Upload a video file**",
+    ]
 
 
 def test_sample_report_opens_without_external_services() -> None:
@@ -22,6 +26,7 @@ def test_sample_report_opens_without_external_services() -> None:
     sample_button.click().run()
 
     assert not app.exception
-    assert any("Illustrative sample" in success.value for success in app.success)
-    assert "Download sample issue" in [button.label for button in app.get("download_button")]
-    assert "Analyze your own recording" in [button.label for button in app.button]
+    assert any("Illustrative YouTube report" in success.value for success in app.success)
+    download_labels = [button.label for button in app.get("download_button")]
+    assert {"Download HTML", "Download PDF", "Download Markdown"} <= set(download_labels)
+    assert "Analyze a YouTube video" in [button.label for button in app.button]

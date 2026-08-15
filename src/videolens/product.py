@@ -27,36 +27,59 @@ class WorkflowPreset:
 
 
 WORKFLOW_PRESETS: dict[str, WorkflowPreset] = {
-    "bug": WorkflowPreset(
-        mode=AnalysisMode.BUG,
-        label="Create an issue-ready bug report",
-        short_label="Bug report",
-        description="Reproduction steps, expected versus observed behavior, severity, and timestamped evidence.",
+    "detailed": WorkflowPreset(
+        mode=AnalysisMode.GENERAL,
+        label="Create a detailed written report",
+        short_label="Detailed report",
+        description="A thorough summary, main ideas, supporting evidence, conclusions, and useful context.",
         prompt=(
-            "Turn this recording into an issue-ready bug report. Identify the user's goal, "
-            "reproduction steps, expected versus observed behavior, visible errors, likely severity, "
-            "and recommended investigation tasks. Cite every important claim with a timestamp."
+            "Turn this video into a detailed written report. Explain the central thesis, organize the "
+            "main ideas into clear sections, preserve important facts, examples, arguments, caveats, "
+            "and conclusions, and finish with practical takeaways. Cite the supporting moments with "
+            "timestamps and include important information shown visually as well as spoken."
         ),
     ),
-    "ux": WorkflowPreset(
-        mode=AnalysisMode.UX,
-        label="Find UX friction and abandoned flows",
-        short_label="UX review",
-        description="Pauses, repeated actions, confusing copy, dead ends, and prioritized product fixes.",
+    "key_insights": WorkflowPreset(
+        mode=AnalysisMode.GENERAL,
+        label="Extract the important information",
+        short_label="Key insights",
+        description="The essential ideas, facts, examples, and conclusions without the filler.",
         prompt=(
-            "Review this recording for UX friction. Reconstruct the user's goal and journey, identify "
-            "hesitation, repeated actions, confusing states, errors, and abandonment risks, then propose "
-            "specific product fixes. Cite each finding with a timestamp."
+            "Extract the most important information from this video. Focus on the ideas, facts, "
+            "examples, arguments, and conclusions worth remembering; remove repetition and filler. "
+            "Explain why each insight matters and cite the exact supporting timestamps."
+        ),
+    ),
+    "tutorial": WorkflowPreset(
+        mode=AnalysisMode.TUTORIAL,
+        label="Turn the video into a written guide",
+        short_label="Tutorial guide",
+        description="Ordered steps, prerequisites, commands, warnings, examples, and verification checks.",
+        prompt=(
+            "Convert this video into a complete written guide. Include prerequisites, tools, ordered "
+            "steps, exact commands or settings, explanations, examples, warnings, and verification "
+            "checks. Preserve important visual details and cite the relevant timestamps."
+        ),
+    ),
+    "interview": WorkflowPreset(
+        mode=AnalysisMode.MEETING,
+        label="Create an interview or podcast brief",
+        short_label="Interview / podcast",
+        description="Themes, arguments, notable quotes in paraphrase, disagreements, examples, and takeaways.",
+        prompt=(
+            "Turn this interview or podcast into a structured written brief. Identify the main themes, "
+            "each speaker's important arguments, points of agreement or disagreement, memorable examples, "
+            "and conclusions. Paraphrase rather than quoting at length and cite key timestamps."
         ),
     ),
     "general": WorkflowPreset(
         mode=AnalysisMode.GENERAL,
         label="Understand any video with evidence",
         short_label="General analysis",
-        description="A concise summary, important moments, recommendations, and follow-up tasks.",
+        description="A flexible summary, important moments, conclusions, and follow-up questions.",
         prompt=(
-            "Review this video and explain what happens, what is most important, and what actions should "
-            "follow. Ground the findings in transcript or visual evidence and cite specific timestamps."
+            "Explain what happens in this video, what is most important, and what is worth remembering. "
+            "Ground the report in transcript and visual evidence and cite specific timestamps."
         ),
     ),
     "meeting": WorkflowPreset(
@@ -67,16 +90,6 @@ WORKFLOW_PRESETS: dict[str, WorkflowPreset] = {
         prompt=(
             "Extract the decisions, objections, commitments, unresolved questions, owners, and follow-up "
             "actions from this meeting. Cite the discussion behind each consequential item."
-        ),
-    ),
-    "tutorial": WorkflowPreset(
-        mode=AnalysisMode.TUTORIAL,
-        label="Turn a tutorial into a checklist",
-        short_label="Tutorial steps",
-        description="Ordered steps, prerequisites, commands, warnings, and an agent-ready checklist.",
-        prompt=(
-            "Convert this tutorial into a complete ordered checklist. Include prerequisites, tools, exact "
-            "commands or settings, warnings, and verification steps, all grounded in timestamps."
         ),
     ),
     "product_demo": WorkflowPreset(
@@ -121,14 +134,36 @@ WORKFLOW_PRESETS: dict[str, WorkflowPreset] = {
             "assets, and a practical step-by-step recreation recipe. Cite the visible evidence."
         ),
     ),
+    "bug": WorkflowPreset(
+        mode=AnalysisMode.BUG,
+        label="Create a bug report",
+        short_label="Bug report",
+        description="Reproduction steps, expected versus observed behavior, severity, and timestamped evidence.",
+        prompt=(
+            "Turn this recording into an issue-ready bug report. Identify the user's goal, "
+            "reproduction steps, expected versus observed behavior, visible errors, likely severity, "
+            "and recommended investigation tasks. Cite every important claim with a timestamp."
+        ),
+    ),
+    "ux": WorkflowPreset(
+        mode=AnalysisMode.UX,
+        label="Review UX friction",
+        short_label="UX review",
+        description="Pauses, repeated actions, confusing copy, dead ends, and prioritized product fixes.",
+        prompt=(
+            "Review this recording for UX friction. Reconstruct the user's goal and journey, identify "
+            "hesitation, repeated actions, confusing states, errors, and abandonment risks, then propose "
+            "specific product fixes. Cite each finding with a timestamp."
+        ),
+    ),
 }
 
 
-PRIMARY_WORKFLOWS = ("bug", "ux", "general")
+PRIMARY_WORKFLOWS = ("detailed", "key_insights", "tutorial", "interview")
 
 
 def preset_for(value: str | None) -> WorkflowPreset:
-    return WORKFLOW_PRESETS.get(value or "", WORKFLOW_PRESETS["bug"])
+    return WORKFLOW_PRESETS.get(value or "", WORKFLOW_PRESETS["detailed"])
 
 
 def preset_for_mode(mode: AnalysisMode | str) -> WorkflowPreset:
@@ -139,15 +174,15 @@ def preset_for_mode(mode: AnalysisMode | str) -> WorkflowPreset:
     )
 
 
-def render_issue_markdown(analysis: Analysis) -> str:
+def render_report_markdown(analysis: Analysis) -> str:
     lines = [
-        f"# {analysis.summary.strip() or 'VideoLens finding'}",
+        f"# {analysis.source.title or 'Video report'}",
         "",
-        "## Summary",
+        "## Executive summary",
         "",
         analysis.summary.strip() or "_(No summary generated.)_",
         "",
-        "## Findings and evidence",
+        "## Key findings and evidence",
         "",
     ]
 
@@ -165,7 +200,7 @@ def render_issue_markdown(analysis: Analysis) -> str:
             lines.append(f"- **[{_fmt_ts(evidence.timestamp)}]** {evidence.detail}")
         lines.append("")
 
-    lines.extend(["## Recommended actions", ""])
+    lines.extend(["## Practical takeaways", ""])
     if analysis.recommendations:
         for recommendation in analysis.recommendations:
             rationale = f" — {recommendation.rationale}" if recommendation.rationale else ""
@@ -173,7 +208,7 @@ def render_issue_markdown(analysis: Analysis) -> str:
     else:
         lines.append("_(No recommendations generated.)_")
 
-    lines.extend(["", "## Suggested tasks", ""])
+    lines.extend(["", "## Follow-up ideas", ""])
     if analysis.tasks:
         for task in analysis.tasks:
             detail = f" — {task.detail}" if task.detail else ""
@@ -184,10 +219,10 @@ def render_issue_markdown(analysis: Analysis) -> str:
     lines.extend(
         [
             "",
-            "## Review notes",
+            "## Report notes",
             "",
             f"- Overall confidence: **{analysis.confidence}**",
-            "- Generated from video evidence by VideoLens; verify cited moments before filing or assigning.",
+            "- Generated from transcript and visual evidence by VideoLens; check cited moments against the source before relying on consequential details.",
         ]
     )
     for limitation in analysis.limitations:
@@ -195,10 +230,15 @@ def render_issue_markdown(analysis: Analysis) -> str:
     return "\n".join(lines).strip() + "\n"
 
 
+def render_issue_markdown(analysis: Analysis) -> str:
+    """Compatibility alias for integrations that used the original export helper."""
+    return render_report_markdown(analysis)
+
+
 def build_demo_analysis() -> Analysis:
     source = ResolvedSource(
-        source_url="illustrative-sample://checkout-recording",
-        source_type="local_file",
+        source_url="illustrative-sample://youtube-report",
+        source_type="youtube",
         access_level=AccessLevel.FULL_VIDEO,
         artifacts_available=ArtifactsAvailable(
             video=True,
@@ -208,84 +248,104 @@ def build_demo_analysis() -> Analysis:
             ocr=True,
             metadata=True,
         ),
-        title="Illustrative checkout recording",
-        duration_seconds=32.0,
-        platform="sample",
+        title="Why most note-taking systems fail",
+        duration_seconds=872.0,
+        platform="youtube",
     )
     timeline = Timeline(
         segments=[
             TimelineSegment(
                 start=0,
-                end=8,
-                scene_type="checkout form",
-                transcript="I am updating the card on this account.",
-                visual_summary="The user opens Billing and completes the payment-method form.",
+                end=142,
+                scene_type="opening thesis",
+                transcript="The problem is not capturing more notes. It is being able to find and use the right idea when a real question appears.",
+                visual_summary="The presenter contrasts a large archive of clipped notes with a small working set tied to current questions.",
                 confidence="high",
             ),
             TimelineSegment(
-                start=8,
-                end=17,
-                scene_type="form submission",
-                transcript="I clicked save, but it is still spinning.",
-                ocr=["Save payment method", "Saving…"],
-                visual_summary="The Save button enters a loading state and remains there for several seconds.",
-                detected_actions=["click Save payment method", "wait for response"],
+                start=142,
+                end=356,
+                scene_type="collector's fallacy",
+                transcript="Saving an idea feels like learning, but the decision to save it is not the same as understanding or retrieving it later.",
+                ocr=["Capture ≠ understanding", "The collector's fallacy"],
+                visual_summary="A diagram separates passive capture from active explanation, retrieval, and application.",
                 confidence="high",
             ),
             TimelineSegment(
-                start=17,
-                end=25,
-                scene_type="error state",
-                transcript="Now it says something went wrong, but it does not tell me what to fix.",
-                ocr=["Something went wrong. Try again."],
-                visual_summary="A generic error banner appears while the entered form values remain visible.",
+                start=356,
+                end=618,
+                scene_type="question-led organization",
+                transcript="Organize notes around questions and projects, not around the source that happened to contain them.",
+                ocr=["Active question → evidence → conclusion"],
+                visual_summary="The presenter moves notes from source folders into a project page containing an open question, evidence, and a draft conclusion.",
                 confidence="high",
             ),
             TimelineSegment(
-                start=25,
-                end=32,
-                scene_type="retry",
-                transcript="Trying again gives me the same error.",
-                visual_summary="The user retries without changing the form and receives the same result.",
-                detected_actions=["retry submission"],
-                confidence="medium",
+                start=618,
+                end=872,
+                scene_type="weekly synthesis workflow",
+                transcript="Once a week, turn the few notes that still matter into your own words, a decision, or something you publish.",
+                ocr=["Weekly: delete, connect, decide, create"],
+                visual_summary="A four-step weekly review converts captured material into linked ideas, decisions, and written output.",
+                detected_actions=[
+                    "review recent notes",
+                    "rewrite in own words",
+                    "connect to active work",
+                ],
+                confidence="high",
             ),
         ]
     )
     return Analysis(
         source=source,
-        mode=AnalysisMode.BUG,
-        prompt=WORKFLOW_PRESETS["bug"].prompt,
+        mode=AnalysisMode.GENERAL,
+        prompt=WORKFLOW_PRESETS["detailed"].prompt,
         summary=(
-            "Updating a saved payment method fails after submission: the interface remains in a loading "
-            "state, then shows a generic error with no field-level guidance or recovery path."
+            "The video argues that most note-taking systems fail because they optimize capture rather "
+            "than retrieval and use. Its proposed alternative is a small, question-led working set: "
+            "save selectively, organize evidence around active problems, and synthesize useful notes "
+            "into decisions or original work during a weekly review."
         ),
         timeline=timeline,
         findings=[
             Finding(
-                finding="Payment-method submission stalls before failing.",
+                finding="More capture does not produce more understanding.",
                 evidence=[
                     Evidence(
-                        timestamp=10,
-                        detail="The user clicks “Save payment method”; the control changes to “Saving…” and remains busy.",
+                        timestamp=48,
+                        detail="The presenter defines the goal as retrieving and using an idea when a real question appears, not maximizing the archive.",
                     ),
                     Evidence(
-                        timestamp=18,
-                        detail="The loading state ends with the banner “Something went wrong. Try again.”",
+                        timestamp=174,
+                        detail="The visual model explicitly separates capture from understanding, retrieval, and application.",
                     ),
                 ],
                 confidence="high",
             ),
             Finding(
-                finding="The failure state does not explain what the user can correct.",
+                finding="Questions and active projects are better organizing units than sources.",
                 evidence=[
                     Evidence(
-                        timestamp=19,
-                        detail="The only feedback is a generic banner; no field is marked invalid and no support reference is shown.",
+                        timestamp=382,
+                        detail="The presenter recommends moving notes out of book and video folders and into the question they help answer.",
                     ),
                     Evidence(
-                        timestamp=27,
-                        detail="A retry with unchanged inputs produces the same failure.",
+                        timestamp=467,
+                        detail="A worked example groups several sources beneath one active question, followed by evidence and a draft conclusion.",
+                    ),
+                ],
+                confidence="high",
+            ),
+            Finding(
+                finding="A weekly synthesis habit turns stored material into usable knowledge.",
+                evidence=[
+                    Evidence(
+                        timestamp=654,
+                        detail="The weekly review asks whether each recent note should be deleted, connected, turned into a decision, or developed into an output.",
+                    ),
+                    Evidence(
+                        timestamp=791,
+                        detail="The closing example rewrites three captured fragments into a short original explanation connected to an active project.",
                     ),
                 ],
                 confidence="high",
@@ -293,32 +353,32 @@ def build_demo_analysis() -> Analysis:
         ],
         recommendations=[
             Recommendation(
-                recommendation="Return an actionable error state and preserve retry context.",
-                rationale="Map known payment errors to the affected field and include a support reference for unknown failures.",
+                recommendation="Capture fewer notes and attach each one to a current question.",
+                rationale="The video's system depends on a small working set with a reason for retrieval.",
                 confidence="high",
             ),
             Recommendation(
-                recommendation="Add submission tracing around the payment-method update request.",
-                rationale="The recording proves the visible failure but cannot identify the network or backend cause.",
+                recommendation="Schedule a short weekly synthesis review.",
+                rationale="Rewriting, connecting, deciding, or creating is the step that converts saved material into knowledge.",
                 confidence="high",
             ),
         ],
         tasks=[
             Task(
-                title="Reproduce the update-payment-method request",
-                detail="Capture the response status, payment-provider code, and correlation ID.",
+                title="Choose one active question",
+                detail="Move only the notes that directly help answer it into a working page.",
             ),
             Task(
-                title="Design field-level and fallback error states",
-                detail="Cover validation, declined-card, provider, network, and unknown errors.",
+                title="Rewrite the strongest evidence in your own words",
+                detail="Add the source timestamp so the reasoning remains checkable.",
             ),
             Task(
-                title="Add an end-to-end retry test",
-                detail="Verify loading state cleanup and a recoverable error path.",
+                title="Run the weekly delete-connect-decide-create review",
+                detail="End by producing one decision, explanation, or draft from the material.",
             ),
         ],
         limitations=[
-            "This illustrative report is precomputed; a real root-cause investigation also needs network and backend logs."
+            "This illustrative report is precomputed from a fictional educational YouTube video; real reports depend on the accessible transcript, frames, and source quality."
         ],
         confidence="high",
     )

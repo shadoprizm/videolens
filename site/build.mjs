@@ -13,9 +13,9 @@ const workflowBySlug = {
   "loom-video-analyzer": "bug",
   "meeting-video-analyzer": "meeting",
   "video-privacy-analyzer": "privacy",
-  "youtube-video-analyzer": "general",
-  "video-analysis-mcp": "general",
-  "ai-video-analyzer": "general",
+  "youtube-video-analyzer": "detailed",
+  "video-analysis-mcp": "detailed",
+  "ai-video-analyzer": "detailed",
 };
 const observabilityConfig = JSON.parse(process.env.VERCEL_OBSERVABILITY_CLIENT_CONFIG || "{}");
 const configuredAnalyticsPath = observabilityConfig.analytics?.scriptSrc;
@@ -67,11 +67,10 @@ const renderPage = (page) => {
         url: `${siteUrl}/`,
         applicationCategory: "MultimediaApplication",
         operatingSystem: "Web, macOS, Linux, Windows, Chrome",
-        description: "Open-source AI video analysis with transcription, frame-level vision, OCR, structured reports, and timestamped evidence.",
+        description: "Open-source software that turns long videos into professional written reports with transcription, frame vision, OCR, and timestamped evidence.",
         license: "https://github.com/shadoprizm/videolens/blob/main/LICENSE",
         offers: [
-          { "@type": "Offer", name: "VideoLens open-source core", price: "0", priceCurrency: "USD" },
-          { "@type": "Offer", name: "VideoLens Pro Chrome extension", price: "0", priceCurrency: "USD" }
+          { "@type": "Offer", name: "VideoLens open-source product", price: "0", priceCurrency: "USD" }
         ]
       },
       {
@@ -133,7 +132,7 @@ const renderPage = (page) => {
     <nav class="wrap nav" aria-label="Primary navigation">
       <a class="brand" href="/"><span class="brand-mark">▶</span>VideoLens</a>
       <div class="nav-links">
-        <a href="/ai-video-analyzer">AI analyzer</a>
+        <a href="/youtube-video-analyzer">YouTube reports</a>
         <a href="/screen-recording-analyzer">Screen recordings</a>
         <a href="/video-analysis-mcp">For AI agents</a>
         <a class="button button-primary" data-track="Start ${escapeHtml(workflow)} workflow" data-destination="hosted-app-${escapeHtml(workflow)}" href="${appHref}" target="_blank" rel="noopener">Start this workflow →</a>
@@ -158,7 +157,7 @@ const renderPage = (page) => {
     </section>
 
     <div class="proof" aria-label="Product facts">
-      <div>Transcript + frame vision + OCR</div><div>Timestamp citations</div><div>~1,500 supported platforms</div><div>Markdown, PDF, and JSON</div>
+      <div>Transcript + frame vision + OCR</div><div>Timestamp citations</div><div>~1,500 supported platforms</div><div>Professional HTML and PDF</div>
     </div>
 
     <section class="section">

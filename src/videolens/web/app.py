@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from base64 import b64encode
 from pathlib import Path
 from time import monotonic
 from uuid import uuid4
@@ -12,7 +13,7 @@ import streamlit as st
 
 from videolens import __version__
 from videolens.config import Config, Defaults, Models
-from videolens.outputs import render_pdf
+from videolens.outputs import render_html, render_pdf
 from videolens.pipeline import ExtractionResult, run_extraction
 from videolens.product import (
     PRIMARY_WORKFLOWS,
@@ -20,7 +21,7 @@ from videolens.product import (
     build_demo_analysis,
     preset_for,
     preset_for_mode,
-    render_issue_markdown,
+    render_report_markdown,
 )
 from videolens.telemetry import (
     count_bucket,
@@ -32,7 +33,7 @@ from videolens.types import AnalysisMode
 
 
 st.set_page_config(
-    page_title="VideoLens",
+    page_title="VideoLens — video to written reports",
     page_icon=":clapper:",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -93,7 +94,7 @@ def _apply_entry_params() -> None:
         st.session_state["mode_selector"] = preset.mode.value
         st.session_state["prompt_input"] = preset.prompt
 
-    if st.query_params.get("demo") == "bug":
+    if st.query_params.get("demo") in {"report", "bug"}:
         st.session_state["show_demo"] = True
 
     st.session_state["entry_params_applied"] = True
@@ -102,7 +103,10 @@ def _apply_entry_params() -> None:
 def _on_mode_change() -> None:
     mode = st.session_state["mode_selector"]
     preset = preset_for_mode(mode)
-    workflow = preset.mode.value
+    workflow = next(
+        (key for key in PRIMARY_WORKFLOWS if WORKFLOW_PRESETS[key].mode.value == mode),
+        preset.mode.value,
+    )
     st.session_state["mode"] = mode
     st.session_state["workflow"] = workflow
     st.session_state["workflow_choice"] = workflow if workflow in PRIMARY_WORKFLOWS else None
@@ -127,6 +131,11 @@ def _sanitize_filename(s: str) -> str:
     s = re.sub(r"\s+", "_", s.strip())
     s = s.strip("._-")
     return s[:80] or "videolens_analysis"
+
+
+def _report_preview_url(report_html: str) -> str:
+    encoded = b64encode(report_html.encode("utf-8")).decode("ascii")
+    return f"data:text/html;base64,{encoded}"
 
 
 def _output_basename(result: ExtractionResult) -> str:
@@ -227,9 +236,9 @@ def _render_stepper(state: list[str]) -> str:
 
 def _mode_description(mode: str) -> str:
     return {
-        "general": "Broad review: what's happening, what stands out, what's worth knowing.",
+        "general": "Detailed written report: main ideas, important evidence, context, and takeaways.",
         "bug": "Bug recording: repro steps, severity, ticket-ready summary.",
-        "meeting": "Decisions, objections, commitments, follow-ups (diarized transcript when available).",
+        "meeting": "Interviews, podcasts, and meetings: themes, arguments, decisions, and follow-ups.",
         "ux": "Session replay: user intent, friction points, abandoned flows, UI/copy fixes.",
         "tutorial": "How-to video: tools, commands, ordered steps, prerequisites, agent-ready checklist.",
         "product_demo": "Product demo: feature inventory, positioning, strengths/weaknesses, opportunities.",
@@ -258,22 +267,33 @@ def main() -> None:
         return
 
     api_key = st.session_state.get("api_key", "")
-    mode = st.session_state.get("mode", "bug")
+    mode = st.session_state.get("mode", "general")
     max_frames = st.session_state.get("max_frames", 20)
     frame_interval = st.session_state.get("frame_interval", 5.0)
     force = st.session_state.get("force", False)
 
     if not api_key:
         st.info(
-            "The sample report needs no key. To analyze your own recording, open the sidebar and add "
-            "your OpenAI API key; it remains in this browser session only."
+            "The sample report needs no key. To turn your own YouTube video into a report, open the "
+            "sidebar and add your OpenAI API key; it remains in this browser session only."
         )
 
-    st.markdown("### 1. Add the recording")
-    source_tab, url_tab = st.tabs(["**Upload file**", "**Paste a video URL**"])
+    st.markdown("### 1. Add a YouTube video")
+    st.caption("Paste a YouTube link. Other supported video URLs and local files still work too.")
+    url_tab, source_tab = st.tabs(["**Paste a YouTube URL**", "**Upload a video file**"])
 
     source_path: str | None = None
     upload_path: Path | None = None
+
+    with url_tab:
+        url = st.text_input(
+            "YouTube URL",
+            placeholder="https://www.youtube.com/watch?v=...",
+            label_visibility="collapsed",
+        )
+        if url.strip() and source_path is None:
+            source_path = url.strip()
+            _track_once("source_url", "source_added", source_kind="url")
 
     with source_tab:
         uploaded = st.file_uploader(
@@ -291,20 +311,10 @@ def main() -> None:
                 f"`{upload_path.parent.relative_to(Path.cwd())}/`"
             )
 
-    with url_tab:
-        url = st.text_input(
-            "Video URL",
-            placeholder="https://www.youtube.com/watch?v=... or direct .mp4 URL",
-            label_visibility="collapsed",
-        )
-        if url.strip() and source_path is None:
-            source_path = url.strip()
-            _track_once("source_url", "source_added", source_kind="url")
-
     if "prompt_input" not in st.session_state:
         st.session_state["prompt_input"] = preset_for_mode(mode).prompt
 
-    st.markdown("### 2. Confirm the question")
+    st.markdown("### 2. Shape the report")
     prompt = st.text_area(
         "What do you want to know about this video?",
         height=100,
@@ -344,7 +354,7 @@ def main() -> None:
 
     cost_low, cost_high = _estimate_cost(max_frames)
     run_col, cost_col = st.columns([1, 2])
-    run = run_col.button("Create evidence report", type="primary", use_container_width=True)
+    run = run_col.button("Create written report", type="primary", use_container_width=True)
     cost_col.markdown(
         f'<div style="display:flex;align-items:center;height:100%;color:#475569;font-size:13px;padding-left:8px">'
         f'Estimated: <span style="color:{BRAND_COLOR};font-weight:600;margin:0 6px">'
@@ -360,7 +370,7 @@ def main() -> None:
             return
         if source_path is None:
             _track_event("validation_failed", mode=mode, error_code="missing_source")
-            st.error("Upload a file or paste a URL.")
+            st.error("Paste a YouTube URL or upload a video file.")
             return
 
         st.session_state.pop("result", None)
@@ -400,7 +410,7 @@ def _render_header() -> None:
           </div>
         </div>
         <div style="color:#475569;font-size:15.5px;margin-bottom:18px;max-width:760px">
-          Turn a screen recording into an action-ready bug or UX report with timestamped evidence.
+          Turn a long video into a useful written report with timestamped evidence.
         </div>
         """,
         unsafe_allow_html=True,
@@ -408,19 +418,17 @@ def _render_header() -> None:
 
 
 def _render_workflow_picker() -> None:
-    st.markdown("### What should VideoLens produce?")
-    st.caption(
-        "Start with a common workflow. All nine expert modes remain available in the sidebar."
-    )
+    st.markdown("### What kind of report do you want?")
+    st.caption("Choose a starting point, then edit the prompt if you want something more specific.")
 
     if "workflow" not in st.session_state:
-        st.session_state["workflow"] = "bug"
+        st.session_state["workflow"] = "detailed"
     if "mode" not in st.session_state:
-        st.session_state["mode"] = "bug"
+        st.session_state["mode"] = "general"
     if "mode_selector" not in st.session_state:
         st.session_state["mode_selector"] = st.session_state["mode"]
     if "workflow_choice" not in st.session_state:
-        st.session_state["workflow_choice"] = "bug"
+        st.session_state["workflow_choice"] = "detailed"
 
     selected = st.segmented_control(
         "Popular workflows",
@@ -438,49 +446,56 @@ def _render_workflow_picker() -> None:
         st.session_state["prompt_input"] = preset.prompt
         _track_event("workflow_selected", workflow=selected, mode=preset.mode.value)
 
-    active = preset_for_mode(st.session_state.get("mode", "bug"))
+    active = preset_for(st.session_state.get("workflow"))
     st.markdown(f"**{active.label}** — {active.description}")
 
     demo_col, own_col, _ = st.columns([1.25, 1.35, 3])
     if demo_col.button("View a sample report", use_container_width=True):
         st.session_state["show_demo"] = True
-        _track_once("demo_opened", "demo_opened", workflow="bug", mode="bug")
+        _track_once("demo_opened", "demo_opened", workflow="detailed", mode="general")
         st.rerun()
     own_col.caption("No API key or upload required for the sample.")
     st.divider()
 
 
 def _render_demo_report() -> None:
-    _track_once("demo_opened", "demo_opened", workflow="bug", mode="bug")
+    _track_once("demo_opened", "demo_opened", workflow="detailed", mode="general")
     analysis = build_demo_analysis()
-    issue_markdown = render_issue_markdown(analysis)
+    report_markdown = render_report_markdown(analysis)
+    report_html = render_html(analysis)
+    try:
+        report_pdf = render_pdf(analysis)
+    except Exception:
+        report_pdf = None
 
-    st.success("Illustrative sample — no API key, upload, or personal data required.")
+    st.success("Illustrative YouTube report — no API key or video required.")
     title_col, action_col = st.columns([3, 1])
     with title_col:
-        st.markdown("## Sample: payment-method update failure")
+        st.markdown("## Sample: Why most note-taking systems fail")
         st.caption(
-            "This precomputed example shows the artifact VideoLens produces from a short bug recording."
+            "This precomputed example shows the written report VideoLens produces from an educational YouTube video."
         )
     with action_col:
-        if st.button("Analyze your own recording", type="primary", use_container_width=True):
+        if st.button("Analyze a YouTube video", type="primary", use_container_width=True):
             st.session_state["show_demo"] = False
             st.rerun()
 
     metrics = st.columns(4)
-    metrics[0].metric("Workflow", "Bug report")
-    metrics[1].metric("Recording", "32 seconds")
-    metrics[2].metric("Evidence points", "4")
+    metrics[0].metric("Report style", "Detailed")
+    metrics[1].metric("Video", "14:32")
+    metrics[2].metric("Evidence points", "6")
     metrics[3].metric("Confidence", "High")
 
-    report_tab, issue_tab = st.tabs(["**Evidence report**", "Issue-ready Markdown"])
+    report_tab, professional_tab, markdown_tab = st.tabs(
+        ["**Written report**", "Professional report", "Markdown export"]
+    )
     with report_tab:
         st.markdown("### Executive summary")
         st.write(analysis.summary)
 
         findings_col, actions_col = st.columns([1.2, 1])
         with findings_col:
-            st.markdown("### Findings")
+            st.markdown("### Key findings")
             for index, finding in enumerate(analysis.findings, 1):
                 with st.expander(f"{index}. {finding.finding}", expanded=True):
                     st.caption(f"{finding.confidence.upper()} CONFIDENCE")
@@ -488,40 +503,67 @@ def _render_demo_report() -> None:
                         st.markdown(f"**⏱ {_fmt_ts(evidence.timestamp)}** — {evidence.detail}")
 
         with actions_col:
-            st.markdown("### Recommended actions")
+            st.markdown("### Practical takeaways")
             for recommendation in analysis.recommendations:
                 st.markdown(f"**{recommendation.recommendation}**")
                 if recommendation.rationale:
                     st.caption(recommendation.rationale)
 
-            st.markdown("### Suggested tasks")
+            st.markdown("### Try the method")
             for task in analysis.tasks:
                 detail = f" — {task.detail}" if task.detail else ""
                 st.markdown(f"- [ ] **{task.title}**{detail}")
 
         st.warning(analysis.limitations[0])
 
-    with issue_tab:
-        st.caption("Paste this directly into GitHub, Linear, Jira, or your team tracker.")
-        st.code(issue_markdown, language="markdown")
+    with professional_tab:
+        st.caption("The standalone HTML report and PDF share the same print-ready visual design.")
+        st.iframe(_report_preview_url(report_html), height=900)
 
-    download_col, continue_col, _ = st.columns([1.25, 1.35, 2.5])
-    if download_col.download_button(
-        "Download sample issue",
-        data=issue_markdown,
-        file_name="videolens-sample-bug-report.md",
+    with markdown_tab:
+        st.caption("Save this in your notes, research folder, or knowledge base.")
+        st.code(report_markdown, language="markdown")
+
+    html_col, pdf_col, markdown_col, continue_col = st.columns(4)
+    if html_col.download_button(
+        "Download HTML",
+        data=report_html,
+        file_name="videolens-sample-report.html",
+        mime="text/html",
+        use_container_width=True,
+    ):
+        _track_event("report_exported", workflow="detailed", mode="general", format="html")
+    if report_pdf:
+        if pdf_col.download_button(
+            "Download PDF",
+            data=report_pdf,
+            file_name="videolens-sample-report.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+        ):
+            _track_event("report_exported", workflow="detailed", mode="general", format="pdf")
+    else:
+        pdf_col.button("PDF unavailable", disabled=True, use_container_width=True)
+    if markdown_col.download_button(
+        "Download Markdown",
+        data=report_markdown,
+        file_name="videolens-sample-report.md",
         mime="text/markdown",
         use_container_width=True,
     ):
-        _track_event("report_exported", workflow="bug", mode="bug", format="issue_markdown")
-    if continue_col.button("Use this workflow", use_container_width=True):
+        _track_event("report_exported", workflow="detailed", mode="general", format="markdown")
+    if continue_col.button("Create my report", use_container_width=True):
         st.session_state["show_demo"] = False
-        st.session_state["prompt_input"] = WORKFLOW_PRESETS["bug"].prompt
+        st.session_state["workflow"] = "detailed"
+        st.session_state["workflow_choice"] = "detailed"
+        st.session_state["mode"] = "general"
+        st.session_state["mode_selector"] = "general"
+        st.session_state["prompt_input"] = WORKFLOW_PRESETS["detailed"].prompt
         st.rerun()
 
 
 def _render_sidebar_config() -> None:
-    st.markdown("### Analyze your own video")
+    st.markdown("### Analyze a video")
     api_key = st.text_input(
         "OpenAI API key",
         value=st.session_state.get("api_key", ""),
@@ -799,7 +841,7 @@ def render_report_tab(result: ExtractionResult) -> None:
             st.caption(f"Confidence: {r.confidence}")
             st.write("")
 
-        st.subheader("Tasks")
+        st.subheader("Follow-up ideas")
         if not analysis.tasks:
             st.caption("_(none)_")
         for t in analysis.tasks:
@@ -815,40 +857,28 @@ def render_report_tab(result: ExtractionResult) -> None:
             st.markdown(f"- {lim}")
 
     st.divider()
-    st.subheader("Ready for action")
+    st.subheader("Professional report")
     st.caption(
-        "Download a concise issue-ready version for GitHub, Linear, Jira, or your team tracker. "
-        "Verify the cited moments before assigning it."
+        "Open the standalone HTML report in any browser, share the print-ready PDF, or keep the raw "
+        "Markdown and JSON. All formats preserve the report structure and evidence."
     )
-    issue_markdown = render_issue_markdown(analysis)
-    issue_col, preview_col = st.columns([1, 2])
-    if issue_col.download_button(
-        "🐛 Download issue Markdown",
-        data=issue_markdown,
-        file_name=f"{_output_basename(result)}_issue.md",
-        mime="text/markdown",
+    basename = _output_basename(result)
+    st.caption(f"Downloads named after the source: `{basename}_*`")
+    html_report = result.report_html or render_html(analysis)
+    pdf_bytes = st.session_state.get("pdf_bytes")
+    pdf_error = st.session_state.get("pdf_error")
+    dl_cols = st.columns(4)
+    if dl_cols[0].download_button(
+        "🌐 Download HTML",
+        data=html_report,
+        file_name=f"{basename}_report.html",
+        mime="text/html",
         use_container_width=True,
     ):
-        _track_event(
-            "report_exported",
-            workflow=st.session_state.get("workflow", analysis.mode.value),
-            mode=analysis.mode.value,
-            format="issue_markdown",
-        )
-    with preview_col.expander("Preview issue-ready output", expanded=False):
-        st.code(issue_markdown, language="markdown")
-
+        _track_event("report_exported", mode=analysis.mode.value, format="html")
     if result.report_markdown:
-        st.divider()
-        basename = _output_basename(result)
-        st.caption(f"Downloads named after the source: `{basename}_*`")
-
-        pdf_bytes = st.session_state.get("pdf_bytes")
-        pdf_error = st.session_state.get("pdf_error")
-
-        dl_cols = st.columns(3)
         if pdf_bytes:
-            if dl_cols[0].download_button(
+            if dl_cols[1].download_button(
                 "📄 Download PDF",
                 data=pdf_bytes,
                 file_name=f"{basename}_report.pdf",
@@ -857,10 +887,10 @@ def render_report_tab(result: ExtractionResult) -> None:
             ):
                 _track_event("report_exported", mode=analysis.mode.value, format="pdf")
         else:
-            dl_cols[0].button("PDF unavailable", disabled=True, use_container_width=True)
+            dl_cols[1].button("PDF unavailable", disabled=True, use_container_width=True)
             if pdf_error:
-                dl_cols[0].caption(f"PDF error: {pdf_error}")
-        if dl_cols[1].download_button(
+                dl_cols[1].caption(f"PDF error: {pdf_error}")
+        if dl_cols[2].download_button(
             "📝 Download Markdown",
             data=result.report_markdown,
             file_name=f"{basename}_report.md",
@@ -868,7 +898,7 @@ def render_report_tab(result: ExtractionResult) -> None:
             use_container_width=True,
         ):
             _track_event("report_exported", mode=analysis.mode.value, format="markdown")
-        if dl_cols[2].download_button(
+        if dl_cols[3].download_button(
             "🗂 Download JSON",
             data=analysis.model_dump_json(indent=2),
             file_name=f"{basename}_analysis.json",
@@ -876,6 +906,9 @@ def render_report_tab(result: ExtractionResult) -> None:
             use_container_width=True,
         ):
             _track_event("report_exported", mode=analysis.mode.value, format="json")
+
+    with st.expander("Preview standalone HTML report", expanded=False):
+        st.iframe(_report_preview_url(html_report), height=900)
 
     _render_qa_section(result)
 
