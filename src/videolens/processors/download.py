@@ -27,9 +27,7 @@ def fetch_to_local(source: ResolvedSource, dest_dir: Path) -> tuple[Path, dict[s
         return _browser_capture(source, dest_dir)
 
     if source.source_type not in (SourceType.YOUTUBE, SourceType.DIRECT_URL, SourceType.WEBPAGE):
-        raise DownloadError(
-            f"Cannot download source of type {source.source_type.value}."
-        )
+        raise DownloadError(f"Cannot download source of type {source.source_type.value}.")
 
     dest_dir.mkdir(parents=True, exist_ok=True)
     outtmpl = str(dest_dir / "video.%(ext)s")

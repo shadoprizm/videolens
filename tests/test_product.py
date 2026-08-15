@@ -13,6 +13,7 @@ def test_workflow_presets_default_to_bug_and_resolve_modes() -> None:
     assert preset_for("ux").mode == AnalysisMode.UX
     assert preset_for_mode("privacy").mode == AnalysisMode.PRIVACY
     assert preset_for_mode(AnalysisMode.MEETING).short_label == "Meeting notes"
+    assert preset_for_mode(AnalysisMode.PRODUCTION_RECIPE).short_label == "Production recipe"
 
 
 def test_demo_analysis_is_issue_ready() -> None:

@@ -235,6 +235,7 @@ def _mode_description(mode: str) -> str:
         "product_demo": "Product demo: feature inventory, positioning, strengths/weaknesses, opportunities.",
         "content": "Content critique: hook, pacing, clarity, claims/proof, suggested edits.",
         "privacy": "Privacy review: visible secrets, credentials, PII, internal URLs — redaction plan.",
+        "production_recipe": "Reference video: script spine, shots, edit rhythm, likely tools, assets, and recreation plan.",
     }.get(mode, "")
 
 
@@ -409,7 +410,7 @@ def _render_header() -> None:
 def _render_workflow_picker() -> None:
     st.markdown("### What should VideoLens produce?")
     st.caption(
-        "Start with a common workflow. All eight expert modes remain available in the sidebar."
+        "Start with a common workflow. All nine expert modes remain available in the sidebar."
     )
 
     if "workflow" not in st.session_state:

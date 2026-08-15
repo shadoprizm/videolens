@@ -34,6 +34,7 @@ class AnalysisMode(str, Enum):
     PRODUCT_DEMO = "product_demo"
     CONTENT = "content"
     PRIVACY = "privacy"
+    PRODUCTION_RECIPE = "production_recipe"
 
 
 Confidence = Literal["high", "medium", "low"]

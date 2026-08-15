@@ -37,8 +37,8 @@ def build_timeline(
         )
 
     sorted_frames = sorted(frame_summaries, key=lambda f: f.timestamp)
-    end_anchor = duration_seconds if duration_seconds is not None else (
-        sorted_frames[-1].timestamp + 1.0
+    end_anchor = (
+        duration_seconds if duration_seconds is not None else (sorted_frames[-1].timestamp + 1.0)
     )
 
     segments: list[TimelineSegment] = []
@@ -48,9 +48,7 @@ def build_timeline(
         if end <= start:
             end = start + 0.001
 
-        overlapping_text = (
-            _collect_transcript(transcript, start, end) if transcript else None
-        )
+        overlapping_text = _collect_transcript(transcript, start, end) if transcript else None
 
         segments.append(
             TimelineSegment(
@@ -68,9 +66,7 @@ def build_timeline(
     return Timeline(segments=segments)
 
 
-def _collect_transcript(
-    transcript: Transcript | None, start: float, end: float
-) -> str | None:
+def _collect_transcript(transcript: Transcript | None, start: float, end: float) -> str | None:
     if transcript is None:
         return None
     pieces: list[str] = []

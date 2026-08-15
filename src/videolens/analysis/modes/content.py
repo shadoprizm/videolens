@@ -29,6 +29,4 @@ RECOMMENDATIONS_GUIDANCE = (
     "the CTA to ask for one specific action'. 2–5 items."
 )
 
-TASKS_GUIDANCE = (
-    "Discrete revisions the creator could action — each one a single change."
-)
+TASKS_GUIDANCE = "Discrete revisions the creator could action — each one a single change."

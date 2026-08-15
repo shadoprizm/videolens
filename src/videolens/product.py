@@ -110,6 +110,17 @@ WORKFLOW_PRESETS: dict[str, WorkflowPreset] = {
             "and redaction checklist. Do not claim the review guarantees complete detection."
         ),
     ),
+    "production_recipe": WorkflowPreset(
+        mode=AnalysisMode.PRODUCTION_RECIPE,
+        label="Recreate how a reference video was made",
+        short_label="Production recipe",
+        description="Script spine, shot inventory, edit rhythm, tools, assets, and a recreation plan.",
+        prompt=(
+            "Reverse-engineer how this video itself was made. Identify its format, script spine, shot "
+            "inventory, edit rhythm, overlays, audio, likely tools with confidence levels, required "
+            "assets, and a practical step-by-step recreation recipe. Cite the visible evidence."
+        ),
+    ),
 }
 
 

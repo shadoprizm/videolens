@@ -134,9 +134,7 @@ def run_extraction(
     )
 
 
-def _ensure_video(
-    resolved: ResolvedSource, cache: Cache, force: bool, console: Console
-) -> Path:
+def _ensure_video(resolved: ResolvedSource, cache: Cache, force: bool, console: Console) -> Path:
     marker = cache.path("video_path.txt")
     if not force and marker.exists():
         existing = Path(marker.read_text().strip())
@@ -190,7 +188,9 @@ def _ensure_transcript(
 
     chunks_dir = cache.path("audio_chunks")
     console.print("[cyan]chunking audio (30s)…[/cyan]")
-    chunks = chunk_audio(audio_path, chunks_dir, chunk_seconds=30.0, total_duration=duration_seconds)
+    chunks = chunk_audio(
+        audio_path, chunks_dir, chunk_seconds=30.0, total_duration=duration_seconds
+    )
     console.print(f"  → {len(chunks)} chunks")
 
     console.print(f"[cyan]transcribing ({_transcribe_model_for(mode, config)})…[/cyan]")
@@ -246,9 +246,7 @@ def _ensure_frame_summaries(
             return [FrameSummary.model_validate(s) for s in cached]
     console.print(f"[cyan]describing {len(frames)} frames ({config.models.frame_describe})…[/cyan]")
     summaries = describe_frames(frames, client, config.models, console=console)
-    cache.write_json(
-        "frame_summaries.json", [s.model_dump(mode="json") for s in summaries]
-    )
+    cache.write_json("frame_summaries.json", [s.model_dump(mode="json") for s in summaries])
     return summaries
 
 
@@ -316,7 +314,15 @@ def _transcribe_model_for(mode: AnalysisMode, config: Config) -> str:
 
 def _filter_info(info: dict) -> dict:
     keep = {
-        "id", "title", "description", "uploader", "channel", "duration",
-        "upload_date", "webpage_url", "extractor", "tags",
+        "id",
+        "title",
+        "description",
+        "uploader",
+        "channel",
+        "duration",
+        "upload_date",
+        "webpage_url",
+        "extractor",
+        "tags",
     }
     return {k: info.get(k) for k in keep if k in info}

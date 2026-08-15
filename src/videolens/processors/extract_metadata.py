@@ -14,8 +14,10 @@ class ProbeError(RuntimeError):
 def probe_metadata(video_path: Path) -> Metadata:
     cmd = [
         "ffprobe",
-        "-v", "quiet",
-        "-print_format", "json",
+        "-v",
+        "quiet",
+        "-print_format",
+        "json",
         "-show_format",
         "-show_streams",
         str(video_path),

@@ -22,16 +22,22 @@ def extract_audio(video_path: Path, dest: Path) -> Path:
     cmd = [
         "ffmpeg",
         "-y",
-        "-i", str(video_path),
+        "-i",
+        str(video_path),
         "-vn",
-        "-ac", "1",
-        "-ar", "16000",
-        "-b:a", "64k",
+        "-ac",
+        "1",
+        "-ar",
+        "16000",
+        "-b:a",
+        "64k",
         str(dest),
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if result.returncode != 0:
-        raise AudioExtractionError(f"ffmpeg audio extraction failed: {result.stderr.strip()[-400:]}")
+        raise AudioExtractionError(
+            f"ffmpeg audio extraction failed: {result.stderr.strip()[-400:]}"
+        )
     if not dest.exists():
         raise AudioExtractionError(f"ffmpeg produced no audio at {dest}.")
     return dest
@@ -56,14 +62,22 @@ def chunk_audio(
     cmd = [
         "ffmpeg",
         "-y",
-        "-i", str(audio_path),
-        "-f", "segment",
-        "-segment_time", str(chunk_seconds),
-        "-c:a", "libmp3lame",
-        "-b:a", "64k",
-        "-ac", "1",
-        "-ar", "16000",
-        "-reset_timestamps", "1",
+        "-i",
+        str(audio_path),
+        "-f",
+        "segment",
+        "-segment_time",
+        str(chunk_seconds),
+        "-c:a",
+        "libmp3lame",
+        "-b:a",
+        "64k",
+        "-ac",
+        "1",
+        "-ar",
+        "16000",
+        "-reset_timestamps",
+        "1",
         out_pattern,
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)

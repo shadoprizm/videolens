@@ -7,6 +7,7 @@ from videolens.analysis.modes import (
     meeting,
     privacy,
     product_demo,
+    production_recipe,
     tutorial,
     ux,
 )
@@ -22,6 +23,7 @@ _MODE_MODULES = {
     AnalysisMode.PRODUCT_DEMO: product_demo,
     AnalysisMode.CONTENT: content,
     AnalysisMode.PRIVACY: privacy,
+    AnalysisMode.PRODUCTION_RECIPE: production_recipe,
 }
 
 
