@@ -2,10 +2,12 @@ export type Confidence = "high" | "medium" | "low";
 
 export type AnalysisMode =
   | "general"
+  | "key_insights"
   | "bug"
   | "meeting"
   | "ux"
   | "tutorial"
+  | "interview"
   | "product_demo"
   | "content"
   | "privacy";

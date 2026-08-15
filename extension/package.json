@@ -1,6 +1,6 @@
 {
   "name": "videolens-extension",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Turn videos into useful written reports with AI (Chrome extension, BYOK)",
   "type": "module",
@@ -8,7 +8,7 @@
     "build": "node build.mjs",
     "icons": "node gen-icons.mjs",
     "typecheck": "tsc --noEmit",
-    "package": "node build.mjs && cd dist && zip -r ../videolens-extension.zip ."
+    "package": "node build.mjs && rm -f videolens-extension.zip && cd dist && zip -qr ../videolens-extension.zip ."
   },
   "devDependencies": {
     "@types/chrome": "^0.0.270",

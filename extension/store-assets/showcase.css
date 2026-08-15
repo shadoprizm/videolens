@@ -1,0 +1,35 @@
+:root { color-scheme: light; font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #eef2f7; color: #0f172a; }
+.browser-bar { height: 50px; display: flex; align-items: center; gap: 18px; padding: 0 18px; border-bottom: 1px solid #dce4ec; background: #f8fafc; color: #64748b; font-size: 12px; }
+.traffic { display: flex; gap: 7px; }
+.traffic span { width: 10px; height: 10px; border-radius: 99px; background: #cbd5e1; }
+.traffic span:first-child { background: #fb7185; } .traffic span:nth-child(2) { background: #fbbf24; } .traffic span:last-child { background: #34d399; }
+.address { flex: 1; max-width: 720px; margin: 0 auto; padding: 8px 13px; border: 1px solid #dde5ed; border-radius: 10px; background: white; color: #64748b; }
+.lock { margin-right: 8px; color: #10b981; font-size: 8px; }
+.browser-actions { min-width: 70px; text-align: right; font-size: 17px; }
+.workspace { height: calc(100% - 50px); display: grid; grid-template-columns: minmax(0, 1fr) 420px; }
+.video-page { min-width: 0; padding: 34px 38px 25px; background: white; }
+.video-title-row { display: flex; min-height: 112px; align-items: flex-start; justify-content: space-between; gap: 35px; }
+.screen-label { margin-bottom: 9px; color: #0891b2; font-size: 10px; font-weight: 850; letter-spacing: .16em; }
+.video-title-row h1 { max-width: 620px; margin: 0; font-size: 30px; line-height: 1.12; letter-spacing: -.035em; }
+.video-title-row p { max-width: 610px; margin: 10px 0 0; color: #64748b; font-size: 13px; line-height: 1.5; }
+.videolens-brand { display: flex; align-items: center; gap: 8px; margin-top: 3px; color: #1e293b; font-size: 13px; white-space: nowrap; }
+.videolens-brand img { width: 27px; height: 27px; border-radius: 7px; }
+.player { overflow: hidden; border-radius: 14px; background: #071425; box-shadow: 0 18px 45px rgba(15,23,42,.18); }
+.slide { position: relative; height: 390px; overflow: hidden; padding: 66px 60px; color: white; background: radial-gradient(circle at 86% 15%, rgba(6,182,212,.32), transparent 32%), linear-gradient(135deg,#071425,#132347 70%,#14245c); }
+.slide::before { position: absolute; inset: 0; opacity: .12; content: ""; background-image: linear-gradient(rgba(255,255,255,.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.4) 1px,transparent 1px); background-size: 44px 44px; }
+.slide-kicker, .slide-heading, .loop { position: relative; z-index: 1; }
+.slide-kicker { color: #67e8f9; font-size: 10px; font-weight: 850; letter-spacing: .18em; }
+.slide-heading { max-width: 650px; margin-top: 17px; font-size: 43px; font-weight: 790; line-height: 1.04; letter-spacing: -.045em; }
+.loop { display: flex; align-items: center; gap: 12px; margin-top: 46px; }
+.loop div { min-width: 122px; padding: 13px 15px; border: 1px solid rgba(255,255,255,.18); border-radius: 11px; background: rgba(255,255,255,.07); backdrop-filter: blur(8px); }
+.loop span { display: block; margin-bottom: 6px; color: #67e8f9; font-size: 9px; font-weight: 800; }
+.loop strong { font-size: 12px; }
+.loop i { color: #67e8f9; font-style: normal; }
+.player-controls { height: 48px; display: flex; align-items: center; gap: 14px; padding: 0 18px; color: #cbd5e1; background: #050b14; font-size: 11px; }
+.play { color: white; }.progress { position: relative; flex: 1; height: 4px; border-radius: 99px; background: #334155; }.progress b { display: block; width: 32%; height: 100%; border-radius: inherit; background: #22d3ee; }.progress i { position: absolute; left: 32%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border: 2px solid white; border-radius: 50%; background: #22d3ee; }.time { min-width: 88px; }
+.video-meta { padding: 18px 4px 0; }.video-meta h2 { margin: 0; font-size: 17px; }.video-meta p { max-width: 690px; margin: 7px 0 0; color: #64748b; font-size: 12px; line-height: 1.5; }
+.side-panel { position: relative; overflow: hidden; border-left: 1px solid #dce4ec; background: white; box-shadow: -16px 0 42px rgba(15,23,42,.08); }
+.side-panel::before { position: absolute; z-index: 2; top: 0; left: -1px; width: 3px; height: 100%; content: ""; background: linear-gradient(#06b6d4,#6366f1); }
+.side-panel iframe { width: 100%; height: 100%; border: 0; background: white; }

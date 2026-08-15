@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "VideoLens — AI Video Analysis",
-  "version": "0.1.0",
-  "description": "Analyze any video with AI: timestamped findings, bug repro steps, meeting notes, UX friction. Uses your own OpenAI key.",
+  "name": "VideoLens — YouTube Video Summaries",
+  "version": "0.2.0",
+  "description": "Turn YouTube videos and local files into polished, timestamped written reports with AI. Uses your own OpenAI API key.",
   "minimum_chrome_version": "116",
   "permissions": ["sidePanel", "storage", "activeTab", "scripting"],
   "host_permissions": [
