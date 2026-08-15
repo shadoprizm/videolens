@@ -266,7 +266,9 @@ the current tab (YouTube captions + canvas frame sampling) or a local file
 never leaves your device.
 
 - Free and open source — unlimited analyses and no VideoLens account
-- Same 8 analysis modes, follow-up Q&A, markdown/JSON export
+- Four reader-focused report styles plus 6 specialized modes and follow-up Q&A
+- Professional, self-contained HTML reports with print-ready PDF output
+- Markdown/JSON export and copyable report text
 - Source lives in [`extension/`](extension/) (MIT, like everything here)
 
 ```bash
@@ -275,7 +277,7 @@ npm install
 npm run build     # → extension/dist, load it unpacked via chrome://extensions
 ```
 
-Or download the latest [early-access extension package](https://github.com/shadoprizm/videolens/releases/latest/download/videolens-extension-v0.1.0.zip), unzip it, open `chrome://extensions`, enable Developer mode, and choose **Load unpacked**. Chrome Web Store distribution is planned next.
+Or download the latest [extension package](https://github.com/shadoprizm/videolens/releases/latest/download/videolens-extension-v0.2.0.zip), unzip it, open `chrome://extensions`, enable Developer mode, and choose **Load unpacked**. Version 0.2.0 is the first Chrome Web Store review package.
 
 See [`extension/PUBLISHING.md`](extension/PUBLISHING.md) for the release
 runbook and [`extension/STORE_LISTING.md`](extension/STORE_LISTING.md) for the

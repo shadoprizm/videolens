@@ -13,7 +13,7 @@ export interface ModePrompts {
 
 export const MODE_PROMPTS: Record<AnalysisMode, ModePrompts> = {
   general: {
-    label: "General",
+    label: "Detailed report",
     instructions: `You are reviewing a video by reading a structured timeline (frames + transcript).
 Answer the user's prompt with evidence-grounded analysis. Distinguish what is
 directly observed from what is inferred. Be specific, terse, and concrete.
@@ -31,7 +31,29 @@ levels:
       "If the user's prompt invites recommendations, provide 0–4 concrete suggestions. " +
       "Otherwise return an empty list.",
     tasks: "0–4 follow-up tasks an agent could action. Empty list is fine.",
-    defaultPrompt: "What happens in this video? Summarize the key moments.",
+    defaultPrompt: "Create a thorough written report of the important information in this video.",
+  },
+  key_insights: {
+    label: "Key insights",
+    instructions: `You are turning a video into a concise, high-signal written brief. Read the
+structured timeline (frames + transcript), remove repetition and filler, and
+surface only the ideas a busy reader needs to understand or act on.
+
+Preserve important nuance: separate the speaker's claims from supporting
+evidence, examples, caveats, and your own inference. Every substantive insight
+must cite the exact timestamp where it appears.`,
+    summary:
+      "A crisp 3–5 sentence brief stating the central idea, the strongest supporting points, " +
+      "and the most consequential conclusion.",
+    findings:
+      "Return 4–8 high-signal insights in priority order. Include important numbers, examples, " +
+      "counterarguments, caveats, or uncertainty. Omit greetings, repetition, sponsor reads, " +
+      "and filler unless they materially affect the content. Cite timestamps.",
+    recommendations:
+      "Provide 0–4 practical implications or decisions the viewer should consider. Do not invent " +
+      "recommendations when the source does not support them.",
+    tasks: "0–4 concrete next actions directly supported by the video's content.",
+    defaultPrompt: "Extract the most important insights, supporting evidence, and practical takeaways.",
   },
   bug: {
     label: "Bug report",
@@ -136,6 +158,30 @@ developer or AI agent could follow without re-watching the video.`,
       "commands and file paths from the timeline's OCR data.",
     defaultPrompt: "Extract an agent-ready step-by-step checklist from this tutorial.",
   },
+  interview: {
+    label: "Interview / podcast",
+    instructions: `You are converting an interview, podcast, or long-form conversation into a
+professional written report. Identify the central themes, the most meaningful
+claims made by each participant, the reasoning or stories used to support them,
+and points of agreement or tension.
+
+Attribute ideas to speakers when names or diarized labels are available. Do not
+fabricate quotations: paraphrase unless the transcript clearly preserves the
+exact wording. Cite timestamps for every major idea.`,
+    summary:
+      "3–5 sentences: who is speaking where identifiable, the central topic, the strongest idea, " +
+      "and the conversation's overall conclusion or unresolved question.",
+    findings:
+      "Organize 5–10 findings around themes, notable claims, supporting examples or stories, " +
+      "points of agreement or disagreement, surprising moments, and important caveats. Attribute " +
+      "claims and cite timestamps.",
+    recommendations:
+      "Provide 0–4 implications for the reader or thoughtful questions the conversation leaves open.",
+    tasks:
+      "0–4 follow-up items such as sources to verify, ideas to research, or actions explicitly " +
+      "recommended by a participant.",
+    defaultPrompt: "Turn this conversation into a thematic report with key claims, examples, and takeaways.",
+  },
   product_demo: {
     label: "Product demo",
     instructions: `You are reviewing a product demo or marketing video. Build a structured
@@ -226,10 +272,12 @@ expensive.`,
 
 export const MODE_ORDER: AnalysisMode[] = [
   "general",
+  "key_insights",
+  "tutorial",
+  "interview",
   "bug",
   "meeting",
   "ux",
-  "tutorial",
   "product_demo",
   "content",
   "privacy",

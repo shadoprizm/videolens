@@ -9,6 +9,7 @@ import {
 } from "../lib/capture";
 import { DEFAULTS, LINKS } from "../lib/config";
 import { describeFrames } from "../lib/describeFrames";
+import { DEMO_ANALYSIS, DEMO_QA } from "../lib/demo";
 import {
   captureLocalFrames,
   closeLocalVideo,
@@ -18,7 +19,13 @@ import {
   type LocalVideo,
 } from "../lib/localFile";
 import { verifyApiKey } from "../lib/openai";
-import { download, toMarkdown } from "../lib/report";
+import {
+  download,
+  printHtmlReport,
+  reportFilename,
+  toHtmlReport,
+  toMarkdown,
+} from "../lib/report";
 import {
   acceptPrivacyDisclosure,
   getApiKey,
@@ -60,9 +67,12 @@ const state: State = {
   privacyDisclosureAccepted: false,
 };
 
+const PRIMARY_REPORT_MODES: AnalysisMode[] = ["general", "key_insights", "tutorial", "interview"];
+
 const root = document.getElementById("view-root")!;
 const badge = document.getElementById("entitlement-badge")!;
 const settingsButton = document.getElementById("btn-settings") as HTMLButtonElement;
+const hasExtensionStorage = typeof chrome !== "undefined" && Boolean(chrome.storage?.local);
 settingsButton.addEventListener("click", () => {
   if (!state.privacyDisclosureAccepted) return;
   state.view = state.view === "settings" ? "main" : "settings";
@@ -70,6 +80,25 @@ settingsButton.addEventListener("click", () => {
 });
 
 void (async () => {
+  // A localhost-only preview path lets the exact packaged UI and report be
+  // visually tested and captured without installing an unpacked extension.
+  if (!hasExtensionStorage) {
+    const preview = new URLSearchParams(location.search).get("preview");
+    if (preview === "report") {
+      document.open();
+      document.write(toHtmlReport(DEMO_ANALYSIS, DEMO_QA));
+      document.close();
+      return;
+    }
+    state.privacyDisclosureAccepted = preview !== "privacy";
+    if (preview === "results") {
+      state.analysis = DEMO_ANALYSIS;
+      state.qa = [...DEMO_QA];
+      state.view = "results";
+    }
+    render();
+    return;
+  }
   state.privacyDisclosureAccepted = await hasAcceptedPrivacyDisclosure();
   if (!state.privacyDisclosureAccepted) {
     render();
@@ -131,6 +160,24 @@ function renderMain(): void {
     root.appendChild(el(`<div class="banner error">${esc(state.error)}</div>`));
   }
 
+  root.appendChild(
+    el(
+      `<div class="product-intro">
+        <div class="product-kicker">Video → professional report</div>
+        <h1>Turn the video into something useful.</h1>
+        <p>Choose a report style, then VideoLens extracts the important ideas and cites the exact moments that support them.</p>
+        <button class="sample-link" id="view-sample">See a complete sample report →</button>
+      </div>`,
+    ),
+  );
+  root.querySelector("#view-sample")!.addEventListener("click", () => {
+    state.analysis = DEMO_ANALYSIS;
+    state.qa = [...DEMO_QA];
+    state.view = "results";
+    state.error = null;
+    render();
+  });
+
   // Source picker
   const sourceSection = el(`<div class="section"><span class="label">Source</span></div>`);
   const seg = el(`<div class="seg"></div>`);
@@ -184,25 +231,34 @@ function renderMain(): void {
   }
   root.appendChild(sourceSection);
 
-  // Mode
-  const modeSection = el(`<div class="section"><span class="label">Analysis mode</span></div>`);
+  // Report style
+  const modeSection = el(`<div class="section"><span class="label">Report style</span></div>`);
   const select = el(`<select></select>`) as HTMLSelectElement;
-  for (const m of MODE_ORDER) {
-    const opt = document.createElement("option");
-    opt.value = m;
-    opt.textContent = MODE_PROMPTS[m].label;
-    opt.selected = m === state.mode;
-    select.appendChild(opt);
+  const primaryGroup = document.createElement("optgroup");
+  primaryGroup.label = "Written reports";
+  const specialistGroup = document.createElement("optgroup");
+  specialistGroup.label = "Specialized analysis";
+  for (const mode of MODE_ORDER) {
+    const option = document.createElement("option");
+    option.value = mode;
+    option.textContent = MODE_PROMPTS[mode].label;
+    option.selected = mode === state.mode;
+    (PRIMARY_REPORT_MODES.includes(mode) ? primaryGroup : specialistGroup).appendChild(option);
   }
+  select.append(primaryGroup, specialistGroup);
   select.addEventListener("change", () => {
     state.mode = select.value as AnalysisMode;
+    state.prompt = "";
     render();
   });
-  modeSection.appendChild(select);
+  modeSection.append(
+    select,
+    el(`<p class="hint mode-hint">${esc(MODE_PROMPTS[state.mode].defaultPrompt)}</p>`),
+  );
   root.appendChild(modeSection);
 
   // Prompt
-  const promptSection = el(`<div class="section"><span class="label">Prompt</span></div>`);
+  const promptSection = el(`<div class="section"><span class="label">Focus <span class="optional">optional</span></span></div>`);
   const textarea = el(
     `<textarea placeholder="${esc(MODE_PROMPTS[state.mode].defaultPrompt)}"></textarea>`,
   ) as HTMLTextAreaElement;
@@ -282,23 +338,39 @@ function renderResults(): void {
     ),
   );
 
-  const exportRow = el(`<div class="export-row"></div>`);
-  const mdBtn = el(`<button class="btn btn-secondary btn-sm">Download .md</button>`);
-  const jsonBtn = el(`<button class="btn btn-secondary btn-sm">Download .json</button>`);
-  const copyBtn = el(`<button class="btn btn-secondary btn-sm">Copy report</button>`);
-  mdBtn.addEventListener("click", () => download("videolens-report.md", toMarkdown(a, state.qa), "text/markdown"));
+  const reportActions = el(`<div class="report-actions"></div>`);
+  const printBtn = el(`<button class="btn btn-primary report-primary">Print / Save PDF</button>`);
+  const htmlBtn = el(`<button class="btn btn-secondary report-primary">Download HTML</button>`);
+  printBtn.addEventListener("click", () => {
+    if (!printHtmlReport(a, state.qa)) {
+      download(reportFilename(a, "html"), toHtmlReport(a, state.qa), "text/html");
+      state.error = "Chrome blocked the print window, so the complete HTML report was downloaded instead.";
+      render();
+    }
+  });
+  htmlBtn.addEventListener("click", () =>
+    download(reportFilename(a, "html"), toHtmlReport(a, state.qa), "text/html"),
+  );
+  reportActions.append(printBtn, htmlBtn);
+  root.appendChild(reportActions);
+
+  const exportRow = el(`<div class="export-row secondary-exports"></div>`);
+  const mdBtn = el(`<button class="btn btn-ghost btn-sm">Markdown</button>`);
+  const jsonBtn = el(`<button class="btn btn-ghost btn-sm">JSON</button>`);
+  const copyBtn = el(`<button class="btn btn-ghost btn-sm">Copy text</button>`);
+  mdBtn.addEventListener("click", () => download(reportFilename(a, "md"), toMarkdown(a, state.qa), "text/markdown"));
   jsonBtn.addEventListener("click", () =>
-    download("videolens-report.json", JSON.stringify({ ...a, qa: state.qa }, null, 2), "application/json"),
+    download(reportFilename(a, "json"), JSON.stringify({ ...a, qa: state.qa }, null, 2), "application/json"),
   );
   copyBtn.addEventListener("click", () => void navigator.clipboard.writeText(toMarkdown(a, state.qa)));
   exportRow.append(mdBtn, jsonBtn, copyBtn);
   root.appendChild(exportRow);
 
-  const summary = el(`<div class="card"><h3>Summary</h3><p>${esc(a.summary) || "<i>(none)</i>"}</p></div>`);
+  const summary = el(`<div class="card summary-card"><h3>Executive summary</h3><p>${esc(a.summary) || "<i>(none)</i>"}</p></div>`);
   root.appendChild(summary);
 
   if (a.findings.length > 0) {
-    const card = el(`<div class="card"><h3>Findings</h3></div>`);
+    const card = el(`<div class="card"><h3>Key findings</h3></div>`);
     for (const f of a.findings) {
       const div = el(
         `<div class="finding"><div class="f-text">${esc(f.finding)}<span class="conf ${f.confidence}">${f.confidence}</span></div></div>`,
@@ -327,7 +399,7 @@ function renderResults(): void {
   }
 
   if (a.tasks.length > 0) {
-    const card = el(`<div class="card"><h3>Tasks</h3><ul class="tasks"></ul></div>`);
+    const card = el(`<div class="card"><h3>Action items</h3><ul class="tasks"></ul></div>`);
     const ul = card.querySelector("ul")!;
     for (const t of a.tasks) {
       ul.appendChild(el(`<li>${esc(t.title)}${t.detail ? `<div class="rationale">${esc(t.detail)}</div>` : ""}</li>`));

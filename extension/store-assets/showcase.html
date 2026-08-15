@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VideoLens Store Showcase</title>
+  <link rel="stylesheet" href="showcase.css">
+</head>
+<body>
+  <div class="browser-bar">
+    <div class="traffic"><span></span><span></span><span></span></div>
+    <div class="address"><span class="lock">◆</span> video.example/watch/product-strategy</div>
+    <div class="browser-actions">☆ &nbsp; ⋮</div>
+  </div>
+
+  <div class="workspace">
+    <main class="video-page">
+      <div class="video-title-row">
+        <div>
+          <div class="screen-label" id="screen-label">VIDEO REPORT WORKFLOW</div>
+          <h1 id="screen-title">Choose exactly what you want to learn.</h1>
+          <p id="screen-copy">Detailed reports, key insights, tutorial guides, interviews, and specialized analysis.</p>
+        </div>
+        <div class="videolens-brand"><img src="../public/icons/icon128.png" alt=""><strong>VideoLens</strong></div>
+      </div>
+
+      <div class="player">
+        <div class="slide">
+          <div class="slide-kicker">PRODUCT STRATEGY</div>
+          <div class="slide-heading" id="slide-heading">Build a repeatable<br>value loop.</div>
+          <div class="loop" id="loop">
+            <div><span>01</span><strong>Activate</strong></div><i>→</i>
+            <div><span>02</span><strong>Deliver value</strong></div><i>→</i>
+            <div><span>03</span><strong>Return</strong></div>
+          </div>
+        </div>
+        <div class="player-controls">
+          <span class="play">▶</span><div class="progress"><b></b><i></i></div><span class="time" id="time">02:34 / 14:02</span><span>◧ &nbsp; ⛶</span>
+        </div>
+      </div>
+      <div class="video-meta">
+        <h2>How to build products people actually use</h2>
+        <p>A practical framework for finding a recurring problem, observing real behavior, and measuring return usage.</p>
+      </div>
+    </main>
+
+    <aside class="side-panel"><iframe id="panel" title="VideoLens extension"></iframe></aside>
+  </div>
+
+  <script>
+    const screen = new URLSearchParams(location.search).get("screen") || "setup";
+    const panel = document.getElementById("panel");
+    const content = {
+      setup: ["VIDEO REPORT WORKFLOW", "Choose exactly what you want to learn.", "Detailed reports, key insights, tutorial guides, interviews, and specialized analysis.", "Build a repeatable<br>value loop.", "02:34 / 14:02", "setup"],
+      results: ["TIMESTAMPED EVIDENCE", "Read the important parts. Jump to the proof.", "Every finding is grounded in the video's captions and visual timeline.", "Activation → Value<br>→ Return", "02:34 / 14:02", "results"],
+      actions: ["FROM INSIGHT TO ACTION", "Leave with decisions and next steps.", "Recommendations, action items, limitations, and follow-up questions stay attached to the evidence.", "Useful → Repeated<br>→ Paid", "11:56 / 14:02", "results"],
+      privacy: ["PRIVATE BY DESIGN", "Your analysis goes directly to OpenAI.", "Your key stays in Chrome. VideoLens has no analysis server and no extension analytics.", "Your video.<br>Your API key.", "00:00 / 14:02", "privacy"],
+    }[screen] || null;
+    if (content) {
+      document.getElementById("screen-label").textContent = content[0];
+      document.getElementById("screen-title").textContent = content[1];
+      document.getElementById("screen-copy").textContent = content[2];
+      document.getElementById("slide-heading").innerHTML = content[3];
+      document.getElementById("time").textContent = content[4];
+      panel.src = `../dist/sidepanel.html?preview=${content[5]}`;
+      if (screen === "actions") {
+        panel.addEventListener("load", () => {
+          const heading = [...panel.contentDocument.querySelectorAll("h3")].find((item) => item.textContent === "Recommendations");
+          heading?.scrollIntoView({ block: "start" });
+          panel.contentWindow.scrollBy(0, -70);
+        });
+      }
+      if (screen === "privacy") document.getElementById("loop").style.display = "none";
+    }
+  </script>
+</body>
+</html>
