@@ -3,19 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>VideoLens — Universal video intelligence for humans and AI agents</title>
-  <meta name="description" content="Drop any video, ask any question. Get a timestamped, evidence-grounded report. Open source, MIT licensed, built for AI agents.">
+  <title>AI Screen Recording Analyzer for Bug and UX Reports | VideoLens</title>
+  <meta name="description" content="Turn a screen recording, Loom, or session replay into an issue-ready bug or UX report with timestamped visual and transcript evidence. Open source and BYOK.">
   <meta name="theme-color" content="#0891B2">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="author" content="VideoLens">
+  <meta name="application-name" content="VideoLens">
+  <link rel="canonical" href="https://videolens.io/">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
 
   <!-- Open Graph / Twitter -->
-  <meta property="og:title" content="VideoLens — Universal video intelligence">
-  <meta property="og:description" content="Drop any video, ask any question. Get a timestamped, evidence-grounded report.">
-  <meta property="og:url" content="https://videolens.io">
+  <meta property="og:title" content="AI Screen Recording Analyzer for Bug and UX Reports | VideoLens">
+  <meta property="og:description" content="Turn a screen recording into an action-ready bug or UX report with timestamped evidence.">
+  <meta property="og:url" content="https://videolens.io/">
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="VideoLens">
+  <meta property="og:locale" content="en_US">
   <meta property="og:image" content="https://videolens.io/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="VideoLens — turn any video into a timestamped, evidence-grounded report">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AI Screen Recording Analyzer for Bug and UX Reports | VideoLens">
+  <meta name="twitter:description" content="Turn a screen recording into an action-ready bug or UX report with timestamped evidence.">
+  <meta name="twitter:image" content="https://videolens.io/og.png">
 
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230891B2'/%3E%3Cstop offset='100%25' stop-color='%236366F1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M24 18l24 14-24 14V18z' fill='white'/%3E%3C/svg%3E">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -48,6 +67,146 @@
       background-size: 32px 32px;
     }
   </style>
+
+  <!-- Structured data for AI / search engines -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://videolens.io/#organization",
+        "name": "VideoLens",
+        "url": "https://videolens.io/",
+        "logo": "https://videolens.io/android-chrome-512x512.png",
+        "description": "VideoLens is open-source video intelligence software that turns any video into a timestamped, evidence-grounded report for humans and AI agents.",
+        "sameAs": [
+          "https://github.com/shadoprizm/videolens"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://videolens.io/#website",
+        "url": "https://videolens.io/",
+        "name": "VideoLens",
+        "description": "AI video analysis with transcription, frame-level vision, OCR, structured reports, and timestamped evidence.",
+        "publisher": { "@id": "https://videolens.io/#organization" },
+        "inLanguage": "en",
+        "hasPart": [
+          { "@id": "https://videolens.io/ai-video-analyzer#webpage" },
+          { "@id": "https://videolens.io/screen-recording-analyzer#webpage" },
+          { "@id": "https://videolens.io/session-replay-analyzer#webpage" },
+          { "@id": "https://videolens.io/video-analysis-mcp#webpage" },
+          { "@id": "https://videolens.io/youtube-video-analyzer#webpage" },
+          { "@id": "https://videolens.io/loom-video-analyzer#webpage" },
+          { "@id": "https://videolens.io/meeting-video-analyzer#webpage" },
+          { "@id": "https://videolens.io/video-privacy-analyzer#webpage" }
+        ]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://videolens.io/#software",
+        "name": "VideoLens",
+        "url": "https://videolens.io/",
+        "applicationCategory": "MultimediaApplication",
+        "applicationSubCategory": "Video analysis",
+        "operatingSystem": "Web, macOS, Linux, Windows, Chrome",
+        "description": "VideoLens turns any video into a timestamped, evidence-grounded report. It combines transcription, frame-level vision, and OCR into a cached pipeline, then runs prompt-directed analysis that cites specific moments in the video. Works on local files and roughly 1,500 platforms via yt-dlp.",
+        "softwareVersion": "0.1",
+        "license": "https://github.com/shadoprizm/videolens/blob/main/LICENSE",
+        "publisher": { "@id": "https://videolens.io/#organization" },
+        "featureList": [
+          "Timestamped, evidence-grounded video reports",
+          "Transcription, frame-level vision, and OCR in one cached pipeline",
+          "Analysis modes: general, bug, meeting, UX, tutorial, demo, content, privacy",
+          "Supports local files and ~1,500 video platforms via yt-dlp",
+          "Bring your own OpenAI API key — keys are never stored",
+          "Follow-up Q&A over a cached timeline",
+          "Export to PDF, Markdown, and JSON",
+          "Chrome side-panel extension and Model Context Protocol (MCP) server"
+        ],
+        "offers": [
+          {
+            "@type": "Offer",
+            "name": "VideoLens (open source)",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "Free, MIT-licensed core tool. Self-host or use the hosted app with your own OpenAI API key."
+          },
+          {
+            "@type": "Offer",
+            "name": "VideoLens Pro (Chrome extension)",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "Free during early access. In-browser side-panel workflow with all analysis modes and unlimited analyses. Bring your own OpenAI key."
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://videolens.io/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is VideoLens?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "VideoLens is an open-source video intelligence tool that turns any video into a timestamped, evidence-grounded report. You drop in a video — a local file or a link from roughly 1,500 supported platforms — ask a question, and it returns structured findings that cite specific moments in the video. It is MIT licensed and built for both humans and AI agents."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does VideoLens work?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "VideoLens runs a four-stage cached pipeline. It resolves the video source, extracts audio, sampled frames, and on-screen text (OCR), merges them into a time-windowed timeline, then runs one analysis pass against your prompt and chosen mode to produce findings with timestamp citations. Each step is cached so re-runs are cheap and follow-up questions cost only cents."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is VideoLens free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. The core tool is free and open source under the MIT license — self-host it or use the hosted app with your own OpenAI API key. You pay only OpenAI's usage, roughly $0.05 to $1.50 per video. The VideoLens Pro Chrome extension, which adds an in-browser side-panel workflow, is also free during early access."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What video platforms does VideoLens support?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Local files plus roughly 1,500 platforms via yt-dlp, including YouTube, Loom, Vimeo, TikTok, Twitch, Twitter/X, Reddit, and Google Drive. DRM-protected players such as Netflix and Disney+, and live streams, are not supported."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does VideoLens store my videos or my OpenAI API key?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Videos are processed on your own machine, in your browser (the extension), or in an ephemeral session (the hosted app). Your OpenAI API key stays on your device or in session memory only and is sent only to OpenAI. VideoLens runs no analytics on your video content and never stores your reports."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How much does it cost to analyze a video?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Analysis costs go straight to your own OpenAI account, typically $0.05 to $1.50 per video. A 5-minute clip with 20 frames is about $0.20; a 30-minute meeting is roughly $0.50 to $1.50. Cached timelines make follow-up questions on the same video cost only cents."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can AI agents use VideoLens?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. VideoLens outputs structured JSON with evidence citations and ships a native Model Context Protocol (MCP) server, so agents such as Claude Code and Cursor can analyze video as a first-class tool."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body class="bg-white text-slate-900 antialiased">
 
@@ -64,14 +223,16 @@
       <nav class="flex items-center gap-6 text-sm">
         <a href="#features" class="hidden md:inline text-slate-600 hover:text-slate-900">Features</a>
         <a href="#how" class="hidden md:inline text-slate-600 hover:text-slate-900">How it works</a>
-        <a href="#install" class="hidden md:inline text-slate-600 hover:text-slate-900">Install</a>
-        <a href="https://app.videolens.io" target="_blank" rel="noopener" class="hidden md:inline text-slate-600 hover:text-slate-900">Hosted app</a>
+        <a href="/ai-video-analyzer" class="hidden md:inline text-slate-600 hover:text-slate-900">Guides</a>
+        <a href="#extension" class="hidden md:inline text-slate-600 hover:text-slate-900">Extension</a>
+        <a href="#faq" class="hidden md:inline text-slate-600 hover:text-slate-900">FAQ</a>
+        <a href="https://app.videolens.io/?demo=bug" target="_blank" rel="noopener" class="hidden md:inline text-slate-600 hover:text-slate-900">Sample report</a>
         <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener" class="text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.28-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.21.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.31-.54-1.53.11-3.19 0 0 1.01-.32 3.3 1.23a11.42 11.42 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.19.77.84 1.24 1.92 1.24 3.23 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22 0 1.6-.01 2.89-.01 3.28 0 .32.21.7.83.58A12 12 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
           GitHub
         </a>
-        <a href="https://app.videolens.io" target="_blank" rel="noopener" class="inline-flex items-center gap-1 px-3.5 py-1.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition">
-          Launch app →
+        <a href="https://app.videolens.io/?workflow=bug" target="_blank" rel="noopener" data-track="Start bug report" data-destination="hosted-app-bug" class="inline-flex items-center gap-1 px-3.5 py-1.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition">
+          Analyze a recording →
         </a>
       </nav>
     </div>
@@ -87,32 +248,31 @@
       <div class="max-w-3xl">
         <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-700 mb-6 shadow-sm">
           <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-          Open source · MIT licensed · ~1,500 video platforms supported
+          AI bug &amp; UX reports · Open source · Timestamped evidence
         </div>
 
         <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] mb-6">
-          Turn any video into a <span class="gradient-text">timestamped</span>,<br class="hidden md:inline">
-          evidence-grounded report.
+          Turn a screen recording into an<br class="hidden md:inline">
+          <span class="gradient-text">action-ready</span> report.
         </h1>
 
         <p class="text-lg md:text-xl text-slate-600 mb-9 leading-relaxed max-w-2xl">
-          Drop a bug recording, a meeting, a demo, a tutorial. Ask anything. VideoLens returns a structured analysis with citations to specific moments in the video — for humans or AI agents.
+          Upload a bug recording, Loom, or session replay. VideoLens reconstructs the journey, finds failures and friction, and produces an issue-ready report with citations to the exact moments that matter.
         </p>
 
         <div class="flex flex-wrap items-center gap-3">
-          <a href="https://app.videolens.io" target="_blank" rel="noopener"
+          <a href="https://app.videolens.io/?workflow=bug" target="_blank" rel="noopener" data-track="Start bug report" data-destination="hosted-app-bug"
              class="inline-flex items-center gap-2 px-5 py-3 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 transition hover-lift">
-            Launch the app
+            Analyze a recording
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
           </a>
-          <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener"
+          <a href="https://app.videolens.io/?demo=bug" target="_blank" rel="noopener" data-track="View sample report" data-destination="hosted-app-demo"
              class="inline-flex items-center gap-2 px-5 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition hover-lift">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.28-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.21.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.31-.54-1.53.11-3.19 0 0 1.01-.32 3.3 1.23a11.42 11.42 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.19.77.84 1.24 1.92 1.24 3.23 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22 0 1.6-.01 2.89-.01 3.28 0 .32.21.7.83.58A12 12 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-            View on GitHub
+            View sample report
           </a>
           <a href="#install"
              class="inline-flex items-center gap-2 px-5 py-3 bg-white border border-slate-300 text-slate-900 font-semibold rounded-lg hover:bg-slate-50 transition hover-lift">
-            Self-host
+            View install options
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
           </a>
         </div>
@@ -157,7 +317,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
           </div>
           <h3 class="text-lg font-bold mb-2">Ask anything</h3>
-          <p class="text-slate-600 text-[15px] leading-relaxed">Three modes built in — General, Bug, Meeting — plus your free-form prompt. Each mode tunes the analyst for what matters: repro steps, decisions, frictions, claims.</p>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Eight modes built in — General, Bug, Meeting, UX, Tutorial, Demo, Content, and Privacy — plus your free-form prompt.</p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-xl p-7 hover-lift">
@@ -245,8 +405,29 @@
       <div class="mt-10 p-5 bg-white border border-slate-200 rounded-xl flex items-center gap-4 text-sm text-slate-600">
         <span class="text-2xl">🛠️</span>
         <div>
-          <strong class="text-slate-900">Coming next:</strong> UX (session-replay analysis), Tutorial (step extraction), Product Demo (feature inventory), Content Critique, Privacy (sensitive-info redaction). Each mode is a small prompt-fragment file — adding a new one is ~30 lines.
+          <strong class="text-slate-900">Also included:</strong> UX (session-replay friction), Tutorial (step extraction), Product Demo (feature inventory), Content (claims and pacing), and Privacy (potential sensitive-data exposure). Each mode is available now in the open-source pipeline and Pro extension.
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Search-intent guides -->
+  <section class="border-t border-slate-100">
+    <div class="max-w-6xl mx-auto px-6 py-20 md:py-24">
+      <div class="max-w-3xl mb-12">
+        <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">Video analysis guides</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Start with the video workflow you need.</h2>
+        <p class="text-lg text-slate-600">VideoLens uses the same evidence-grounded pipeline for general AI video analysis, bugs, UX, meetings, privacy review, platform-specific videos, and agent workflows.</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <a href="/ai-video-analyzer" class="bg-slate-50 border border-slate-200 rounded-xl p-5 hover-lift"><h3 class="font-bold mb-2">AI video analyzer</h3><p class="text-sm text-slate-600">Transcript, frame vision, OCR, and cited reports.</p></a>
+        <a href="/screen-recording-analyzer" class="bg-slate-50 border border-slate-200 rounded-xl p-5 hover-lift"><h3 class="font-bold mb-2">Screen recordings</h3><p class="text-sm text-slate-600">Bug steps, UI evidence, UX friction, and tasks.</p></a>
+        <a href="/session-replay-analyzer" class="bg-slate-50 border border-slate-200 rounded-xl p-5 hover-lift"><h3 class="font-bold mb-2">Session replays</h3><p class="text-sm text-slate-600">Review individual product sessions with evidence.</p></a>
+        <a href="/video-analysis-mcp" class="bg-slate-50 border border-slate-200 rounded-xl p-5 hover-lift"><h3 class="font-bold mb-2">Video analysis MCP</h3><p class="text-sm text-slate-600">Give AI agents a structured video-analysis tool.</p></a>
+        <a href="/youtube-video-analyzer" class="bg-slate-50 border border-slate-200 rounded-xl p-5 hover-lift"><h3 class="font-bold mb-2">YouTube analyzer</h3><p class="text-sm text-slate-600">Ask questions and verify answers with timestamps.</p></a>
+        <a href="/loom-video-analyzer" class="bg-slate-50 border border-slate-200 rounded-xl p-5 hover-lift"><h3 class="font-bold mb-2">Loom analyzer</h3><p class="text-sm text-slate-600">Turn async recordings into actionable handoffs.</p></a>
+        <a href="/meeting-video-analyzer" class="bg-slate-50 border border-slate-200 rounded-xl p-5 hover-lift"><h3 class="font-bold mb-2">Meeting analyzer</h3><p class="text-sm text-slate-600">Decisions, objections, commitments, and actions.</p></a>
+        <a href="/video-privacy-analyzer" class="bg-slate-50 border border-slate-200 rounded-xl p-5 hover-lift"><h3 class="font-bold mb-2">Video privacy review</h3><p class="text-sm text-slate-600">Find possible sensitive information before sharing.</p></a>
       </div>
     </div>
   </section>
@@ -301,17 +482,23 @@ uv run videolens analyze ./bug.mov \
       </div>
 
       <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-5">
-        Skip the install. Try it in your browser.
+        See the output before you connect anything.
       </h2>
       <p class="text-lg md:text-xl text-slate-600 mb-9 max-w-2xl mx-auto">
-        The hosted app is up. Drop a video, paste a prompt, get a timestamped report. <strong class="text-slate-900">You bring your own OpenAI API key</strong> — we never store it and we never pay for your calls. It's the same code as the open-source repo, just hosted.
+        Open the illustrative sample report with no API key or upload. When you're ready, analyze your own recording with <strong class="text-slate-900">your OpenAI API key</strong> — it stays in session memory and is never stored by VideoLens.
       </p>
 
-      <a href="https://app.videolens.io" target="_blank" rel="noopener"
-         class="inline-flex items-center gap-2 px-6 py-3.5 bg-brand-600 text-white text-base font-semibold rounded-lg hover:bg-brand-700 transition hover-lift">
-        Launch app.videolens.io
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-      </a>
+      <div class="flex flex-wrap justify-center items-center gap-3">
+        <a href="https://app.videolens.io/?demo=bug" target="_blank" rel="noopener" data-track="View sample report" data-destination="hosted-app-demo"
+           class="inline-flex items-center gap-2 px-6 py-3.5 bg-brand-600 text-white text-base font-semibold rounded-lg hover:bg-brand-700 transition hover-lift">
+          View a sample bug report
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <a href="https://app.videolens.io/?workflow=bug" target="_blank" rel="noopener" data-track="Start bug report" data-destination="hosted-app-bug"
+           class="inline-flex items-center gap-2 px-6 py-3.5 bg-white border border-slate-300 text-slate-900 text-base font-semibold rounded-lg hover:bg-slate-50 transition hover-lift">
+          Analyze my recording
+        </a>
+      </div>
 
       <div class="mt-12 grid md:grid-cols-3 gap-4 text-left">
         <div class="bg-white border border-slate-200 rounded-xl p-5">
@@ -345,12 +532,59 @@ uv run videolens analyze ./bug.mov \
     </div>
   </section>
 
+  <!-- Chrome extension -->
+  <section id="extension" class="border-t border-slate-100">
+    <div class="max-w-6xl mx-auto px-6 py-20 md:py-24">
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">Chrome extension</div>
+          <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">
+            Analyze the video you're <span class="gradient-text">already watching.</span>
+          </h2>
+          <p class="text-lg text-slate-600 mb-6 leading-relaxed">
+            VideoLens Pro lives in your browser's side panel. Open any YouTube video or HTML5 player, pick a mode, and get the same timestamped, evidence-grounded report — without leaving the tab. Local files work too.
+          </p>
+          <ul class="space-y-3 text-slate-600 text-sm mb-8">
+            <li class="flex items-start gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> All 8 analysis modes: bug, meeting, UX, tutorial, demo, content, privacy, general</li>
+            <li class="flex items-start gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> 100% in-browser pipeline — no server, nothing uploaded to us, ever</li>
+            <li class="flex items-start gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> Bring your own OpenAI key; the key never leaves your device</li>
+            <li class="flex items-start gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> Follow-up Q&amp;A, markdown &amp; JSON export</li>
+          </ul>
+          <p class="text-xs text-slate-500">
+            Heads-up: DRM-protected players (Netflix, Disney+, …) can't be captured. Live streams aren't supported.
+          </p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm hover-lift">
+          <div class="flex items-baseline gap-2 mb-1">
+            <span class="text-5xl font-extrabold tracking-tight">Free</span>
+            <span class="text-slate-500 font-medium">early access</span>
+          </div>
+          <p class="text-sm text-slate-500 mb-6">No purchase, no license key. Analysis costs go straight to your own OpenAI account (typically $0.05–$1.50 per video).</p>
+
+          <ul class="space-y-2.5 text-sm text-slate-700 mb-7">
+            <li class="flex items-center gap-2.5"><span class="text-emerald-500">✓</span> Unlimited analyses, no trial limit</li>
+            <li class="flex items-center gap-2.5"><span class="text-emerald-500">✓</span> No account or license required</li>
+            <li class="flex items-center gap-2.5"><span class="text-emerald-500">✓</span> Free updates</li>
+          </ul>
+
+          <a href="https://github.com/shadoprizm/videolens/releases/latest/download/videolens-extension-v0.1.0.zip"
+             data-track="Download extension" data-destination="github-release"
+             class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition">
+            Download the early-access extension
+          </a>
+          <p class="text-xs text-slate-500 mt-4 leading-relaxed">Developer preview: unzip it, open <code>chrome://extensions</code>, enable Developer mode, and choose <strong>Load unpacked</strong>. Chrome Web Store submission is next.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Roadmap teaser -->
   <section class="border-t border-slate-100 bg-slate-50/50">
     <div class="max-w-6xl mx-auto px-6 py-20 md:py-24">
       <div class="max-w-2xl mb-12">
-        <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">Roadmap</div>
-        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Where this is going.</h2>
+        <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">Available now and next</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">A working pipeline with room to grow.</h2>
       </div>
 
       <div class="grid md:grid-cols-2 gap-5">
@@ -379,7 +613,7 @@ uv run videolens analyze ./bug.mov \
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
           </div>
           <div>
-            <h4 class="font-bold mb-1">Semantic search</h4>
+            <h4 class="font-bold mb-1">Next: semantic search</h4>
             <p class="text-sm text-slate-600">Embeddings over processed timelines: "find where they talked about pricing", "find every error message", across your whole library.</p>
           </div>
         </div>
@@ -389,8 +623,8 @@ uv run videolens analyze ./bug.mov \
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8"/></svg>
           </div>
           <div>
-            <h4 class="font-bold mb-1">Session-replay parsers</h4>
-            <p class="text-sm text-slate-600">PostHog, Clarity, Hotjar, FullStory, LogRocket, OpenReplay — read event exports, not just rendered video.</p>
+            <h4 class="font-bold mb-1">Browser capture available</h4>
+            <p class="text-sm text-slate-600">PostHog, Clarity, Hotjar, FullStory, LogRocket, and OpenReplay pages can use a browser-capture fallback; native event-export parsers are next.</p>
           </div>
         </div>
       </div>
@@ -401,6 +635,54 @@ uv run videolens analyze ./bug.mov \
           Read the full roadmap on GitHub
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="border-t border-slate-100">
+    <div class="max-w-4xl mx-auto px-6 py-20 md:py-24">
+      <div class="max-w-2xl mb-12">
+        <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">FAQ</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Questions, answered.</h2>
+        <p class="text-lg text-slate-600">Everything you need to know about how VideoLens works, what it costs, and how your data is handled.</p>
+      </div>
+
+      <div class="space-y-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">What is VideoLens?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">VideoLens is an open-source video intelligence tool that turns any video into a timestamped, evidence-grounded report. You drop in a video — a local file or a link from roughly 1,500 supported platforms — ask a question, and it returns structured findings that cite specific moments in the video. It's MIT licensed and built for both humans and AI agents.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">How does VideoLens work?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">VideoLens runs a four-stage cached pipeline. It resolves the video source, extracts audio, sampled frames, and on-screen text (OCR), merges them into a time-windowed timeline, then runs one analysis pass against your prompt and chosen mode to produce findings with timestamp citations. Each step is cached, so re-runs are cheap and follow-up questions cost only cents.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">Is VideoLens free?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Yes. The core tool is free and open source under the MIT license — self-host it or use the hosted app with your own OpenAI API key. You pay only OpenAI's usage, roughly $0.05–$1.50 per video. The VideoLens Pro Chrome extension, which adds an in-browser side-panel workflow, is also free during early access.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">What video platforms does VideoLens support?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Local files plus roughly 1,500 platforms via yt-dlp, including YouTube, Loom, Vimeo, TikTok, Twitch, Twitter/X, Reddit, and Google Drive. DRM-protected players such as Netflix and Disney+, and live streams, are not supported.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">Does VideoLens store my videos or my OpenAI API key?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">No. Videos are processed on your own machine, in your browser (the extension), or in an ephemeral session (the hosted app). Your OpenAI API key stays on your device or in session memory only and is sent only to OpenAI. VideoLens runs no analytics on your video content and never stores your reports.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">How much does it cost to analyze a video?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Analysis costs go straight to your own OpenAI account, typically $0.05–$1.50 per video. A 5-minute clip with 20 frames is about $0.20; a 30-minute meeting is roughly $0.50–$1.50. Cached timelines make follow-up questions on the same video cost only cents.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
+          <h3 class="text-lg font-bold mb-2">Can AI agents use VideoLens?</h3>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Yes. VideoLens outputs structured JSON with evidence citations and ships a native Model Context Protocol (MCP) server, so agents such as Claude Code and Cursor can analyze video as a first-class tool.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -420,6 +702,7 @@ uv run videolens analyze ./bug.mov \
           <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener" class="hover:text-slate-900">GitHub</a>
           <a href="https://github.com/shadoprizm/videolens/issues" target="_blank" rel="noopener" class="hover:text-slate-900">Issues</a>
           <a href="https://github.com/shadoprizm/videolens/blob/main/LICENSE" target="_blank" rel="noopener" class="hover:text-slate-900">License</a>
+          <a href="/privacy" class="hover:text-slate-900">Privacy</a>
         </div>
       </div>
       <div class="mt-6 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">
@@ -431,5 +714,8 @@ uv run videolens analyze ./bug.mov \
     </div>
   </footer>
 
+  <script defer src="/analytics.js"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>
 </html>

@@ -1,12 +1,14 @@
 # VideoLens
 
-> Universal video intelligence. Give it a video and a prompt. Get back a timestamped timeline, evidence-grounded findings, recommendations, and a structured report — ready for human review or AI-agent consumption.
+> Turn a screen recording into an action-ready bug or UX report with timestamped evidence. The same open-source engine also handles meetings, tutorials, product demos, content, privacy review, and agent workflows.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)]()
 
-VideoLens turns any video — a bug recording, a meeting, a demo, a tutorial, a reference video, a session replay — into a structured artifact an AI agent (or you) can reason over. It does this with a resolver → extraction → timeline → analysis pipeline that produces both a human-readable Markdown report and a machine-readable JSON analysis.
+VideoLens turns a screen recording, Loom, session replay, meeting, demo, tutorial, or reference video into a structured artifact a product team, developer, creator, or AI agent can act on. It leads with issue-ready bug and UX reports, while the underlying resolver → extraction → timeline → analysis pipeline remains universal and produces both human-readable Markdown and machine-readable JSON.
+
+[View the no-key sample report](https://app.videolens.io/?demo=bug) · [Analyze a recording](https://app.videolens.io/?workflow=bug)
 
 ```bash
 videolens analyze ./bug-recording.mov \
@@ -24,7 +26,7 @@ videolens ui
 
 ## Why VideoLens
 
-Most "video summarizer" tools wrap Whisper and call it a day. VideoLens is built for AI agents that need to reason about video: timestamped evidence, mode-specific analysis, structured outputs, and a cached intermediate timeline so you can ask many questions against one extraction. The pipeline is modular — resolvers, processors, modes, and outputs are independent and easy to extend.
+Most "video summarizer" tools wrap Whisper and call it a day. VideoLens is built for work that must survive review: bug reports, UX findings, decisions, and tasks anchored to timestamped visual and transcript evidence. A cached intermediate timeline lets people and agents ask many questions against one extraction. The pipeline is modular — resolvers, processors, modes, and outputs are independent and easy to extend.
 
 ## Status
 
@@ -35,7 +37,7 @@ Most "video summarizer" tools wrap Whisper and call it a day. VideoLens is built
 - **Multi-source input** — local files (`.mp4` / `.mov` / `.webm` / `.mkv`), direct video URLs, YouTube
 - **Cloud-only pipeline** — OpenAI for transcription, frame description (+ OCR), and synthesis
 - **Timestamped timeline** — every finding cites evidence at a specific second of the video
-- **Four analysis modes** in v0.1: `general`, `bug`, `meeting`, `production_recipe` (UX / tutorial / product-demo / content / privacy on the roadmap)
+- **Nine analysis modes** in v0.1: `general`, `bug`, `meeting`, `ux`, `tutorial`, `product_demo`, `content`, `privacy`, and `production_recipe`
 - **Local web UI** (Streamlit) — drag-and-drop upload, mode/frame sliders, tabbed results (Report / Timeline / Frames / Transcript / Cache)
 - **Per-step caching** — re-runs are cheap; per-prompt analysis cache means "ask many questions of one extraction" is free after the first
 - **Cost-aware frame budgeting** — `--max-frames` caps vision-API calls; adaptive interval
@@ -143,7 +145,7 @@ and processed-video cache files to survive redeploys.
 ### CLI
 
 ```bash
-uv run videolens analyze <source> --prompt "<your question>" [--mode general|bug|meeting|production_recipe]
+uv run videolens analyze <source> --prompt "<your question>" [--mode MODE]
 ```
 
 Useful flags:
@@ -181,6 +183,11 @@ videolens analyze "https://www.youtube.com/watch?v=..." \
 | `general` | Broad review: what's happening, what's notable, what's worth knowing |
 | `bug` | Bug recordings → repro steps, severity hint, ticket-ready summary |
 | `meeting` | Calls/standups/briefings → decisions, objections, commitments, follow-ups (uses diarized transcription) |
+| `ux` | Session replays → user intent, friction, abandoned flows, and product fixes |
+| `tutorial` | How-to videos → ordered steps, prerequisites, commands, warnings, and a checklist |
+| `product_demo` | Product demos → feature inventory, positioning, proof, gaps, and opportunities |
+| `content` | Video content → hook, pacing, clarity, proof, editing opportunities, and CTA |
+| `privacy` | Share-ready review → possible credentials, personal data, internal URLs, and redaction plan |
 | `production_recipe` | Reference videos → how the video itself was made: script spine, shot inventory, edit rhythm, likely tools, asset checklist, and recreation recipe |
 
 Each mode is a small prompt-fragment file under `src/videolens/analysis/modes/`. Adding a new mode is ~30 lines.
@@ -247,6 +254,32 @@ claude mcp add videolens -- videolens-mcp
 ```
 
 Or wire it into Cursor / Windsurf / any MCP-aware host the same way as any stdio MCP server.
+
+## Chrome extension (VideoLens Pro)
+
+VideoLens Pro runs the whole pipeline **inside the browser** as a side-panel
+Chrome extension — no Python, no ffmpeg, no server. It analyzes the video on
+the current tab (YouTube captions + canvas frame sampling) or a local file
+(in-browser audio decode → transcription), using your own OpenAI key, which
+never leaves your device.
+
+- Free during early access — unlimited analyses, no account or license key
+- Same 8 analysis modes, follow-up Q&A, markdown/JSON export
+- Source lives in [`extension/`](extension/) (MIT, like everything here)
+
+```bash
+cd extension
+npm install
+npm run build     # → extension/dist, load it unpacked via chrome://extensions
+```
+
+Or download the latest [early-access extension package](https://github.com/shadoprizm/videolens/releases/latest/download/videolens-extension-v0.1.0.zip), unzip it, open `chrome://extensions`, enable Developer mode, and choose **Load unpacked**. Chrome Web Store distribution is planned next.
+
+See [`extension/PUBLISHING.md`](extension/PUBLISHING.md) for the release
+runbook and [`extension/STORE_LISTING.md`](extension/STORE_LISTING.md) for the
+Chrome Web Store listing. Known limits: DRM-protected players (Netflix etc.)
+can't be captured; live streams aren't supported; non-YouTube in-page videos
+are analyzed frames-only (no audio transcription).
 
 ## Roadmap
 

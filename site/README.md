@@ -1,6 +1,14 @@
 # VideoLens marketing site
 
-Static landing page for [videolens.io](https://videolens.io). One HTML file, Tailwind CDN, zero build step.
+Static marketing site for [videolens.io](https://videolens.io). The homepage and privacy policy remain hand-edited HTML; focused SEO pages are generated from `content-pages.mjs` by a dependency-free Node build.
+
+## Build and verify
+
+```bash
+npm test
+```
+
+This generates `dist/`, builds the XML sitemap from the page inventory, and validates titles, descriptions, canonicals, index directives, H1s, JSON-LD, crawler rules, and sitemap coverage.
 
 ## Deploy to Vercel
 
@@ -14,7 +22,9 @@ Or via the Vercel dashboard:
 1. **New Project** → import the `shadoprizm/videolens` GitHub repo
 2. Set **Root Directory** to `site/`
 3. Framework Preset: **Other** (no build command, no output directory needed)
-4. Deploy
+4. Build command: `npm run build`
+5. Output directory: `dist`
+6. Deploy
 
 Connect `videolens.io` via Vercel's domain settings. Point the app subdomain (`app.videolens.io`) at the Railway deployment separately.
 

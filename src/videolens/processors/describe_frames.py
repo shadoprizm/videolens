@@ -86,13 +86,17 @@ def _describe_one(frame: Frame, client: OpenAI, model: str) -> FrameSummary:
             ],
         )
     except Exception as exc:
-        raise FrameDescriptionError(f"vision call failed at t={frame.timestamp:.2f}s: {exc}") from exc
+        raise FrameDescriptionError(
+            f"vision call failed at t={frame.timestamp:.2f}s: {exc}"
+        ) from exc
 
     content = response.choices[0].message.content or "{}"
     try:
         data = json.loads(content)
     except json.JSONDecodeError as exc:
-        raise FrameDescriptionError(f"vision returned non-JSON at t={frame.timestamp:.2f}s: {exc}") from exc
+        raise FrameDescriptionError(
+            f"vision returned non-JSON at t={frame.timestamp:.2f}s: {exc}"
+        ) from exc
 
     return FrameSummary(
         timestamp=frame.timestamp,

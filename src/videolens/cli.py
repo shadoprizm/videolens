@@ -49,11 +49,19 @@ def ui(
     effective_port = port or int(os.environ.get("PORT", "8501"))
     app_path = Path(__file__).parent / "web" / "app.py"
     cmd = [
-        sys.executable, "-m", "streamlit", "run", str(app_path),
-        "--server.address", host,
-        "--server.port", str(effective_port),
-        "--server.headless", "true" if not open_browser else "false",
-        "--browser.gatherUsageStats", "false",
+        sys.executable,
+        "-m",
+        "streamlit",
+        "run",
+        str(app_path),
+        "--server.address",
+        host,
+        "--server.port",
+        str(effective_port),
+        "--server.headless",
+        "true" if not open_browser else "false",
+        "--browser.gatherUsageStats",
+        "false",
     ]
     console.print(f"[bold]Launching VideoLens UI:[/bold] http://{host}:{effective_port}")
     subprocess.run(cmd, check=False)
@@ -62,18 +70,31 @@ def ui(
 @app.command()
 def analyze(
     source: str = typer.Argument(..., help="Local file path, direct URL, or YouTube URL."),
-    prompt: str = typer.Option(..., "--prompt", "-p", help="What you want to know about the video."),
+    prompt: str = typer.Option(
+        ..., "--prompt", "-p", help="What you want to know about the video."
+    ),
     mode: AnalysisMode = typer.Option(AnalysisMode.GENERAL, "--mode", "-m", help="Analysis mode."),
-    output_dir: Path | None = typer.Option(None, "--output-dir", "-o", help="Where to write report.md / analysis.json."),
-    frame_interval: float = typer.Option(5.0, "--frame-interval", help="Seconds between sampled frames."),
-    max_frames: int = typer.Option(40, "--max-frames", help="Hard cap on frames sent to the vision model (cost control)."),
-    capture_duration: float = typer.Option(60.0, "--capture-duration", help="Seconds of browser capture for session-replay sources (PostHog, Hotjar, Clarity, etc.). Real-time."),
+    output_dir: Path | None = typer.Option(
+        None, "--output-dir", "-o", help="Where to write report.md / analysis.json."
+    ),
+    frame_interval: float = typer.Option(
+        5.0, "--frame-interval", help="Seconds between sampled frames."
+    ),
+    max_frames: int = typer.Option(
+        40, "--max-frames", help="Hard cap on frames sent to the vision model (cost control)."
+    ),
+    capture_duration: float = typer.Option(
+        60.0,
+        "--capture-duration",
+        help="Seconds of browser capture for session-replay sources (PostHog, Hotjar, Clarity, etc.). Real-time.",
+    ),
     force: bool = typer.Option(False, "--force", help="Bypass cache and reprocess."),
     json_only: bool = typer.Option(False, "--json", help="Emit JSON only (skip markdown)."),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose logging."),
 ) -> None:
     """Analyze a video source against a prompt."""
     import os
+
     os.environ["VIDEOLENS_CAPTURE_DURATION"] = str(capture_duration)
 
     config = Config.load()
@@ -104,11 +125,19 @@ def analyze(
 
     table = Table(title="Extraction summary", show_header=False, box=None, padding=(0, 1))
     table.add_row("Video", str(result.video_path))
-    table.add_row("Duration", f"{result.metadata.duration_seconds:.1f}s" if result.metadata.duration_seconds else "?")
-    table.add_row("Resolution", f"{result.metadata.width}x{result.metadata.height}" if result.metadata.width else "?")
+    table.add_row(
+        "Duration",
+        f"{result.metadata.duration_seconds:.1f}s" if result.metadata.duration_seconds else "?",
+    )
+    table.add_row(
+        "Resolution",
+        f"{result.metadata.width}x{result.metadata.height}" if result.metadata.width else "?",
+    )
     table.add_row("FPS", f"{result.metadata.fps:.2f}" if result.metadata.fps else "?")
     table.add_row("Audio", "yes" if result.metadata.has_audio else "no")
-    table.add_row("Transcript segments", str(len(result.transcript.segments)) if result.transcript else "—")
+    table.add_row(
+        "Transcript segments", str(len(result.transcript.segments)) if result.transcript else "—"
+    )
     table.add_row("Frames", str(len(result.frames)))
     table.add_row("Frame summaries", str(len(result.frame_summaries)))
     table.add_row("Timeline segments", str(len(result.timeline.segments)))

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from openai import OpenAI
 
 from videolens.config import Models
-from videolens.types import Analysis, AnalysisMode, Timeline
+from videolens.types import Analysis, Timeline
 
 
 class AskQuestionError(RuntimeError):

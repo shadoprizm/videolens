@@ -40,14 +40,19 @@ def extract_frames(
     cmd = [
         "ffmpeg",
         "-y",
-        "-i", str(video_path),
-        "-vf", f"fps={fps_expr}",
-        "-q:v", "3",
+        "-i",
+        str(video_path),
+        "-vf",
+        f"fps={fps_expr}",
+        "-q:v",
+        "3",
         out_pattern,
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if result.returncode != 0:
-        raise FrameExtractionError(f"ffmpeg frame extraction failed: {result.stderr.strip()[-400:]}")
+        raise FrameExtractionError(
+            f"ffmpeg frame extraction failed: {result.stderr.strip()[-400:]}"
+        )
 
     frames: list[Frame] = []
     for i, path in enumerate(sorted(dest_dir.glob("frame_*.jpg"))):

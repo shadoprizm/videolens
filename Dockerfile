@@ -36,6 +36,11 @@ COPY src ./src
 
 RUN uv sync --frozen --no-dev --extra ui
 
+# The hosted app is an interactive product surface, not a search landing page.
+# Give its initial HTML a useful title and keep the thin Streamlit shell out of
+# the index; videolens.io contains the canonical, crawlable product content.
+RUN python -c "from pathlib import Path; p=next(Path('/app/.venv').glob('lib/python*/site-packages/streamlit/static/index.html')); s=p.read_text(); s=s.replace('<title>Streamlit</title>', '<title>VideoLens App — AI Video Analysis</title>'); s=s.replace('<head>', '<head><meta name=\"robots\" content=\"noindex, nofollow, noarchive\"><meta name=\"description\" content=\"VideoLens hosted AI video analysis app.\">', 1); p.write_text(s)"
+
 ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8501

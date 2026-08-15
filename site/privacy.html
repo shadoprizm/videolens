@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — VideoLens</title>
+  <meta name="description" content="How VideoLens handles videos, API keys, reports, and privacy-friendly website analytics across the site, hosted app, and extension.">
+  <meta name="theme-color" content="#0891B2">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="VideoLens">
+  <link rel="canonical" href="https://videolens.io/privacy">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:title" content="Privacy Policy — VideoLens">
+  <meta property="og:description" content="How VideoLens handles data across the tool, the hosted app, and the Chrome extension. We're built so we don't have your data.">
+  <meta property="og:url" content="https://videolens.io/privacy">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="VideoLens">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content="https://videolens.io/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Privacy Policy — VideoLens">
+  <meta name="twitter:description" content="How VideoLens handles data across the tool, the hosted app, and the Chrome extension.">
+  <meta name="twitter:image" content="https://videolens.io/og.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PrivacyPolicy",
+    "name": "VideoLens Privacy Policy",
+    "url": "https://videolens.io/privacy",
+    "inLanguage": "en",
+    "dateModified": "2026-07-18",
+    "isPartOf": { "@type": "WebSite", "name": "VideoLens", "url": "https://videolens.io/" },
+    "publisher": {
+      "@type": "Organization",
+      "name": "VideoLens",
+      "url": "https://videolens.io/",
+      "logo": "https://videolens.io/android-chrome-512x512.png",
+      "sameAs": [ "https://github.com/shadoprizm/videolens" ]
+    }
+  }
+  </script>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <style>
+    html { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  </style>
+</head>
+<body class="bg-white text-slate-900 antialiased">
+  <header class="border-b border-slate-100">
+    <div class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2">
+        <span class="inline-block w-7 h-7 rounded-md flex items-center justify-center" style="background:linear-gradient(135deg,#0891B2,#6366F1)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+        <span class="text-xl font-extrabold tracking-tight">VideoLens</span>
+      </a>
+      <a href="/" class="text-sm text-slate-600 hover:text-slate-900">← Back to videolens.io</a>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-6 py-14 prose-slate">
+    <h1 class="text-4xl font-extrabold tracking-tight mb-2">Privacy Policy</h1>
+    <p class="text-sm text-slate-500 mb-10">Last updated: August 15, 2026 · Applies to videolens.io, the hosted app, and the VideoLens Chrome extension.</p>
+
+    <div class="space-y-10 text-slate-700 leading-relaxed">
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">The short version</h2>
+        <p>VideoLens is built so that we don't have your data. Your videos are processed either on your own machine, in your own browser (the extension), or in an ephemeral session (the hosted app). Your OpenAI API key is yours: the extension stores it only on your device, and the hosted app holds it only for the duration of your session. We run no analytics on your video content and we never see your reports.</p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Chrome extension</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li><strong>Analysis requests.</strong> The selected video's frames, audio or captions, page title, and your prompt are processed inside the extension and sent to exactly one place: OpenAI's API (api.openai.com), using your own API key, to generate transcripts, frame descriptions, and the analysis. They are never sent to VideoLens servers — we don't have any.</li>
+          <li><strong>Your OpenAI API key.</strong> Stored in <code>chrome.storage.local</code> on your device only. It is not synced between browsers and is transmitted only to api.openai.com. Remove it any time in Settings.</li>
+          <li><strong>Analysis results.</strong> Reports, timelines, and Q&amp;A history exist only in your browser. Exporting saves files to your device.</li>
+          <li><strong>Browsing data.</strong> The extension reads a page only when you invoke it on that page (Chrome's activeTab permission), solely to find the video element, captions, and page title. It does not track your browsing, run in the background, or inject anything into pages you haven't invoked it on.</li>
+          <li><strong>Analytics.</strong> The extension contains no analytics, telemetry, or error reporting of any kind.</li>
+        </ul>
+        <p class="mt-4"><strong>Chrome Web Store Limited Use.</strong> VideoLens's use and transfer of information received through Chrome extension APIs adheres to the Chrome Web Store User Data Policy, including its Limited Use requirements. The extension uses this information only to provide the video-analysis features the user requests.</p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Hosted app (app.videolens.io)</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li>Your OpenAI API key is held in session memory only and is never written to a database. Closing the tab discards it.</li>
+          <li>Uploaded videos and generated artifacts live in an ephemeral per-session cache used to make re-runs cheap, and are not retained as a dataset or shared.</li>
+          <li>The hosted app writes privacy-safe product events to its operational logs so we can measure whether the workflow succeeds. These events contain a random session identifier, workflow and mode, upload-versus-URL source type, success or non-sensitive error category, export format, and coarse duration or performance buckets.</li>
+          <li>Hosted-app product events never include videos, filenames, source URLs, prompts, reports, transcript text, extracted images, API keys, email addresses, or persistent cross-session identifiers.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Marketing-site analytics (videolens.io)</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li>The public marketing site uses Vercel Web Analytics and Speed Insights to measure aggregate page visits, referrers, device/browser categories, approximate country or region, Core Web Vitals, and clicks on key links such as Launch App and GitHub.</li>
+          <li>Vercel Web Analytics does not use third-party cookies and stores anonymized, aggregated data. Conversion events include only the destination category and public page path — never video content, prompts, reports, API keys, or email addresses.</li>
+          <li>The Chrome extension remains free of analytics and telemetry. The hosted app records only the limited operational product events described above; measurement never includes analyzed content or reports.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Third parties</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li><strong>OpenAI</strong> — processes the audio chunks and frames you analyze, under your own account and <a class="text-cyan-700 font-semibold hover:underline" href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">OpenAI's privacy policy</a>.</li>
+          <li><strong>Vercel</strong> — hosts videolens.io and provides privacy-friendly aggregate Web Analytics and Speed Insights for the public marketing site.</li>
+          <li><strong>Railway</strong> — hosts app.videolens.io and its operational logs, including the limited hosted-app product events described above.</li>
+          <li>There are no ad networks or data brokers, and analytics events never include video content, prompts, reports, or API keys.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Your choices</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li>Remove your API key or uninstall the extension at any time — all locally stored data (key and settings) is deleted with it.</li>
+          <li>For any privacy question, email <a class="text-cyan-700 font-semibold hover:underline" href="mailto:support@videolens.io">support@videolens.io</a>.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Changes</h2>
+        <p>If this policy changes materially, the "last updated" date above will change and the new version will be posted at this URL. The extension never gains new data collection silently — Chrome requires updated permissions to be re-approved.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-100 mt-10">
+    <div class="max-w-3xl mx-auto px-6 py-8 text-sm text-slate-500 flex items-center justify-between">
+      <span>VideoLens · MIT License · © 2026</span>
+      <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener" class="hover:text-slate-900">GitHub</a>
+    </div>
+  </footer>
+  <script defer src="/analytics.js"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

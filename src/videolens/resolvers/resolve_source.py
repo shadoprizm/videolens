@@ -10,6 +10,7 @@ from videolens.types import AccessLevel, ArtifactsAvailable, ResolvedSource, Sou
 def _playwright_available() -> bool:
     return find_spec("playwright") is not None
 
+
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".webm", ".mkv", ".m4v", ".avi"}
 YOUTUBE_HOSTS = {"youtube.com", "www.youtube.com", "youtu.be", "m.youtube.com"}
 
@@ -89,9 +90,7 @@ def resolve_source(source: str) -> ResolvedSource:
             source_url=str(p.resolve()),
             source_type=SourceType.LOCAL_FILE,
             access_level=AccessLevel.FULL_VIDEO,
-            artifacts_available=ArtifactsAvailable(
-                video=True, audio=True, metadata=True
-            ),
+            artifacts_available=ArtifactsAvailable(video=True, audio=True, metadata=True),
             local_path=p.resolve(),
         )
 
@@ -114,9 +113,7 @@ def resolve_source(source: str) -> ResolvedSource:
                 source_url=source,
                 source_type=SourceType.BROWSER_CAPTURE,
                 access_level=AccessLevel.FULL_VIDEO,
-                artifacts_available=ArtifactsAvailable(
-                    video=True, audio=True, metadata=True
-                ),
+                artifacts_available=ArtifactsAvailable(video=True, audio=True, metadata=True),
                 platform=replay_platform,
                 limitations=[
                     f"{replay_platform} replays are event streams, not video. "
@@ -154,9 +151,7 @@ def resolve_source(source: str) -> ResolvedSource:
             source_url=source,
             source_type=SourceType.DIRECT_URL,
             access_level=AccessLevel.FULL_VIDEO,
-            artifacts_available=ArtifactsAvailable(
-                video=True, audio=True, metadata=True
-            ),
+            artifacts_available=ArtifactsAvailable(video=True, audio=True, metadata=True),
             platform="Direct video URL",
         )
 
@@ -166,9 +161,7 @@ def resolve_source(source: str) -> ResolvedSource:
             source_url=source,
             source_type=SourceType.WEBPAGE,
             access_level=AccessLevel.FULL_VIDEO,
-            artifacts_available=ArtifactsAvailable(
-                video=True, audio=True, metadata=True
-            ),
+            artifacts_available=ArtifactsAvailable(video=True, audio=True, metadata=True),
             platform=platform,
         )
 
@@ -176,9 +169,7 @@ def resolve_source(source: str) -> ResolvedSource:
         source_url=source,
         source_type=SourceType.WEBPAGE,
         access_level=AccessLevel.FULL_VIDEO,
-        artifacts_available=ArtifactsAvailable(
-            video=True, audio=True, metadata=True
-        ),
+        artifacts_available=ArtifactsAvailable(video=True, audio=True, metadata=True),
         platform=host,
         limitations=[
             f"'{host}' is not a known platform. yt-dlp will attempt extraction; "
