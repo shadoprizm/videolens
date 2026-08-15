@@ -11,7 +11,7 @@ from rich.console import Console
 from videolens.analysis import analyze_timeline
 from videolens.cache import Cache, compute_cache_key
 from videolens.config import Config
-from videolens.outputs import render_markdown, write_json, write_markdown
+from videolens.outputs import render_html, render_markdown, write_html, write_json, write_markdown
 from videolens.processors.build_timeline import build_timeline
 from videolens.processors.describe_frames import describe_frames
 from videolens.processors.download import fetch_to_local
@@ -44,6 +44,7 @@ class ExtractionResult:
     timeline: Timeline
     cache: Cache
     analysis: Analysis | None = None
+    report_html: str | None = None
     report_markdown: str | None = None
 
 
@@ -107,17 +108,23 @@ def run_extraction(
     )
 
     analysis: Analysis | None = None
+    report_html: str | None = None
     report_md: str | None = None
     if prompt:
         analysis = _ensure_analysis(
             timeline, resolved, mode, prompt, cache, force, client, config, console
         )
+        report_html = render_html(analysis)
         report_md = render_markdown(analysis)
         if output_dir is not None:
             output_dir.mkdir(parents=True, exist_ok=True)
+            write_html(analysis, output_dir / "report.html")
             write_markdown(analysis, output_dir / "report.md")
             write_json(analysis, output_dir / "analysis.json")
-            console.print(f"[green]wrote[/green] {output_dir}/report.md + analysis.json")
+            console.print(
+                f"[green]wrote[/green] {output_dir}/report.html + report.md + analysis.json"
+            )
+        cache.path("report.html").write_text(report_html)
         cache.path("report.md").write_text(report_md)
 
     return ExtractionResult(
@@ -130,6 +137,7 @@ def run_extraction(
         timeline=timeline,
         cache=cache,
         analysis=analysis,
+        report_html=report_html,
         report_markdown=report_md,
     )
 

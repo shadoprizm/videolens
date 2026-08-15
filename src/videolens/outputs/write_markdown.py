@@ -9,7 +9,7 @@ def render_markdown(analysis: Analysis) -> str:
     lines: list[str] = []
     src = analysis.source
 
-    lines.append("# Video Intelligence Report")
+    lines.append(f"# {src.title or 'Video report'}")
     lines.append("")
     lines.append("## Source")
     lines.append(f"- **URL / path:** {src.source_url}")
@@ -31,7 +31,7 @@ def render_markdown(analysis: Analysis) -> str:
     lines.append(analysis.summary or "_(no summary)_")
     lines.append("")
 
-    lines.append("## Findings")
+    lines.append("## Key Findings")
     lines.append("")
     if not analysis.findings:
         lines.append("_(no findings)_")
@@ -47,7 +47,7 @@ def render_markdown(analysis: Analysis) -> str:
                 lines.append("")
     lines.append("")
 
-    lines.append("## Recommendations")
+    lines.append("## Practical Takeaways")
     lines.append("")
     if not analysis.recommendations:
         lines.append("_(none)_")
@@ -59,7 +59,7 @@ def render_markdown(analysis: Analysis) -> str:
             lines.append(f"   Confidence: {r.confidence}")
             lines.append("")
 
-    lines.append("## Tasks")
+    lines.append("## Follow-up Ideas")
     lines.append("")
     if not analysis.tasks:
         lines.append("_(none)_")

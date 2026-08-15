@@ -2,44 +2,47 @@ from videolens.product import (
     build_demo_analysis,
     preset_for,
     preset_for_mode,
-    render_issue_markdown,
+    render_report_markdown,
 )
 from videolens.telemetry import count_bucket, duration_bucket, latency_bucket, track_product_event
 from videolens.types import AnalysisMode
 
 
-def test_workflow_presets_default_to_bug_and_resolve_modes() -> None:
-    assert preset_for(None).mode == AnalysisMode.BUG
+def test_workflow_presets_default_to_detailed_report_and_resolve_modes() -> None:
+    assert preset_for(None).short_label == "Detailed report"
+    assert preset_for(None).mode == AnalysisMode.GENERAL
+    assert preset_for("key_insights").mode == AnalysisMode.GENERAL
     assert preset_for("ux").mode == AnalysisMode.UX
     assert preset_for_mode("privacy").mode == AnalysisMode.PRIVACY
-    assert preset_for_mode(AnalysisMode.MEETING).short_label == "Meeting notes"
+    assert preset_for_mode(AnalysisMode.MEETING).short_label == "Interview / podcast"
     assert preset_for_mode(AnalysisMode.PRODUCTION_RECIPE).short_label == "Production recipe"
 
 
-def test_demo_analysis_is_issue_ready() -> None:
+def test_demo_analysis_is_a_written_youtube_report() -> None:
     demo = build_demo_analysis()
-    issue = render_issue_markdown(demo)
+    report = render_report_markdown(demo)
 
-    assert demo.mode == AnalysisMode.BUG
+    assert demo.mode == AnalysisMode.GENERAL
+    assert demo.source.platform == "youtube"
     assert len(demo.timeline.segments) == 4
-    assert "## Findings and evidence" in issue
-    assert "**[00:10]**" in issue
-    assert "- [ ] **Reproduce the update-payment-method request**" in issue
-    assert "illustrative report is precomputed" in issue
+    assert "## Key findings and evidence" in report
+    assert "**[00:48]**" in report
+    assert "- [ ] **Choose one active question**" in report
+    assert "fictional educational YouTube video" in report
 
 
 def test_telemetry_discards_unapproved_content() -> None:
     payload = track_product_event(
         "analysis_started",
         "session-123",
-        mode="bug",
-        source_kind="upload",
+        mode="general",
+        source_kind="url",
         prompt="private prompt",
         api_key="sk-secret",
         source_url="https://private.example/video",
     )
 
-    assert payload["properties"] == {"mode": "bug", "source_kind": "upload"}
+    assert payload["properties"] == {"mode": "general", "source_kind": "url"}
     serialized = str(payload)
     assert "private prompt" not in serialized
     assert "sk-secret" not in serialized

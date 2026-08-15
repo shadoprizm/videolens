@@ -15,3 +15,7 @@ wheels/
 # OS
 .DS_Store
 .vercel
+
+# Generated reports and visual-verification renders
+output/
+tmp/

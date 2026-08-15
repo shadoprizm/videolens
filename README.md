@@ -1,19 +1,19 @@
 # VideoLens
 
-> Turn a screen recording into an action-ready bug or UX report with timestamped evidence. The same open-source engine also handles meetings, tutorials, product demos, content, privacy review, and agent workflows.
+> Turn a long video into a useful written report with the important ideas, visual context, and timestamped evidence preserved.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)]()
 
-VideoLens turns a screen recording, Loom, session replay, meeting, demo, tutorial, or reference video into a structured artifact a product team, developer, creator, or AI agent can act on. It leads with issue-ready bug and UX reports, while the underlying resolver → extraction → timeline → analysis pipeline remains universal and produces both human-readable Markdown and machine-readable JSON.
+VideoLens is a broad video-to-report tool with a simple YouTube-first web experience. Paste a link, choose a report style, and get a detailed artifact you can read, search, save, or question later. Unlike transcript-only summarizers, VideoLens combines speech, sampled frames, and on-screen text before producing a professional standalone HTML report, print-quality PDF, Markdown, and machine-readable JSON. Local files and other supported video URLs work too.
 
-[View the no-key sample report](https://app.videolens.io/?demo=bug) · [Analyze a recording](https://app.videolens.io/?workflow=bug)
+[View the no-key sample report](https://app.videolens.io/?demo=report) · [Analyze a YouTube video](https://app.videolens.io/?workflow=detailed)
 
 ```bash
-videolens analyze ./bug-recording.mov \
-  --mode bug \
-  --prompt "Identify the bug and create reproduction steps."
+videolens analyze "https://www.youtube.com/watch?v=..." \
+  --mode general \
+  --prompt "Write a detailed report with the main ideas, evidence, and takeaways."
 ```
 
 Or launch the web UI:
@@ -26,18 +26,20 @@ videolens ui
 
 ## Why VideoLens
 
-Most "video summarizer" tools wrap Whisper and call it a day. VideoLens is built for work that must survive review: bug reports, UX findings, decisions, and tasks anchored to timestamped visual and transcript evidence. A cached intermediate timeline lets people and agents ask many questions against one extraction. The pipeline is modular — resolvers, processors, modes, and outputs are independent and easy to extend.
+Most video summarizers stop at the transcript. That misses slides, diagrams, demonstrations, code, charts, and other information carried visually. VideoLens builds a time-aligned record of what was said and shown, then writes a structured report with citations back to the important moments. A cached intermediate timeline also lets people and agents ask more questions without repeating the expensive extraction.
 
 ## Status
 
-**v0.1 — alpha.** End-to-end working: local files + direct URLs + YouTube → timeline → mode-driven analysis → Markdown/JSON reports. UI included. Not production-tested at scale.
+**v0.1 — alpha.** End-to-end working: local files + direct URLs + YouTube → timeline → mode-driven analysis → HTML/PDF/Markdown/JSON reports. UI included. Not production-tested at scale.
 
 ## Features
 
 - **Multi-source input** — local files (`.mp4` / `.mov` / `.webm` / `.mkv`), direct video URLs, YouTube
 - **Cloud-only pipeline** — OpenAI for transcription, frame description (+ OCR), and synthesis
 - **Timestamped timeline** — every finding cites evidence at a specific second of the video
-- **Nine analysis modes** in v0.1: `general`, `bug`, `meeting`, `ux`, `tutorial`, `product_demo`, `content`, `privacy`, and `production_recipe`
+- **Four report starting points** in the web app: Detailed Report, Key Insights, Tutorial Guide, and Interview / Podcast
+- **Professional report export** — standalone branded HTML and a matching print-quality PDF
+- **Nine underlying analysis modes** for specialized use: `general`, `bug`, `meeting`, `ux`, `tutorial`, `product_demo`, `content`, `privacy`, and `production_recipe`
 - **Local web UI** (Streamlit) — drag-and-drop upload, mode/frame sliders, tabbed results (Report / Timeline / Frames / Transcript / Cache)
 - **Per-step caching** — re-runs are cheap; per-prompt analysis cache means "ask many questions of one extraction" is free after the first
 - **Cost-aware frame budgeting** — `--max-frames` caps vision-API calls; adaptive interval
@@ -69,7 +71,7 @@ Source URL or file
    │
    ▼
 ┌──────────┐
-│ outputs  │   report.md + analysis.json + cached intermediate artifacts
+│ outputs  │   report.html + report.md + analysis.json + cached artifacts
 └──────────┘
 ```
 
@@ -155,7 +157,7 @@ Useful flags:
 | `--mode`, `-m` | `general` | Analysis mode |
 | `--max-frames` | `40` | Hard cap on frames sent to the vision model (cost dial) |
 | `--frame-interval` | `5.0` | Seconds between sampled frames (adaptive — grows if needed to respect max-frames) |
-| `--output-dir`, `-o` | `./output/videolens` | Where `report.md` + `analysis.json` are written |
+| `--output-dir`, `-o` | `./output/videolens` | Where `report.html` + `report.md` + `analysis.json` are written |
 | `--force` | off | Bypass cache and reprocess |
 | `--json` | off | Skip terminal summary printout |
 | `--verbose`, `-v` | off | Verbose logging |
@@ -163,17 +165,17 @@ Useful flags:
 ### Examples
 
 ```bash
-# Triage a screen recording of a broken UI
-videolens analyze ./broken.mov --mode bug \
-  --prompt "What's broken, how do I reproduce it, and what's the severity?"
+# Turn a YouTube video into a detailed written report
+videolens analyze "https://www.youtube.com/watch?v=..." --mode general \
+  --prompt "Write a thorough report with the important ideas, examples, caveats, and conclusions."
 
-# Pull decisions and follow-ups from a meeting recording
-videolens analyze ./standup.mp4 --mode meeting \
-  --prompt "List the decisions made and any open follow-up actions."
+# Convert a tutorial into a guide
+videolens analyze "https://www.youtube.com/watch?v=..." --mode tutorial \
+  --prompt "Create an ordered guide with prerequisites, exact steps, warnings, and verification checks."
 
-# General review of a tutorial or demo
+# Extract only the information worth remembering
 videolens analyze "https://www.youtube.com/watch?v=..." \
-  --prompt "What does this demo show and what are the strengths and weaknesses?"
+  --prompt "Extract the key ideas, facts, examples, and conclusions without repetition or filler."
 ```
 
 ## Modes in v0.1
@@ -255,15 +257,15 @@ claude mcp add videolens -- videolens-mcp
 
 Or wire it into Cursor / Windsurf / any MCP-aware host the same way as any stdio MCP server.
 
-## Chrome extension (VideoLens Pro)
+## Chrome extension
 
-VideoLens Pro runs the whole pipeline **inside the browser** as a side-panel
+The VideoLens extension runs the whole pipeline **inside the browser** as a side-panel
 Chrome extension — no Python, no ffmpeg, no server. It analyzes the video on
 the current tab (YouTube captions + canvas frame sampling) or a local file
 (in-browser audio decode → transcription), using your own OpenAI key, which
 never leaves your device.
 
-- Free during early access — unlimited analyses, no account or license key
+- Free and open source — unlimited analyses and no VideoLens account
 - Same 8 analysis modes, follow-up Q&A, markdown/JSON export
 - Source lives in [`extension/`](extension/) (MIT, like everything here)
 
