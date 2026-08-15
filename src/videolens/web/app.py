@@ -4,6 +4,8 @@ import hashlib
 import json
 import re
 from pathlib import Path
+from time import monotonic
+from uuid import uuid4
 
 import pandas as pd
 import streamlit as st
@@ -12,6 +14,20 @@ from videolens import __version__
 from videolens.config import Config, Defaults, Models
 from videolens.outputs import render_pdf
 from videolens.pipeline import ExtractionResult, run_extraction
+from videolens.product import (
+    PRIMARY_WORKFLOWS,
+    WORKFLOW_PRESETS,
+    build_demo_analysis,
+    preset_for,
+    preset_for_mode,
+    render_issue_markdown,
+)
+from videolens.telemetry import (
+    count_bucket,
+    duration_bucket,
+    latency_bucket,
+    track_product_event,
+)
 from videolens.types import AnalysisMode
 
 
@@ -19,7 +35,7 @@ st.set_page_config(
     page_title="VideoLens",
     page_icon=":clapper:",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 
@@ -41,6 +57,59 @@ STEP_KEYS: list[tuple[str, str]] = [
 # ───────────────────────── helpers ─────────────────────────
 
 
+def _ensure_product_session() -> None:
+    st.session_state.setdefault("product_session_id", uuid4().hex[:16])
+
+
+def _track_event(event: str, **properties) -> None:
+    track_product_event(
+        event,
+        st.session_state["product_session_id"],
+        surface="hosted_app",
+        **properties,
+    )
+
+
+def _track_once(key: str, event: str, **properties) -> None:
+    state_key = f"telemetry_{key}"
+    if st.session_state.get(state_key):
+        return
+    st.session_state[state_key] = True
+    _track_event(event, **properties)
+
+
+def _apply_entry_params() -> None:
+    if st.session_state.get("entry_params_applied"):
+        return
+
+    workflow_value = st.query_params.get("workflow")
+    if workflow_value in WORKFLOW_PRESETS:
+        preset = preset_for(workflow_value)
+        st.session_state["workflow"] = workflow_value
+        st.session_state["workflow_choice"] = (
+            workflow_value if workflow_value in PRIMARY_WORKFLOWS else None
+        )
+        st.session_state["mode"] = preset.mode.value
+        st.session_state["mode_selector"] = preset.mode.value
+        st.session_state["prompt_input"] = preset.prompt
+
+    if st.query_params.get("demo") == "bug":
+        st.session_state["show_demo"] = True
+
+    st.session_state["entry_params_applied"] = True
+
+
+def _on_mode_change() -> None:
+    mode = st.session_state["mode_selector"]
+    preset = preset_for_mode(mode)
+    workflow = preset.mode.value
+    st.session_state["mode"] = mode
+    st.session_state["workflow"] = workflow
+    st.session_state["workflow_choice"] = workflow if workflow in PRIMARY_WORKFLOWS else None
+    st.session_state["prompt_input"] = preset.prompt
+    _track_event("workflow_selected", workflow=workflow, mode=mode)
+
+
 def _fmt_ts(seconds: float) -> str:
     s = max(0.0, float(seconds))
     minutes = int(s // 60)
@@ -57,7 +126,7 @@ def _sanitize_filename(s: str) -> str:
     s = re.sub(r"[^\w\-.\s]", "", s, flags=re.UNICODE)
     s = re.sub(r"\s+", "_", s.strip())
     s = s.strip("._-")
-    return (s[:80] or "videolens_analysis")
+    return s[:80] or "videolens_analysis"
 
 
 def _output_basename(result: ExtractionResult) -> str:
@@ -102,7 +171,11 @@ def _estimate_cost(max_frames: int, assumed_minutes: float = 3.0) -> tuple[float
     per_min_transcribe = 0.003
     synth_low, synth_high = 0.03, 0.12
 
-    low = min(max_frames, 5) * per_frame_low + max(0.5, assumed_minutes * 0.3) * per_min_transcribe + synth_low
+    low = (
+        min(max_frames, 5) * per_frame_low
+        + max(0.5, assumed_minutes * 0.3) * per_min_transcribe
+        + synth_low
+    )
     high = max_frames * per_frame_high + (assumed_minutes * 1.5) * per_min_transcribe + synth_high
     return low, high
 
@@ -143,10 +216,10 @@ def _render_stepper(state: list[str]) -> str:
         s = state[i] if i < len(state) else "pending"
         chip = (
             f'<span style="display:inline-flex;align-items:center;gap:6px;'
-            f'padding:6px 10px;margin:2px 4px;border-radius:14px;'
-            f'background:{colors[s]}15;color:{colors[s]};'
+            f"padding:6px 10px;margin:2px 4px;border-radius:14px;"
+            f"background:{colors[s]}15;color:{colors[s]};"
             f'font-size:12.5px;font-weight:600;border:1px solid {colors[s]}40;">'
-            f'{icons[s]} {label}</span>'
+            f"{icons[s]} {label}</span>"
         )
         chips.append(chip)
     return '<div style="display:flex;flex-wrap:wrap;line-height:1.8">' + "".join(chips) + "</div>"
@@ -169,18 +242,34 @@ def _mode_description(mode: str) -> str:
 
 
 def main() -> None:
+    _ensure_product_session()
+    _apply_entry_params()
+    _track_once("app_open", "app_open")
+
     _render_header()
+    _render_workflow_picker()
 
     with st.sidebar:
         _render_sidebar_config()
 
+    if st.session_state.get("show_demo"):
+        _render_demo_report()
+        return
+
     api_key = st.session_state.get("api_key", "")
-    mode = st.session_state.get("mode", "general")
+    mode = st.session_state.get("mode", "bug")
     max_frames = st.session_state.get("max_frames", 20)
     frame_interval = st.session_state.get("frame_interval", 5.0)
     force = st.session_state.get("force", False)
 
-    source_tab, url_tab = st.tabs(["**Upload file**", "**Paste URL**"])
+    if not api_key:
+        st.info(
+            "The sample report needs no key. To analyze your own recording, open the sidebar and add "
+            "your OpenAI API key; it remains in this browser session only."
+        )
+
+    st.markdown("### 1. Add the recording")
+    source_tab, url_tab = st.tabs(["**Upload file**", "**Paste a video URL**"])
 
     source_path: str | None = None
     upload_path: Path | None = None
@@ -195,6 +284,7 @@ def main() -> None:
         if uploaded is not None:
             upload_path = _save_upload(uploaded)
             source_path = str(upload_path)
+            _track_once("source_upload", "source_added", source_kind="upload")
             st.caption(
                 f"`{uploaded.name}` · {uploaded.size / 1024 / 1024:.1f} MB · saved to "
                 f"`{upload_path.parent.relative_to(Path.cwd())}/`"
@@ -208,22 +298,24 @@ def main() -> None:
         )
         if url.strip() and source_path is None:
             source_path = url.strip()
+            _track_once("source_url", "source_added", source_kind="url")
 
-    if "prompt_value" not in st.session_state:
-        st.session_state["prompt_value"] = (
-            "Review this video and tell me what is happening, what's notable, and any concerns."
-        )
+    if "prompt_input" not in st.session_state:
+        st.session_state["prompt_input"] = preset_for_mode(mode).prompt
 
+    st.markdown("### 2. Confirm the question")
     prompt = st.text_area(
         "What do you want to know about this video?",
-        value=st.session_state["prompt_value"],
         height=100,
         key="prompt_input",
     )
-    st.session_state["prompt_value"] = prompt
 
     enhance_col, _spacer = st.columns([1, 4])
-    if enhance_col.button("✨ Enhance prompt", use_container_width=True, help="Rewrite your prompt to be sharper and mode-aware. Costs less than a cent."):
+    if enhance_col.button(
+        "✨ Enhance prompt",
+        use_container_width=True,
+        help="Rewrite your prompt to be sharper and mode-aware. Costs less than a cent.",
+    ):
         if not api_key:
             st.warning("Enter your OpenAI API key in the sidebar before enhancing.")
         elif not prompt.strip():
@@ -232,7 +324,10 @@ def main() -> None:
             with st.spinner("Enhancing prompt…"):
                 from openai import OpenAI as _OpenAI
                 from videolens.analysis import enhance_prompt as _enhance_prompt
-                from videolens.analysis.enhance_prompt import EnhancePromptError as _EnhancePromptError
+                from videolens.analysis.enhance_prompt import (
+                    EnhancePromptError as _EnhancePromptError,
+                )
+
                 try:
                     client = _OpenAI(api_key=api_key)
                     new_prompt = _enhance_prompt(
@@ -241,33 +336,41 @@ def main() -> None:
                         client,
                         Models(),
                     )
-                    st.session_state["prompt_value"] = new_prompt
+                    st.session_state["prompt_input"] = new_prompt
                     st.rerun()
                 except _EnhancePromptError as exc:
                     st.error(f"Enhance failed: {exc}")
 
     cost_low, cost_high = _estimate_cost(max_frames)
     run_col, cost_col = st.columns([1, 2])
-    run = run_col.button("Analyze", type="primary", use_container_width=True)
+    run = run_col.button("Create evidence report", type="primary", use_container_width=True)
     cost_col.markdown(
         f'<div style="display:flex;align-items:center;height:100%;color:#475569;font-size:13px;padding-left:8px">'
         f'Estimated: <span style="color:{BRAND_COLOR};font-weight:600;margin:0 6px">'
-        f'~${cost_low:.2f}–${cost_high:.2f}</span>'
+        f"~${cost_low:.2f}–${cost_high:.2f}</span>"
         f'<span style="color:#94A3B8">· assumes ~3-min video · scales with duration</span></div>',
         unsafe_allow_html=True,
     )
 
     if run:
         if not api_key:
-            st.error("Enter your OpenAI API key in the sidebar.")
+            _track_event("validation_failed", mode=mode, error_code="missing_api_key")
+            st.error("Open the sidebar and add your OpenAI API key, then try again.")
             return
         if source_path is None:
+            _track_event("validation_failed", mode=mode, error_code="missing_source")
             st.error("Upload a file or paste a URL.")
             return
 
         st.session_state.pop("result", None)
         st.session_state["qa_history"] = []
         st.session_state["seek_to"] = 0
+        _track_event(
+            "analysis_started",
+            workflow=st.session_state.get("workflow", mode),
+            mode=mode,
+            source_kind="upload" if upload_path is not None else "url",
+        )
         _run_pipeline(source_path, prompt, mode, max_frames, frame_interval, force, api_key)
 
     if "result" in st.session_state:
@@ -295,15 +398,129 @@ def _render_header() -> None:
                style="color:#64748B;text-decoration:none">GitHub ↗</a>
           </div>
         </div>
-        <div style="color:#475569;font-size:14.5px;margin-bottom:24px">
-          Prompt-directed video intelligence. Drop a video, ask a question, get a timestamped report.
+        <div style="color:#475569;font-size:15.5px;margin-bottom:18px;max-width:760px">
+          Turn a screen recording into an action-ready bug or UX report with timestamped evidence.
         </div>
         """,
         unsafe_allow_html=True,
     )
 
 
+def _render_workflow_picker() -> None:
+    st.markdown("### What should VideoLens produce?")
+    st.caption(
+        "Start with a common workflow. All eight expert modes remain available in the sidebar."
+    )
+
+    if "workflow" not in st.session_state:
+        st.session_state["workflow"] = "bug"
+    if "mode" not in st.session_state:
+        st.session_state["mode"] = "bug"
+    if "mode_selector" not in st.session_state:
+        st.session_state["mode_selector"] = st.session_state["mode"]
+    if "workflow_choice" not in st.session_state:
+        st.session_state["workflow_choice"] = "bug"
+
+    selected = st.segmented_control(
+        "Popular workflows",
+        options=list(PRIMARY_WORKFLOWS),
+        format_func=lambda value: WORKFLOW_PRESETS[value].short_label,
+        selection_mode="single",
+        key="workflow_choice",
+        label_visibility="collapsed",
+    )
+    if selected and selected != st.session_state.get("workflow"):
+        preset = preset_for(selected)
+        st.session_state["workflow"] = selected
+        st.session_state["mode"] = preset.mode.value
+        st.session_state["mode_selector"] = preset.mode.value
+        st.session_state["prompt_input"] = preset.prompt
+        _track_event("workflow_selected", workflow=selected, mode=preset.mode.value)
+
+    active = preset_for_mode(st.session_state.get("mode", "bug"))
+    st.markdown(f"**{active.label}** — {active.description}")
+
+    demo_col, own_col, _ = st.columns([1.25, 1.35, 3])
+    if demo_col.button("View a sample report", use_container_width=True):
+        st.session_state["show_demo"] = True
+        _track_once("demo_opened", "demo_opened", workflow="bug", mode="bug")
+        st.rerun()
+    own_col.caption("No API key or upload required for the sample.")
+    st.divider()
+
+
+def _render_demo_report() -> None:
+    _track_once("demo_opened", "demo_opened", workflow="bug", mode="bug")
+    analysis = build_demo_analysis()
+    issue_markdown = render_issue_markdown(analysis)
+
+    st.success("Illustrative sample — no API key, upload, or personal data required.")
+    title_col, action_col = st.columns([3, 1])
+    with title_col:
+        st.markdown("## Sample: payment-method update failure")
+        st.caption(
+            "This precomputed example shows the artifact VideoLens produces from a short bug recording."
+        )
+    with action_col:
+        if st.button("Analyze your own recording", type="primary", use_container_width=True):
+            st.session_state["show_demo"] = False
+            st.rerun()
+
+    metrics = st.columns(4)
+    metrics[0].metric("Workflow", "Bug report")
+    metrics[1].metric("Recording", "32 seconds")
+    metrics[2].metric("Evidence points", "4")
+    metrics[3].metric("Confidence", "High")
+
+    report_tab, issue_tab = st.tabs(["**Evidence report**", "Issue-ready Markdown"])
+    with report_tab:
+        st.markdown("### Executive summary")
+        st.write(analysis.summary)
+
+        findings_col, actions_col = st.columns([1.2, 1])
+        with findings_col:
+            st.markdown("### Findings")
+            for index, finding in enumerate(analysis.findings, 1):
+                with st.expander(f"{index}. {finding.finding}", expanded=True):
+                    st.caption(f"{finding.confidence.upper()} CONFIDENCE")
+                    for evidence in finding.evidence:
+                        st.markdown(f"**⏱ {_fmt_ts(evidence.timestamp)}** — {evidence.detail}")
+
+        with actions_col:
+            st.markdown("### Recommended actions")
+            for recommendation in analysis.recommendations:
+                st.markdown(f"**{recommendation.recommendation}**")
+                if recommendation.rationale:
+                    st.caption(recommendation.rationale)
+
+            st.markdown("### Suggested tasks")
+            for task in analysis.tasks:
+                detail = f" — {task.detail}" if task.detail else ""
+                st.markdown(f"- [ ] **{task.title}**{detail}")
+
+        st.warning(analysis.limitations[0])
+
+    with issue_tab:
+        st.caption("Paste this directly into GitHub, Linear, Jira, or your team tracker.")
+        st.code(issue_markdown, language="markdown")
+
+    download_col, continue_col, _ = st.columns([1.25, 1.35, 2.5])
+    if download_col.download_button(
+        "Download sample issue",
+        data=issue_markdown,
+        file_name="videolens-sample-bug-report.md",
+        mime="text/markdown",
+        use_container_width=True,
+    ):
+        _track_event("report_exported", workflow="bug", mode="bug", format="issue_markdown")
+    if continue_col.button("Use this workflow", use_container_width=True):
+        st.session_state["show_demo"] = False
+        st.session_state["prompt_input"] = WORKFLOW_PRESETS["bug"].prompt
+        st.rerun()
+
+
 def _render_sidebar_config() -> None:
+    st.markdown("### Analyze your own video")
     api_key = st.text_input(
         "OpenAI API key",
         value=st.session_state.get("api_key", ""),
@@ -312,43 +529,48 @@ def _render_sidebar_config() -> None:
         help="Kept only in this browser session. VideoLens does not store your key.",
     )
     st.session_state["api_key"] = api_key.strip()
-    st.caption(
-        "BYOK: your key is used for this session only and is never saved by VideoLens."
-    )
+    st.caption("BYOK: your key is used for this session only and is never saved by VideoLens.")
 
     st.divider()
 
     mode = st.selectbox(
         "Analysis mode",
         options=[m.value for m in AnalysisMode],
-        index=[m.value for m in AnalysisMode].index(st.session_state.get("mode", "general")),
+        format_func=lambda value: preset_for_mode(value).short_label,
+        key="mode_selector",
+        on_change=_on_mode_change,
     )
     st.session_state["mode"] = mode
     st.caption(_mode_description(mode))
 
+    with st.expander("Advanced processing settings", expanded=False):
+        st.session_state["max_frames"] = st.slider(
+            "Max frames",
+            min_value=3,
+            max_value=80,
+            value=st.session_state.get("max_frames", 20),
+            step=1,
+            help="Cap on frames sent to the vision model. Higher = better coverage, more cost.",
+        )
+
+        st.session_state["frame_interval"] = st.slider(
+            "Frame interval (s)",
+            min_value=1.0,
+            max_value=30.0,
+            value=st.session_state.get("frame_interval", 5.0),
+            step=0.5,
+            help="Seconds between sampled frames. Adaptive — grows if needed to respect max frames.",
+        )
+
+        st.session_state["force"] = st.checkbox(
+            "Force reprocess (bypass cache)",
+            value=st.session_state.get("force", False),
+        )
+
     st.divider()
-
-    st.session_state["max_frames"] = st.slider(
-        "Max frames",
-        min_value=3,
-        max_value=80,
-        value=st.session_state.get("max_frames", 20),
-        step=1,
-        help="Cap on frames sent to the vision model. Higher = better coverage, more cost.",
-    )
-
-    st.session_state["frame_interval"] = st.slider(
-        "Frame interval (s)",
-        min_value=1.0,
-        max_value=30.0,
-        value=st.session_state.get("frame_interval", 5.0),
-        step=0.5,
-        help="Seconds between sampled frames. Adaptive — grows if needed to respect max frames.",
-    )
-
-    st.session_state["force"] = st.checkbox(
-        "Force reprocess (bypass cache)",
-        value=st.session_state.get("force", False),
+    st.caption(
+        "Privacy-safe usage events record only workflow, source type, success/failure, and coarse "
+        "performance buckets. Videos, filenames, URLs, prompts, reports, and API keys are never logged."
     )
 
 
@@ -364,6 +586,7 @@ def _run_pipeline(
     force: bool,
     api_key: str,
 ) -> None:
+    started_at = monotonic()
     config = Config(
         models=Models(),
         defaults=Defaults(),
@@ -397,6 +620,7 @@ def _run_pipeline(
 
         def print_exception(self):
             import traceback
+
             tb = traceback.format_exc()
             captured.append(tb)
             log_expander.code(tb)
@@ -421,6 +645,13 @@ def _run_pipeline(
         st.error(f"Pipeline failed: {exc}")
         with st.expander("Trace"):
             st.code("\n".join(captured))
+        _track_event(
+            "analysis_failed",
+            workflow=st.session_state.get("workflow", mode),
+            mode=mode,
+            error_code=type(exc).__name__,
+            latency_bucket=latency_bucket((monotonic() - started_at) * 1000),
+        )
         return
 
     state = ["complete"] * len(STEP_KEYS)
@@ -432,6 +663,16 @@ def _run_pipeline(
             st.session_state["pdf_bytes"] = render_pdf(result.analysis)
         except Exception as exc:
             st.session_state["pdf_error"] = str(exc)
+
+    _track_event(
+        "analysis_succeeded",
+        workflow=st.session_state.get("workflow", mode),
+        mode=mode,
+        source_kind=result.resolved.source_type.value,
+        duration_bucket=duration_bucket(result.metadata.duration_seconds),
+        latency_bucket=latency_bucket((monotonic() - started_at) * 1000),
+        finding_count_bucket=count_bucket(len(result.analysis.findings) if result.analysis else 0),
+    )
 
 
 # ───────────────────────── results ─────────────────────────
@@ -535,6 +776,11 @@ def render_report_tab(result: ExtractionResult) -> None:
                                 key=f"seek_{i}_{j}_{e.timestamp}",
                                 use_container_width=True,
                             ):
+                                _track_event(
+                                    "evidence_used",
+                                    workflow=st.session_state.get("workflow", analysis.mode.value),
+                                    mode=analysis.mode.value,
+                                )
                                 st.session_state["seek_to"] = e.timestamp
                                 st.rerun()
                         ev_cols[1].markdown(e.detail)
@@ -567,6 +813,30 @@ def render_report_tab(result: ExtractionResult) -> None:
         for lim in analysis.limitations:
             st.markdown(f"- {lim}")
 
+    st.divider()
+    st.subheader("Ready for action")
+    st.caption(
+        "Download a concise issue-ready version for GitHub, Linear, Jira, or your team tracker. "
+        "Verify the cited moments before assigning it."
+    )
+    issue_markdown = render_issue_markdown(analysis)
+    issue_col, preview_col = st.columns([1, 2])
+    if issue_col.download_button(
+        "🐛 Download issue Markdown",
+        data=issue_markdown,
+        file_name=f"{_output_basename(result)}_issue.md",
+        mime="text/markdown",
+        use_container_width=True,
+    ):
+        _track_event(
+            "report_exported",
+            workflow=st.session_state.get("workflow", analysis.mode.value),
+            mode=analysis.mode.value,
+            format="issue_markdown",
+        )
+    with preview_col.expander("Preview issue-ready output", expanded=False):
+        st.code(issue_markdown, language="markdown")
+
     if result.report_markdown:
         st.divider()
         basename = _output_basename(result)
@@ -577,31 +847,34 @@ def render_report_tab(result: ExtractionResult) -> None:
 
         dl_cols = st.columns(3)
         if pdf_bytes:
-            dl_cols[0].download_button(
+            if dl_cols[0].download_button(
                 "📄 Download PDF",
                 data=pdf_bytes,
                 file_name=f"{basename}_report.pdf",
                 mime="application/pdf",
                 use_container_width=True,
-            )
+            ):
+                _track_event("report_exported", mode=analysis.mode.value, format="pdf")
         else:
             dl_cols[0].button("PDF unavailable", disabled=True, use_container_width=True)
             if pdf_error:
                 dl_cols[0].caption(f"PDF error: {pdf_error}")
-        dl_cols[1].download_button(
+        if dl_cols[1].download_button(
             "📝 Download Markdown",
             data=result.report_markdown,
             file_name=f"{basename}_report.md",
             mime="text/markdown",
             use_container_width=True,
-        )
-        dl_cols[2].download_button(
+        ):
+            _track_event("report_exported", mode=analysis.mode.value, format="markdown")
+        if dl_cols[2].download_button(
             "🗂 Download JSON",
             data=analysis.model_dump_json(indent=2),
             file_name=f"{basename}_analysis.json",
             mime="application/json",
             use_container_width=True,
-        )
+        ):
+            _track_event("report_exported", mode=analysis.mode.value, format="json")
 
     _render_qa_section(result)
 
@@ -644,6 +917,11 @@ def _render_qa_section(result: ExtractionResult) -> None:
         elif not new_question.strip():
             st.warning("Type a question first.")
         else:
+            _track_event(
+                "followup_started",
+                workflow=st.session_state.get("workflow", result.analysis.mode.value),
+                mode=result.analysis.mode.value,
+            )
             with st.spinner("Thinking…"):
                 from openai import OpenAI as _OpenAI
                 from videolens.analysis import ask_question as _ask_question
@@ -663,8 +941,19 @@ def _render_qa_section(result: ExtractionResult) -> None:
                     qa_history.append({"question": new_question, "answer": answer})
                     st.session_state["qa_history"] = qa_history
                     st.session_state["qa_input"] = ""
+                    _track_event(
+                        "followup_succeeded",
+                        workflow=st.session_state.get("workflow", result.analysis.mode.value),
+                        mode=result.analysis.mode.value,
+                    )
                     st.rerun()
                 except _AskQuestionError as exc:
+                    _track_event(
+                        "followup_failed",
+                        workflow=st.session_state.get("workflow", result.analysis.mode.value),
+                        mode=result.analysis.mode.value,
+                        error_code=type(exc).__name__,
+                    )
                     st.error(f"Q&A failed: {exc}")
 
     if qa_history:
@@ -700,7 +989,7 @@ def render_frames_tab(result: ExtractionResult) -> None:
         return
     for i in range(0, len(result.frame_summaries), 3):
         cols = st.columns(3)
-        for j, summary in enumerate(result.frame_summaries[i:i + 3]):
+        for j, summary in enumerate(result.frame_summaries[i : i + 3]):
             with cols[j]:
                 frame = result.frames[i + j] if i + j < len(result.frames) else None
                 if frame and frame.path.exists():

@@ -21,14 +21,12 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
-from pathlib import Path
 from typing import Any
 
 from openai import OpenAI
 
 from videolens import __version__
-from videolens.analysis import analyze_timeline, ask_question
+from videolens.analysis import ask_question
 from videolens.cache import Cache, compute_cache_key
 from videolens.config import Config
 from videolens.pipeline import run_extraction
@@ -55,7 +53,9 @@ def _get_config(require_api_key: bool = True) -> Config:
     return config
 
 
-def _cache_for_source(config: Config, source: str, mode: str, frame_interval: float, max_frames: int) -> Cache | None:
+def _cache_for_source(
+    config: Config, source: str, mode: str, frame_interval: float, max_frames: int
+) -> Cache | None:
     """Locate the cache directory for a source without re-running the resolver
     against the network. Returns None if the cache key doesn't exist yet."""
     try:
@@ -112,9 +112,7 @@ def tool_analyze_video(
         "metadata": result.metadata.model_dump(mode="json"),
         "timeline_segments": len(result.timeline.segments),
         "frame_summaries": len(result.frame_summaries),
-        "transcript_segments": (
-            len(result.transcript.segments) if result.transcript else 0
-        ),
+        "transcript_segments": (len(result.transcript.segments) if result.transcript else 0),
         "analysis": result.analysis.model_dump(mode="json") if result.analysis else None,
     }
 
@@ -208,12 +206,14 @@ def tool_list_cached() -> dict[str, Any]:
             source = json.loads(source_file.read_text())
         except Exception:
             continue
-        videos.append({
-            "cache_key": cache_dir.name,
-            "source_url": source.get("source_url"),
-            "platform": source.get("platform") or source.get("source_type"),
-            "has_analysis": (cache_dir / "analysis.json").exists(),
-        })
+        videos.append(
+            {
+                "cache_key": cache_dir.name,
+                "source_url": source.get("source_url"),
+                "platform": source.get("platform") or source.get("source_type"),
+                "has_analysis": (cache_dir / "analysis.json").exists(),
+            }
+        )
     return {"count": len(videos), "videos": videos}
 
 
@@ -230,8 +230,7 @@ def _build_server() -> Any:
         from mcp.types import TextContent, Tool  # type: ignore
     except ImportError as exc:
         raise RuntimeError(
-            "MCP support requires the 'mcp' extra. Install with: "
-            "uv sync --extra mcp"
+            "MCP support requires the 'mcp' extra. Install with: uv sync --extra mcp"
         ) from exc
 
     server = Server("videolens", version=__version__)
@@ -249,7 +248,10 @@ def _build_server() -> Any:
                 "type": "object",
                 "properties": {
                     "source": {"type": "string", "description": "Local file path or URL."},
-                    "prompt": {"type": "string", "description": "What you want to know about the video."},
+                    "prompt": {
+                        "type": "string",
+                        "description": "What you want to know about the video.",
+                    },
                     "mode": {
                         "type": "string",
                         "enum": [m.value for m in AnalysisMode],
@@ -271,7 +273,10 @@ def _build_server() -> Any:
             "schema": {
                 "type": "object",
                 "properties": {
-                    "source": {"type": "string", "description": "The same source you passed to analyze_video."},
+                    "source": {
+                        "type": "string",
+                        "description": "The same source you passed to analyze_video.",
+                    },
                     "question": {"type": "string"},
                     "mode": {"type": "string", "default": "general"},
                     "max_frames": {"type": "integer", "default": 20},

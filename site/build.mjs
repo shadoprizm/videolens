@@ -7,6 +7,16 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 const out = join(root, "dist");
 const siteUrl = "https://videolens.io";
 const pageBySlug = new Map(pages.map((page) => [page.slug, page]));
+const workflowBySlug = {
+  "screen-recording-analyzer": "bug",
+  "session-replay-analyzer": "ux",
+  "loom-video-analyzer": "bug",
+  "meeting-video-analyzer": "meeting",
+  "video-privacy-analyzer": "privacy",
+  "youtube-video-analyzer": "general",
+  "video-analysis-mcp": "general",
+  "ai-video-analyzer": "general",
+};
 const observabilityConfig = JSON.parse(process.env.VERCEL_OBSERVABILITY_CLIENT_CONFIG || "{}");
 const configuredAnalyticsPath = observabilityConfig.analytics?.scriptSrc;
 const analyticsScriptSrc = configuredAnalyticsPath
@@ -27,6 +37,8 @@ const faqSchema = (faqs) => faqs.map(([name, text]) => ({
 
 const renderPage = (page) => {
   const canonical = `${siteUrl}/${page.slug}`;
+  const workflow = workflowBySlug[page.slug] || "general";
+  const appHref = `https://app.videolens.io/?workflow=${encodeURIComponent(workflow)}`;
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -124,7 +136,7 @@ const renderPage = (page) => {
         <a href="/ai-video-analyzer">AI analyzer</a>
         <a href="/screen-recording-analyzer">Screen recordings</a>
         <a href="/video-analysis-mcp">For AI agents</a>
-        <a class="button button-primary" data-track="Launch app" data-destination="hosted-app" href="https://app.videolens.io" target="_blank" rel="noopener">Launch app →</a>
+        <a class="button button-primary" data-track="Start ${escapeHtml(workflow)} workflow" data-destination="hosted-app-${escapeHtml(workflow)}" href="${appHref}" target="_blank" rel="noopener">Start this workflow →</a>
       </div>
     </nav>
   </header>
@@ -137,7 +149,7 @@ const renderPage = (page) => {
         <h1>${escapeHtml(page.h1)}</h1>
         <p class="lead">${escapeHtml(page.lead)}</p>
         <div class="actions">
-          <a class="button button-primary" data-track="Launch app" data-destination="hosted-app" href="https://app.videolens.io" target="_blank" rel="noopener">Analyze a video →</a>
+          <a class="button button-primary" data-track="Start ${escapeHtml(workflow)} workflow" data-destination="hosted-app-${escapeHtml(workflow)}" href="${appHref}" target="_blank" rel="noopener">Analyze with this workflow →</a>
           <a class="button button-dark" data-track="View GitHub" data-destination="github" href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener">View open-source code</a>
           <a class="button button-secondary" href="#how-it-works">How it works</a>
         </div>
@@ -198,7 +210,7 @@ const renderPage = (page) => {
     <section class="section">
       <div class="wrap cta">
         <div><h2>Turn the next video into evidence.</h2><p>Try the hosted app, self-host the MIT-licensed core, or connect VideoLens to an MCP client.</p></div>
-        <div class="actions"><a class="button button-primary" data-track="Launch app" data-destination="hosted-app" href="https://app.videolens.io" target="_blank" rel="noopener">Launch VideoLens →</a></div>
+        <div class="actions"><a class="button button-primary" data-track="Start ${escapeHtml(workflow)} workflow" data-destination="hosted-app-${escapeHtml(workflow)}" href="${appHref}" target="_blank" rel="noopener">Start this VideoLens workflow →</a></div>
       </div>
     </section>
   </main>

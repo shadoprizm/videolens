@@ -71,7 +71,7 @@
 
   <main class="max-w-3xl mx-auto px-6 py-14 prose-slate">
     <h1 class="text-4xl font-extrabold tracking-tight mb-2">Privacy Policy</h1>
-    <p class="text-sm text-slate-500 mb-10">Last updated: July 18, 2026 · Applies to videolens.io, the hosted app, and the VideoLens Chrome extension.</p>
+    <p class="text-sm text-slate-500 mb-10">Last updated: August 15, 2026 · Applies to videolens.io, the hosted app, and the VideoLens Chrome extension.</p>
 
     <div class="space-y-10 text-slate-700 leading-relaxed">
       <section>
@@ -96,6 +96,8 @@
         <ul class="list-disc pl-5 space-y-2">
           <li>Your OpenAI API key is held in session memory only and is never written to a database. Closing the tab discards it.</li>
           <li>Uploaded videos and generated artifacts live in an ephemeral per-session cache used to make re-runs cheap, and are not retained as a dataset or shared.</li>
+          <li>The hosted app writes privacy-safe product events to its operational logs so we can measure whether the workflow succeeds. These events contain a random session identifier, workflow and mode, upload-versus-URL source type, success or non-sensitive error category, export format, and coarse duration or performance buckets.</li>
+          <li>Hosted-app product events never include videos, filenames, source URLs, prompts, reports, transcript text, extracted images, API keys, email addresses, or persistent cross-session identifiers.</li>
         </ul>
       </section>
 
@@ -104,7 +106,7 @@
         <ul class="list-disc pl-5 space-y-2">
           <li>The public marketing site uses Vercel Web Analytics and Speed Insights to measure aggregate page visits, referrers, device/browser categories, approximate country or region, Core Web Vitals, and clicks on key links such as Launch App and GitHub.</li>
           <li>Vercel Web Analytics does not use third-party cookies and stores anonymized, aggregated data. Conversion events include only the destination category and public page path — never video content, prompts, reports, API keys, or email addresses.</li>
-          <li>The Chrome extension and the video-analysis pipeline remain free of analytics and telemetry. Marketing-site measurement does not run inside analyzed videos or reports.</li>
+          <li>The Chrome extension remains free of analytics and telemetry. The hosted app records only the limited operational product events described above; measurement never includes analyzed content or reports.</li>
         </ul>
       </section>
 
@@ -113,6 +115,7 @@
         <ul class="list-disc pl-5 space-y-2">
           <li><strong>OpenAI</strong> — processes the audio chunks and frames you analyze, under your own account and <a class="text-cyan-700 font-semibold hover:underline" href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">OpenAI's privacy policy</a>.</li>
           <li><strong>Vercel</strong> — hosts videolens.io and provides privacy-friendly aggregate Web Analytics and Speed Insights for the public marketing site.</li>
+          <li><strong>Railway</strong> — hosts app.videolens.io and its operational logs, including the limited hosted-app product events described above.</li>
           <li>There are no ad networks or data brokers, and analytics events never include video content, prompts, reports, or API keys.</li>
         </ul>
       </section>

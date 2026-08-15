@@ -1,12 +1,14 @@
 # VideoLens
 
-> Universal video intelligence. Give it a video and a prompt. Get back a timestamped timeline, evidence-grounded findings, recommendations, and a structured report — ready for human review or AI-agent consumption.
+> Turn a screen recording into an action-ready bug or UX report with timestamped evidence. The same open-source engine also handles meetings, tutorials, product demos, content, privacy review, and agent workflows.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)]()
 
-VideoLens turns any video — a bug recording, a meeting, a demo, a tutorial, a session replay — into a structured artifact an AI agent (or you) can reason over. It does this with a resolver → extraction → timeline → analysis pipeline that produces both a human-readable Markdown report and a machine-readable JSON analysis.
+VideoLens turns a screen recording, Loom, or session replay into a structured artifact a product team, developer, or AI agent can act on. It reconstructs the journey, finds failures and friction, and produces issue-ready findings with citations to the exact moments that matter. The underlying resolver → extraction → timeline → analysis pipeline remains universal and produces both human-readable Markdown and machine-readable JSON.
+
+[View the no-key sample report](https://app.videolens.io/?demo=bug) · [Analyze a recording](https://app.videolens.io/?workflow=bug)
 
 ```bash
 videolens analyze ./bug-recording.mov \
@@ -24,7 +26,7 @@ videolens ui
 
 ## Why VideoLens
 
-Most "video summarizer" tools wrap Whisper and call it a day. VideoLens is built for AI agents that need to reason about video: timestamped evidence, mode-specific analysis, structured outputs, and a cached intermediate timeline so you can ask many questions against one extraction. The pipeline is modular — resolvers, processors, modes, and outputs are independent and easy to extend.
+Most "video summarizer" tools wrap Whisper and call it a day. VideoLens is built for work that must survive review: bug reports, UX findings, decisions, and tasks anchored to timestamped visual and transcript evidence. A cached intermediate timeline lets people and agents ask many questions against one extraction. The pipeline is modular — resolvers, processors, modes, and outputs are independent and easy to extend.
 
 ## Status
 
@@ -264,6 +266,8 @@ cd extension
 npm install
 npm run build     # → extension/dist, load it unpacked via chrome://extensions
 ```
+
+Or download the latest [early-access extension package](https://github.com/shadoprizm/videolens/releases/latest/download/videolens-extension-v0.1.0.zip), unzip it, open `chrome://extensions`, enable Developer mode, and choose **Load unpacked**. Chrome Web Store distribution is planned next.
 
 See [`extension/PUBLISHING.md`](extension/PUBLISHING.md) for the release
 runbook and [`extension/STORE_LISTING.md`](extension/STORE_LISTING.md) for the
