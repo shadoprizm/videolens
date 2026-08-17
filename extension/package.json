@@ -1,8 +1,8 @@
 {
   "name": "videolens-extension",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "Turn videos into useful written reports with AI (Chrome extension, BYOK)",
+  "description": "Turn videos into useful written reports with private BYOK and optional managed Pro modes",
   "type": "module",
   "scripts": {
     "build": "node build.mjs",

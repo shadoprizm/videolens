@@ -57,6 +57,7 @@ body {
   border: 1px solid var(--line);
 }
 .brand-badge:empty { display: none; }
+.brand-badge.pro { color: #4338ca; border-color: #c7d2fe; background: #eef2ff; }
 .icon-btn {
   display: inline-flex;
   padding: 6px;
@@ -211,6 +212,10 @@ main { padding: 16px; }
   background: #ecfeff;
   font-weight: 600;
 }
+.provider-seg button.pro-active { color: #4338ca; border-color: #818cf8; background: #eef2ff; }
+.provider-note { display: flex; justify-content: space-between; gap: 10px; margin-top: 7px; border: 1px solid var(--line); border-radius: 9px; padding: 9px 10px; font-size: 11px; }
+.provider-note span { color: var(--muted); text-align: right; }
+.provider-note.pro-note { border-color: #c7d2fe; background: #f5f3ff; }
 
 select, textarea, input[type="text"], input[type="password"], input[type="range"] {
   width: 100%;
@@ -398,3 +403,23 @@ ol.recs li, ul.tasks li, ul.limits li { margin-bottom: 7px; line-height: 1.5; }
 }
 .file-drop:hover { border-color: var(--brand); color: var(--brand); }
 .file-drop.has-file { border-style: solid; border-color: var(--brand); color: var(--ink); }
+
+.pro-account-card {
+  position: relative;
+  overflow: hidden;
+  border-color: #c7d2fe;
+  background:
+    radial-gradient(circle at 100% 0, rgba(99, 102, 241, 0.12), transparent 46%),
+    linear-gradient(145deg, #fff, #f8fafc);
+}
+.account-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.account-heading h3 { margin-bottom: 3px; }
+.account-heading b { font-size: 12px; word-break: break-all; }
+.plan-pill { border-radius: 999px; padding: 3px 7px; color: #4338ca; background: #e0e7ff; font-size: 9px; font-weight: 900; letter-spacing: .08em; }
+.settings-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+.settings-actions .btn { width: 100%; }
+.settings-actions .btn:last-child { grid-column: 1 / -1; }
+.cloud-toggle { display: grid; grid-template-columns: 16px 1fr; gap: 9px; margin-top: 13px; border-top: 1px solid var(--line); padding-top: 12px; cursor: pointer; }
+.cloud-toggle input { margin: 2px 0 0; accent-color: var(--brand); }
+.cloud-toggle b { display: block; font-size: 11.5px; }
+.cloud-toggle small { display: block; margin-top: 3px; color: var(--faint); font-size: 10.5px; line-height: 1.4; }

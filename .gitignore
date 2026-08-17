@@ -15,6 +15,12 @@ wheels/
 # OS
 .DS_Store
 .vercel
+node_modules/
+.playwright-cli/
+.env
+.env.*
+!.env.example
+!site/.env.example
 
 # Generated reports and visual-verification renders
 output/

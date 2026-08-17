@@ -1,4 +1,4 @@
-export const lastmod = "2026-08-15";
+export const lastmod = "2026-08-17";
 
 export const pages = [
   {
@@ -244,7 +244,7 @@ export const pages = [
     limitation: "This is a sampled, AI-assisted review—not a guarantee that every exposure will be detected and not a replacement for legal, compliance, or professional security review. Increase frame sampling for high-risk material and always perform final human review.",
     faqs: [
       ["Can VideoLens guarantee a video contains no sensitive data?", "No. Sampling and model interpretation can miss brief or unclear exposures. Privacy mode is an additional review layer, not a certification or substitute for human inspection."],
-      ["Does Privacy mode upload the video to VideoLens servers?", "The local and extension workflows do not use VideoLens-operated video storage. Model-processing calls use your OpenAI API key. The hosted app uses ephemeral session processing."],
+      ["Does Privacy mode upload the video to VideoLens servers?", "No. Private / BYOK mode calls OpenAI directly with your key and does not send the analysis to VideoLens. Optional Pro / Managed mode is a separate, explicit choice with its own disclosure and data path."],
       ["What kinds of information can it flag?", "Potential examples include credentials, tokens, internal URLs, emails, names, customer records, account identifiers, private messages, and sensitive spoken content visible to the analysis pipeline."]
     ],
     related: ["session-replay-analyzer", "screen-recording-analyzer", "ai-video-analyzer"]

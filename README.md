@@ -259,13 +259,15 @@ Or wire it into Cursor / Windsurf / any MCP-aware host the same way as any stdio
 
 ## Chrome extension
 
-The VideoLens extension runs the whole pipeline **inside the browser** as a side-panel
-Chrome extension — no Python, no ffmpeg, no server. It analyzes the video on
-the current tab (YouTube captions + canvas frame sampling) or a local file
-(in-browser audio decode → transcription), using your own OpenAI key, which
-never leaves your device.
+The VideoLens side-panel extension offers two explicit processing modes:
 
-- Free and open source — unlimited analyses and no VideoLens account
+- **Private / BYOK (free forever):** the pipeline runs inside the browser and calls OpenAI directly with the user's key. VideoLens receives no analysis content.
+- **Pro / Managed:** the user connects a passwordless VideoLens account, no OpenAI key is required, and managed calls are counted against the account allowance. Completed reports enter the cloud library only when the user enables cloud saving.
+
+Both modes analyze the current tab (YouTube captions + canvas frame sampling) or a local file (in-browser audio decode → transcription). The OpenAI key used by Private mode never leaves the device.
+
+- Free and open source Private mode — unlimited analyses and no VideoLens account
+- One managed starter report for signed-in users; Pro includes 20 managed reports per calendar month
 - Four reader-focused report styles plus 6 specialized modes and follow-up Q&A
 - Professional, self-contained HTML reports with print-ready PDF output
 - Markdown/JSON export and copyable report text
@@ -284,6 +286,12 @@ runbook and [`extension/STORE_LISTING.md`](extension/STORE_LISTING.md) for the
 Chrome Web Store listing. Known limits: DRM-protected players (Netflix etc.)
 can't be captured; live streams aren't supported; non-YouTube in-page videos
 are analyzed frames-only (no audio transcription).
+
+### Pro service architecture
+
+The static site under [`site/`](site/) also contains Vercel Functions for passwordless Supabase authentication, one-time extension pairing, Stripe Checkout and Customer Portal sessions, signed subscription webhooks, atomic report quotas, managed OpenAI proxy calls, and opt-in report storage. The database migration is under [`supabase/migrations/`](supabase/migrations/).
+
+Required production environment variables are documented in [`site/.env.example`](site/.env.example). Private BYOK mode does not depend on any of these services and continues working if the Pro service is unavailable.
 
 ## Roadmap
 

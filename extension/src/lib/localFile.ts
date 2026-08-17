@@ -2,7 +2,7 @@
 // offscreen <video>, and audio decode → 16 kHz mono WAV chunks → OpenAI
 // transcription. Replaces ffmpeg/yt-dlp from the Python pipeline.
 import { DEFAULTS, MODELS } from "./config";
-import { transcribeChunk } from "./openai";
+import { transcribeChunk, type AiAccess } from "./openai";
 import type { CapturedFrame, SourceInfo, Transcript, TranscriptSegment } from "./types";
 
 // decodeAudioData materialises the whole audio track in memory; beyond about
@@ -83,7 +83,7 @@ function seek(v: HTMLVideoElement, t: number): Promise<void> {
 }
 
 export async function transcribeLocalFile(
-  apiKey: string,
+  access: AiAccess,
   local: LocalVideo,
   onProgress: (done: number, total: number) => void,
 ): Promise<{ transcript: Transcript | null; limitation: string | null }> {
@@ -133,7 +133,7 @@ export async function transcribeLocalFile(
       const chunk = chunks[idx];
       try {
         const text = await transcribeChunk(
-          apiKey,
+          access,
           MODELS.transcribe,
           encodeWav(chunk.samples, DEFAULTS.transcriptionSampleRate),
           `chunk-${idx}.wav`,

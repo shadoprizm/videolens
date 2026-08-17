@@ -10,7 +10,7 @@ Everything to paste into the Chrome Web Store developer console.
 
 ## Summary (132 chars max)
 
-> Turn YouTube videos and local files into polished, timestamped written reports. Uses your own OpenAI key.
+> Turn YouTube videos and local files into polished, timestamped reports. Private BYOK mode plus optional managed Pro.
 
 ## Description
 
@@ -36,18 +36,23 @@ REPORT STYLES AND SPECIALIZED MODES
 • Content review — hook, pacing, claims, call-to-action critique
 • Privacy scan — find secrets, credentials, and PII before you share
 
-BRING YOUR OWN KEY — PRIVATE BY DESIGN
-The entire pipeline runs inside your browser. The selected video's frames,
-audio or captions, page title, and your prompt are sent to exactly one place:
-OpenAI's API, using your own API key. No VideoLens servers receive your
-analysis data. No VideoLens account, no extension telemetry, no extension
-analytics. Your key is stored
-only on your device. A typical video costs $0.05–$1.50 in OpenAI usage,
-billed straight to your own OpenAI account — estimates are shown before
-every run.
+TWO CLEAR MODES
+Private / BYOK mode is free forever. The pipeline runs inside your browser;
+the selected video's frames, audio or captions, page title, and your prompt
+go directly to OpenAI using your key. VideoLens does not receive them. Your
+key stays on your device. A typical video costs $0.05–$1.50 in OpenAI usage,
+billed directly to your OpenAI account.
+
+Pro / Managed mode removes the API-key setup. The analysis content passes
+securely through VideoLens to OpenAI and counts against a managed-report
+allowance. A free account includes one managed starter report. Pro includes
+20 managed reports per calendar month for $12/month or $99/year. Raw frames
+and audio are not retained. Saving the completed report to your cloud library
+is optional and off by default.
 
 OPEN SOURCE
-Free under the MIT license — unlimited analyses, no account, no product tier.
+The private BYOK workflow remains free under the MIT license with unlimited
+analyses. Pro is an optional convenience layer, not a replacement for Free.
 
 ALSO IN THE BOX
 • Follow-up Q&A: ask more questions against the analyzed timeline for cents
@@ -69,23 +74,25 @@ cross-origin video security can prevent frame capture.
 | Permission | Justification |
 |---|---|
 | `sidePanel` | The entire product UI lives in the side panel so the report can sit next to the video being analyzed. |
-| `storage` | Stores the user's own OpenAI API key and settings locally on the device. Nothing is synced or transmitted to us. |
+| `storage` | Stores the user's OpenAI API key, settings, privacy choice, selected analysis mode, and (only after the user connects Pro) a limited VideoLens account token locally on the device. Nothing uses Chrome sync. |
 | `activeTab` | Grants access to the current tab only when the user clicks the VideoLens toolbar icon, so the extension can find the video element on the page the user chose. No persistent host access is requested. |
 | `scripting` | Injects the frame-capture routine (canvas sampling of the page's `<video>` element) and caption reader into the active tab, only after the user invokes the extension there. |
 | Host `api.openai.com` | All AI processing (transcription, frame description, analysis) is performed with the user's own OpenAI API key, called directly from the browser. |
+| Optional host `videolens.io` | Requested only when the user chooses to connect a VideoLens account. It lets the extension authenticate the managed-report allowance, call the managed AI proxy, and optionally save the completed report. Free Private mode never requests or needs this host access. |
 
-**Single purpose description:** AI analysis of videos (on-page or local files) into timestamped reports, using the user's own OpenAI API key.
+**Single purpose description:** AI analysis of videos (on-page or local files) into timestamped written reports, using either the user's own OpenAI API key or an optional VideoLens managed allowance.
 
-**Remote code:** None. All code ships in the package; the extension calls the OpenAI data API only.
+**Remote code:** None. All executable code ships in the package. The extension calls data APIs at OpenAI and, only after the user enables Pro, videolens.io.
 
 **Data usage disclosures (Privacy tab):**
-- Check **Authentication information**: the user enters an OpenAI API key, stored locally and sent only to OpenAI.
-- Check **Website content**: the selected video's frames, audio or captions, and page title are sent directly to OpenAI at the user's direction.
-- Check **User-provided content** if the dashboard offers that category: the analysis prompt and follow-up questions are sent directly to OpenAI at the user's direction.
-- Check **Web history** if the dashboard defines it to include the active page URL: VideoLens reads the URL and title only for the page the user explicitly invokes and sends that context directly to OpenAI as part of the requested analysis.
-- Do not check personally identifiable information, health, financial information, communications, location, or user activity. Nothing is sold, used for unrelated purposes, advertising, or creditworthiness.
+- Check **Personally identifiable information**: an email address is used only when the user explicitly creates/connects a VideoLens account for managed mode, subscription access, and the optional cloud library.
+- Check **Authentication information**: Private mode stores the user's OpenAI API key locally and sends it only to OpenAI. Managed mode stores a limited VideoLens account token locally; website login and payment credentials are not copied into the extension.
+- Check **Website content**: the selected video's frames, audio or captions, page title, analysis prompt, and follow-up questions go directly to OpenAI in Private mode or through VideoLens to OpenAI in Managed mode.
+- Check **User-provided content** if offered: prompts, follow-up questions, local video content, and an optionally cloud-saved completed report are user-provided/requested content.
+- Check **Web history** if the dashboard defines it to include the active page URL: VideoLens reads the URL and title only for the page the user explicitly invokes. The source URL can be included in an exported report and in the cloud report only when the user enables cloud saving.
+- Do not check health, financial information, communications, location, or general user activity unless the dashboard's definitions require a category because that information happens to appear inside a user-selected video. Nothing is sold, used for unrelated purposes, advertising, or creditworthiness.
 - The first-run disclosure obtains affirmative consent before any analysis-related data handling occurs.
-- Privacy policy URL: `https://videolens.io/privacy.html`
+- Privacy policy URL: `https://videolens.io/privacy`
 
 ## Assets checklist
 

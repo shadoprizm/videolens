@@ -16,7 +16,9 @@ export const DEFAULTS = {
 
 export const LINKS = {
   site: "https://videolens.io",
-  privacy: "https://videolens.io/privacy.html",
+  api: "https://videolens.io",
+  account: "https://videolens.io/account",
+  privacy: "https://videolens.io/privacy",
   github: "https://github.com/shadoprizm/videolens",
   openaiKeys: "https://platform.openai.com/api-keys",
 };

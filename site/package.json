@@ -4,6 +4,19 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node build.mjs && node seo-audit.mjs"
+    "typecheck": "tsc --noEmit",
+    "test": "npm run typecheck && node build.mjs && node seo-audit.mjs && vitest run",
+    "stripe:setup": "node scripts/setup-stripe.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.112.3",
+    "jose": "6.2.9",
+    "stripe": "22.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "esbuild": "0.28.2",
+    "typescript": "6.0.2",
+    "vitest": "4.1.10"
   }
 }

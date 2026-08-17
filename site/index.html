@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AI Video Summarizer &amp; Written Report Generator | VideoLens</title>
-  <meta name="description" content="Turn YouTube and other long videos into detailed written reports with key ideas, visual context, and timestamped evidence. Free and open source.">
+  <meta name="description" content="Turn YouTube and other long videos into professional written reports with visual context and timestamped evidence. Free private mode plus optional Pro.">
   <meta name="theme-color" content="#0891B2">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="author" content="VideoLens">
@@ -112,7 +112,7 @@
         "applicationSubCategory": "Video summarization and written reports",
         "operatingSystem": "Web, macOS, Linux, Windows, Chrome",
         "description": "VideoLens turns long videos into detailed written reports. It combines transcription, frame-level vision, and OCR into a cached timeline, then explains the important information with citations to specific moments. The web experience starts with YouTube; local files and other supported video URLs work too.",
-        "softwareVersion": "0.1",
+        "softwareVersion": "0.3",
         "license": "https://github.com/shadoprizm/videolens/blob/main/LICENSE",
         "publisher": { "@id": "https://videolens.io/#organization" },
         "featureList": [
@@ -128,10 +128,24 @@
         "offers": [
           {
             "@type": "Offer",
-            "name": "VideoLens (open source)",
+            "name": "VideoLens Free",
             "price": "0",
             "priceCurrency": "USD",
-            "description": "Free, MIT-licensed tool including the hosted app, local pipeline, and browser extension. Bring your own OpenAI API key."
+            "description": "Free private browser-extension and open-source workflows. Bring your own OpenAI API key."
+          },
+          {
+            "@type": "Offer",
+            "name": "VideoLens Pro monthly",
+            "price": "12",
+            "priceCurrency": "USD",
+            "description": "Managed AI with no API key required, 20 reports per calendar month, and optional cloud report storage."
+          },
+          {
+            "@type": "Offer",
+            "name": "VideoLens Pro annual",
+            "price": "99",
+            "priceCurrency": "USD",
+            "description": "Annual VideoLens Pro subscription with 20 managed reports per calendar month."
           }
         ]
       },
@@ -160,7 +174,7 @@
             "name": "Is VideoLens free?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. VideoLens is free and open source under the MIT license, including the hosted app, local tool, and browser extension. You bring your own OpenAI API key and pay OpenAI directly for the model usage."
+              "text": "Yes. Private BYOK mode and the MIT-licensed core remain free. A signed-in account includes one managed starter report. Optional VideoLens Pro costs $12 monthly or $99 annually and includes 20 managed reports per calendar month without requiring an API key."
             }
           },
           {
@@ -176,7 +190,7 @@
             "name": "Does VideoLens store my videos or my OpenAI API key?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No. Videos are processed on your own machine, in your browser (the extension), or in an ephemeral session (the hosted app). Your OpenAI API key stays on your device or in session memory only and is sent only to OpenAI. VideoLens runs no analytics on your video content and never stores your reports."
+              "text": "In Private BYOK mode, VideoLens has no analysis server: your content and API key go directly from Chrome to OpenAI and reports stay on your device. In Pro Managed mode, selected video content passes through VideoLens to OpenAI. Completed reports are stored only when you explicitly enable cloud saving."
             }
           },
           {
@@ -211,20 +225,22 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
         </span>
         <span class="text-xl font-extrabold tracking-tight gradient-text">VideoLens</span>
-        <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 rounded-md tracking-wide">v0.1 · ALPHA</span>
+        <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 rounded-md tracking-wide">v0.3 · BETA</span>
       </a>
       <nav class="flex items-center gap-6 text-sm">
-        <a href="#features" class="hidden md:inline text-slate-600 hover:text-slate-900">Features</a>
-        <a href="#how" class="hidden md:inline text-slate-600 hover:text-slate-900">How it works</a>
-        <a href="/ai-video-analyzer" class="hidden md:inline text-slate-600 hover:text-slate-900">Guides</a>
-        <a href="#extension" class="hidden md:inline text-slate-600 hover:text-slate-900">Extension</a>
-        <a href="#faq" class="hidden md:inline text-slate-600 hover:text-slate-900">FAQ</a>
-        <a href="https://app.videolens.io/?demo=report" target="_blank" rel="noopener" class="hidden md:inline text-slate-600 hover:text-slate-900">Sample report</a>
+        <a href="#features" class="hidden lg:inline text-slate-600 hover:text-slate-900">Features</a>
+        <a href="#how" class="hidden lg:inline text-slate-600 hover:text-slate-900">How it works</a>
+        <a href="/ai-video-analyzer" class="hidden xl:inline text-slate-600 hover:text-slate-900">Guides</a>
+        <a href="#extension" class="hidden xl:inline text-slate-600 hover:text-slate-900">Extension</a>
+        <a href="#pricing" class="hidden md:inline text-slate-600 hover:text-slate-900">Pricing</a>
+        <a href="#faq" class="hidden xl:inline text-slate-600 hover:text-slate-900">FAQ</a>
+        <a href="https://app.videolens.io/?demo=report" target="_blank" rel="noopener" class="hidden xl:inline text-slate-600 hover:text-slate-900">Sample report</a>
         <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener" class="text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.28-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.21.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.31-.54-1.53.11-3.19 0 0 1.01-.32 3.3 1.23a11.42 11.42 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.19.77.84 1.24 1.92 1.24 3.23 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22 0 1.6-.01 2.89-.01 3.28 0 .32.21.7.83.58A12 12 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
           GitHub
         </a>
-        <a href="https://app.videolens.io/?workflow=detailed" target="_blank" rel="noopener" data-track="Start YouTube report" data-destination="hosted-app-detailed" class="inline-flex items-center gap-1 px-3.5 py-1.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition">
+        <a href="/account" class="hidden lg:inline text-slate-600 hover:text-slate-900">Account</a>
+        <a href="https://app.videolens.io/?workflow=detailed" target="_blank" rel="noopener" data-track="Start YouTube report" data-destination="hosted-app-detailed" class="inline-flex items-center gap-1 px-3.5 py-1.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition whitespace-nowrap">
           Create a report →
         </a>
       </nav>
@@ -537,7 +553,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
           <ul class="space-y-3 text-slate-600 text-sm mb-8">
             <li class="flex items-start gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> Detailed report, key insights, tutorial guide, and interview / podcast styles</li>
             <li class="flex items-start gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> Specialized bug, meeting, UX, product demo, content, and privacy analysis</li>
-            <li class="flex items-start gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> 100% in-browser pipeline — no server, nothing uploaded to us, ever</li>
+            <li class="flex items-start gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> Private BYOK mode stays entirely between your browser and OpenAI</li>
             <li class="flex items-start gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> Bring your own OpenAI key; the key never leaves your device</li>
             <li class="flex items-start gap-2.5"><span class="text-emerald-500 mt-0.5">✓</span> Professional HTML / PDF reports, follow-up Q&amp;A, Markdown &amp; JSON</li>
           </ul>
@@ -551,7 +567,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
             <span class="text-5xl font-extrabold tracking-tight">Free</span>
             <span class="text-slate-500 font-medium">open source</span>
           </div>
-          <p class="text-sm text-slate-500 mb-6">No account, license key, or product tier. Analysis costs go straight to your own OpenAI account (typically $0.05–$1.50 per video).</p>
+          <p class="text-sm text-slate-500 mb-6">No account required. Analysis costs go straight to your own OpenAI account (typically $0.05–$1.50 per video). This private mode remains free even if you never use Pro.</p>
 
           <ul class="space-y-2.5 text-sm text-slate-700 mb-7">
             <li class="flex items-center gap-2.5"><span class="text-emerald-500">✓</span> Unlimited analyses, no trial limit</li>
@@ -567,6 +583,41 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
           <p class="text-xs text-slate-500 mt-4 leading-relaxed">Direct package while Chrome Web Store review is pending: unzip it, open <code>chrome://extensions</code>, enable Developer mode, and choose <strong>Load unpacked</strong>.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="border-t border-slate-100 bg-slate-50/60">
+    <div class="max-w-6xl mx-auto px-6 py-20 md:py-24">
+      <div class="max-w-2xl mb-12">
+        <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">Simple pricing</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Private for free. Convenient with Pro.</h2>
+        <p class="text-lg text-slate-600">The paid plan removes setup and adds convenience. It does not take the free private product away.</p>
+      </div>
+      <div class="grid md:grid-cols-2 gap-5 max-w-5xl">
+        <article class="bg-white border border-slate-200 rounded-2xl p-8">
+          <div class="text-xs font-extrabold tracking-widest text-slate-500 mb-5">FREE · PRIVATE</div>
+          <div class="flex items-baseline gap-2 mb-2"><strong class="text-5xl tracking-tight">$0</strong><span class="text-slate-500">forever</span></div>
+          <p class="text-slate-600 mb-7">Use your own OpenAI API key. No VideoLens account or analysis server.</p>
+          <ul class="space-y-3 text-sm text-slate-700 mb-8">
+            <li>✓ Unlimited BYOK reports</li><li>✓ Professional HTML and PDF</li><li>✓ Timestamped evidence and follow-up Q&amp;A</li><li>✓ Your reports stay on your device</li>
+          </ul>
+          <a href="#extension" class="w-full inline-flex items-center justify-center px-5 py-3 border border-slate-300 rounded-lg font-semibold hover:bg-slate-50">Use Free</a>
+        </article>
+        <article class="relative overflow-hidden text-white border border-cyan-900 rounded-2xl p-8 bg-gradient-to-br from-slate-950 via-indigo-950 to-cyan-950 shadow-xl">
+          <div class="absolute -right-16 -bottom-24 w-64 h-64 rounded-full bg-cyan-400/10"></div>
+          <div class="relative">
+            <div class="text-xs font-extrabold tracking-widest text-cyan-300 mb-5">PRO · MANAGED</div>
+            <div class="flex items-baseline gap-2 mb-2"><strong class="text-5xl tracking-tight">$12</strong><span class="text-slate-300">/ month</span></div>
+            <p class="text-slate-300 mb-7">Or $99/year. No OpenAI key required. Cancel anytime.</p>
+            <ul class="space-y-3 text-sm text-slate-100 mb-8">
+              <li>✓ 20 managed reports per calendar month</li><li>✓ One managed starter report before subscribing</li><li>✓ Optional searchable cloud report library</li><li>✓ Private BYOK mode remains available</li>
+            </ul>
+            <a href="/account" data-track="Open Pro account" data-destination="account" class="w-full inline-flex items-center justify-center px-5 py-3 bg-white text-slate-950 rounded-lg font-semibold hover:bg-cyan-50">Start with one managed report →</a>
+          </div>
+        </article>
+      </div>
+      <p class="text-xs text-slate-500 mt-6 max-w-3xl">Managed mode sends selected frames, audio or captions, page title, and your prompt through VideoLens to OpenAI. Raw frames and audio are not kept. Cloud report saving is optional and controlled in the extension.</p>
     </div>
   </section>
 
@@ -652,7 +703,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
 
         <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
           <h3 class="text-lg font-bold mb-2">Is VideoLens free?</h3>
-          <p class="text-slate-600 text-[15px] leading-relaxed">Yes. VideoLens is free and open source under the MIT license — self-host it or use the hosted app with your own OpenAI API key. You pay only OpenAI's usage, roughly $0.05–$1.50 per video. There is no paid product tier today; the immediate goal is to make the report workflow genuinely useful.</p>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Yes. Private BYOK mode and the MIT-licensed core stay free. You pay OpenAI directly for your own model usage. A signed-in account includes one managed starter report, and optional VideoLens Pro is $12/month or $99/year for 20 managed reports per calendar month with no API key required.</p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
@@ -662,7 +713,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
 
         <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
           <h3 class="text-lg font-bold mb-2">Does VideoLens store my videos or my OpenAI API key?</h3>
-          <p class="text-slate-600 text-[15px] leading-relaxed">No. Videos are processed on your own machine, in your browser (the extension), or in an ephemeral session (the hosted app). Your OpenAI API key stays on your device or in session memory only and is sent only to OpenAI. VideoLens runs no analytics on your video content and never stores your reports.</p>
+          <p class="text-slate-600 text-[15px] leading-relaxed">It depends on the mode you choose. Private BYOK mode has no VideoLens analysis server: content goes directly from Chrome to OpenAI and reports stay on your device. Pro Managed mode sends the required content through VideoLens to OpenAI. Raw media is not kept, and completed reports enter your cloud library only when you explicitly enable cloud saving.</p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
@@ -694,6 +745,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
           <a href="https://github.com/shadoprizm/videolens/issues" target="_blank" rel="noopener" class="hover:text-slate-900">Issues</a>
           <a href="https://github.com/shadoprizm/videolens/blob/main/LICENSE" target="_blank" rel="noopener" class="hover:text-slate-900">License</a>
           <a href="/privacy" class="hover:text-slate-900">Privacy</a>
+          <a href="/account" class="hover:text-slate-900">Account</a>
         </div>
       </div>
       <div class="mt-6 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">

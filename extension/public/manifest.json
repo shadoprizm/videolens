@@ -1,12 +1,15 @@
 {
   "manifest_version": 3,
   "name": "VideoLens — YouTube Video Summaries",
-  "version": "0.2.0",
-  "description": "Turn YouTube videos and local files into polished, timestamped written reports with AI. Uses your own OpenAI API key.",
+  "version": "0.3.0",
+  "description": "Turn YouTube videos and local files into polished, timestamped written reports. Private BYOK mode plus optional Pro.",
   "minimum_chrome_version": "116",
   "permissions": ["sidePanel", "storage", "activeTab", "scripting"],
   "host_permissions": [
     "https://api.openai.com/*"
+  ],
+  "optional_host_permissions": [
+    "https://videolens.io/*"
   ],
   "background": {
     "service_worker": "background.js",

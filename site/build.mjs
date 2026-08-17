@@ -1,6 +1,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { build } from "esbuild";
 import { lastmod, pages } from "./content-pages.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
@@ -70,7 +71,9 @@ const renderPage = (page) => {
         description: "Open-source software that turns long videos into professional written reports with transcription, frame vision, OCR, and timestamped evidence.",
         license: "https://github.com/shadoprizm/videolens/blob/main/LICENSE",
         offers: [
-          { "@type": "Offer", name: "VideoLens open-source product", price: "0", priceCurrency: "USD" }
+          { "@type": "Offer", name: "VideoLens Free", price: "0", priceCurrency: "USD", description: "Private BYOK browser-extension and open-source workflows." },
+          { "@type": "Offer", name: "VideoLens Pro monthly", price: "12", priceCurrency: "USD", description: "20 managed reports per calendar month with no API key required." },
+          { "@type": "Offer", name: "VideoLens Pro annual", price: "99", priceCurrency: "USD", description: "Annual Pro subscription with 20 managed reports per calendar month." }
         ]
       },
       {
@@ -135,6 +138,8 @@ const renderPage = (page) => {
         <a href="/youtube-video-analyzer">YouTube reports</a>
         <a href="/screen-recording-analyzer">Screen recordings</a>
         <a href="/video-analysis-mcp">For AI agents</a>
+        <a href="/#pricing">Pricing</a>
+        <a href="/account">Account</a>
         <a class="button button-primary" data-track="Start ${escapeHtml(workflow)} workflow" data-destination="hosted-app-${escapeHtml(workflow)}" href="${appHref}" target="_blank" rel="noopener">Start this workflow →</a>
       </div>
     </nav>
@@ -152,7 +157,7 @@ const renderPage = (page) => {
           <a class="button button-dark" data-track="View GitHub" data-destination="github" href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener">View open-source code</a>
           <a class="button button-secondary" href="#how-it-works">How it works</a>
         </div>
-        <div class="meta-line">Updated ${lastmod} · Open source · MIT licensed · Bring your own OpenAI API key</div>
+        <div class="meta-line">Updated ${lastmod} · Free Private mode · Optional Pro · MIT-licensed core</div>
       </div>
     </section>
 
@@ -231,8 +236,8 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
 const staticFiles = [
-  "index.html", "privacy.html", "robots.txt", "llms.txt",
-  "content.css", "analytics.js", "favicon.svg", "favicon.ico", "favicon-16x16.png",
+  "index.html", "privacy.html", "account.html", "robots.txt", "llms.txt",
+  "content.css", "account.css", "analytics.js", "favicon.svg", "favicon.ico", "favicon-16x16.png",
   "favicon-32x32.png", "apple-touch-icon.png", "android-chrome-192x192.png",
   "android-chrome-512x512.png", "site.webmanifest", "og.png", "googlecc8e26327b14309f.html"
 ];
@@ -243,7 +248,7 @@ for (const file of staticFiles) {
   cpSync(source, join(out, file));
 }
 
-for (const file of ["index.html", "privacy.html"]) {
+for (const file of ["index.html", "privacy.html", "account.html"]) {
   const output = join(out, file);
   const html = readFileSync(output, "utf8").replace(
     "/_vercel/insights/script.js",
@@ -251,6 +256,16 @@ for (const file of ["index.html", "privacy.html"]) {
   );
   writeFileSync(output, html);
 }
+
+await build({
+  entryPoints: [join(root, "account.ts")],
+  bundle: true,
+  format: "esm",
+  platform: "browser",
+  target: ["es2022"],
+  minify: true,
+  outfile: join(out, "account.js"),
+});
 
 for (const page of pages) {
   const directory = join(out, page.slug);

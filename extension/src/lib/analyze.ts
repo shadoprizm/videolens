@@ -1,7 +1,7 @@
 // Port of src/videolens/analysis/analyze_timeline.py and ask_question.py
 import { MODELS } from "./config";
 import { MODE_PROMPTS } from "./modes";
-import { chatCompletion } from "./openai";
+import { chatCompletion, type AiAccess } from "./openai";
 import { coerceConfidence } from "./describeFrames";
 import type {
   Analysis,
@@ -42,7 +42,7 @@ Return strict JSON with these keys (and no others):
 Do not wrap in markdown. Do not include any keys besides those listed.`;
 
 export async function analyzeTimeline(
-  apiKey: string,
+  access: AiAccess,
   timeline: Timeline,
   source: SourceInfo,
   mode: AnalysisMode,
@@ -57,7 +57,7 @@ export async function analyzeTimeline(
   const userMessage = buildUserMessage(timeline, source, mode, userPrompt, prompts.findings);
 
   const content = await chatCompletion(
-    apiKey,
+    access,
     MODELS.synthesize,
     [
       { role: "system", content: systemPrompt },
@@ -179,7 +179,7 @@ Never repeat the existing executive summary verbatim — assume the user has
 read it already.`;
 
 export async function askQuestion(
-  apiKey: string,
+  access: AiAccess,
   question: string,
   timeline: Timeline,
   priorAnalysis: Analysis | null,
@@ -221,7 +221,7 @@ export async function askQuestion(
   lines.push("ANSWER (cite timestamps inline as [MM:SS]):");
 
   const answer = await chatCompletion(
-    apiKey,
+    access,
     MODELS.synthesize,
     [
       { role: "system", content: QA_SYSTEM_PROMPT },

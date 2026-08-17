@@ -8,8 +8,12 @@
     { "source": "/privacy.html", "destination": "/privacy", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/privacy", "destination": "/privacy.html" }
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/account", "destination": "/account.html" }
   ],
+  "functions": {
+    "api/ai.ts": { "maxDuration": 300 }
+  },
   "headers": [
     {
       "source": "/(.*)",

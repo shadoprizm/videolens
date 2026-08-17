@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VideoLens Account &amp; Pro</title>
+  <meta name="description" content="Manage your VideoLens account, Pro subscription, managed report allowance, extension connection, and saved video reports.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0891B2">
+  <link rel="canonical" href="https://videolens.io/account">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link rel="stylesheet" href="/account.css">
+</head>
+<body>
+  <header class="account-header">
+    <a class="brand" href="/"><span class="brand-mark">▶</span><span>VideoLens</span></a>
+    <nav aria-label="Account navigation">
+      <a href="/#pricing">Pricing</a>
+      <a href="/privacy">Privacy</a>
+      <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <main class="account-shell">
+    <section class="account-hero">
+      <div class="eyebrow">VideoLens account</div>
+      <h1>Your reports, allowance, and subscription.</h1>
+      <p>Use VideoLens privately with your own OpenAI key forever, or connect Pro for managed AI and an optional cloud report library.</p>
+    </section>
+
+    <div id="page-message" class="message" hidden role="status"></div>
+
+    <section id="loading-view" class="panel loading-panel">
+      <span class="spinner" aria-hidden="true"></span>
+      <p>Loading your VideoLens account…</p>
+    </section>
+
+    <section id="unavailable-view" class="panel" hidden>
+      <div class="panel-kicker">Pro setup</div>
+      <h2>The account service is being connected.</h2>
+      <p>The free private extension remains fully available. Pro checkout will appear here as soon as the secure account service is live.</p>
+      <a class="button button-dark" href="/#extension">Use the free extension</a>
+    </section>
+
+    <section id="signed-out-view" class="account-grid" hidden>
+      <div class="panel auth-panel">
+        <div class="panel-kicker">Sign in</div>
+        <h2>No password to remember.</h2>
+        <p>Enter your email and we’ll send a secure one-time sign-in link.</p>
+        <form id="sign-in-form">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
+          <button class="button button-primary" type="submit">Email me a sign-in link</button>
+        </form>
+        <p class="fine-print">By continuing, you agree to the VideoLens <a href="/privacy">privacy policy</a>. We use your email for account access and billing, not marketing.</p>
+      </div>
+
+      <aside class="panel plan-preview">
+        <div class="plan-badge">PRO</div>
+        <h2>Skip the API key.</h2>
+        <div class="price"><strong>$12</strong><span>/ month</span></div>
+        <p>Or $99/year. Cancel anytime.</p>
+        <ul>
+          <li>20 managed reports every calendar month</li>
+          <li>One free managed starter report</li>
+          <li>Optional searchable cloud report library</li>
+          <li>Private BYOK mode stays free forever</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section id="signed-in-view" hidden>
+      <div id="extension-connect" class="connect-banner" hidden>
+        <div>
+          <div class="panel-kicker">Extension connection</div>
+          <h2>Connect this browser to your account?</h2>
+          <p>This authorizes the VideoLens extension on this device. It does not share your Supabase login or billing credentials with the extension.</p>
+        </div>
+        <button id="authorize-extension" class="button button-primary" type="button">Connect extension</button>
+      </div>
+
+      <div class="dashboard-grid">
+        <section class="panel plan-card">
+          <div class="plan-row">
+            <div>
+              <div class="panel-kicker">Current plan</div>
+              <h2 id="plan-name">Free</h2>
+            </div>
+            <span id="plan-status" class="status-pill">Active</span>
+          </div>
+          <p id="account-email" class="account-email"></p>
+          <div class="usage-block">
+            <div class="usage-row"><span>Managed reports</span><strong id="usage-label">0 of 1 used</strong></div>
+            <div class="meter"><span id="usage-meter"></span></div>
+            <p id="usage-note" class="fine-print"></p>
+          </div>
+          <div id="upgrade-actions" class="upgrade-actions">
+            <button class="button button-primary checkout-button" data-billing="annual" type="button">Choose annual · $99/year</button>
+            <button class="button button-secondary checkout-button" data-billing="monthly" type="button">Choose monthly · $12/month</button>
+          </div>
+          <button id="manage-billing" class="button button-secondary" type="button" hidden>Manage billing</button>
+          <button id="sign-out" class="text-button" type="button">Sign out</button>
+        </section>
+
+        <aside class="panel privacy-card">
+          <div class="panel-kicker">Two clear modes</div>
+          <h2>You choose the privacy boundary.</h2>
+          <div class="mode-row"><span class="mode-icon private">✓</span><div><strong>Private / BYOK</strong><p>No VideoLens account or server. Content goes directly from Chrome to OpenAI with your key.</p></div></div>
+          <div class="mode-row"><span class="mode-icon pro">P</span><div><strong>Pro / Managed</strong><p>No API key required. Content passes through VideoLens to OpenAI; completed reports are saved only when you enable cloud saving.</p></div></div>
+        </aside>
+      </div>
+
+      <section class="panel library-panel">
+        <div class="library-head">
+          <div><div class="panel-kicker">Cloud library</div><h2>Saved reports</h2></div>
+          <input id="report-search" type="search" placeholder="Search reports" aria-label="Search saved reports">
+        </div>
+        <div id="report-list" class="report-list"></div>
+        <div id="empty-library" class="empty-state">
+          <div class="empty-icon">▤</div>
+          <h3>No cloud reports yet.</h3>
+          <p>Enable “Save completed report to my cloud library” in the extension before running a managed report.</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer>VideoLens · <a href="/privacy">Privacy</a> · Support: <a href="mailto:astrawebdevservices@gmail.com">astrawebdevservices@gmail.com</a></footer>
+  <script type="module" src="/account.js"></script>
+</body>
+</html>

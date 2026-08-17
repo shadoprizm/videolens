@@ -1,13 +1,13 @@
 # VideoLens
 
-> VideoLens turns long videos into professional written reports with the important ideas, visual context, and timestamped evidence preserved. Paste a YouTube link, choose a report style, and export a polished HTML, PDF, Markdown, or JSON artifact. MIT licensed, bring your own OpenAI API key.
+> VideoLens turns long videos into professional written reports with the important ideas, visual context, and timestamped evidence preserved. Paste a YouTube link, choose a report style, and export a polished HTML, PDF, Markdown, or JSON artifact. Use free Private mode with your own OpenAI key or optional managed Pro.
 
 VideoLens combines transcription, frame-level vision, and OCR into a single cached pipeline, then writes an evidence-grounded report. The simplest entry point is YouTube; local files and roughly 1,500 supported video sites remain available. Detailed Report, Key Insights, Tutorial Guide, and Interview / Podcast are the primary report styles, with specialized modes for product and engineering work.
 
 Key facts:
 
-- **Availability:** The product is free and open source under the MIT license. There is no paid tier today. AI usage is billed by OpenAI directly to your own key — typically $0.05–$1.50 per video.
-- **Privacy:** Videos are processed on your machine, in your browser, or in an ephemeral session. Your OpenAI API key is never stored or seen by VideoLens. No analytics run on video content or reports. The public marketing site uses Vercel's anonymized, cookie-free Web Analytics and Speed Insights.
+- **Availability:** Private BYOK mode and the MIT-licensed core are free forever. A signed-in account includes one managed starter report. VideoLens Pro is $12/month or $99/year and includes 20 managed reports per calendar month.
+- **Privacy:** Private mode sends analysis content directly from Chrome to OpenAI with the user's key; VideoLens does not receive it. Managed mode passes requested analysis content through VideoLens to OpenAI. Raw media is not retained, and completed reports are stored only when the user enables cloud saving. The extension has no analytics.
 - **Sources supported:** Local files plus ~1,500 platforms via yt-dlp (YouTube, Loom, Vimeo, TikTok, Twitch, Twitter/X, Reddit, Google Drive, and more). Not supported: DRM-protected players (Netflix, Disney+) and live streams.
 - **Pipeline:** resolve source → extract audio, frames, and OCR → build a time-windowed timeline → analyze against your prompt and mode → structured findings with timestamp citations. Every step is cached, so re-runs are cheap and follow-up questions cost cents.
 - **Outputs:** Standalone professional HTML, print-quality PDF, Markdown, and JSON, plus follow-up Q&A over the cached timeline.
@@ -18,7 +18,7 @@ Key facts:
 - Python CLI: prompt-directed local video analysis.
 - Web UI: local upload and URL analysis interface.
 - Hosted app (app.videolens.io): the same code, hosted; bring your own OpenAI key, held in session memory only.
-- Chrome extension: 100% in-browser side-panel analysis using your own OpenAI key.
+- Chrome extension: side-panel analysis with free Private / BYOK and optional Pro / Managed modes.
 - MCP server: exposes VideoLens as tools for AI agents such as Claude Code and Cursor.
 
 ## Report styles
@@ -55,6 +55,7 @@ Key facts:
 - [GitHub repository](https://github.com/shadoprizm/videolens): Source, docs, roadmap, and issues.
 - [MIT License](https://github.com/shadoprizm/videolens/blob/main/LICENSE): Full license text.
 - [Hosted app](https://app.videolens.io): Try VideoLens in the browser with your own OpenAI key.
+- [VideoLens account and Pro](https://videolens.io/account): Passwordless account, managed-report allowance, billing, and optional cloud library.
 - [Sitemap](https://videolens.io/sitemap.xml): XML sitemap.
 
 ## Contact

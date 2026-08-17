@@ -1,6 +1,6 @@
 // Port of src/videolens/processors/describe_frames.py
 import { MODELS } from "./config";
-import { chatCompletion } from "./openai";
+import { chatCompletion, type AiAccess } from "./openai";
 import type { CapturedFrame, Confidence, FrameSummary } from "./types";
 
 const SYSTEM_PROMPT =
@@ -18,7 +18,7 @@ const USER_PROMPT =
   "Do not include any keys other than these. Do not wrap in markdown.";
 
 export async function describeFrames(
-  apiKey: string,
+  access: AiAccess,
   frames: CapturedFrame[],
   onProgress: (done: number, total: number) => void,
   maxWorkers = 5,
@@ -31,7 +31,7 @@ export async function describeFrames(
     while (next < frames.length) {
       const idx = next++;
       try {
-        results[idx] = await describeOne(apiKey, frames[idx]);
+        results[idx] = await describeOne(access, frames[idx]);
       } catch {
         // Skip failed frames, like the Python pipeline does.
       }
@@ -46,9 +46,9 @@ export async function describeFrames(
   return results.filter((r): r is FrameSummary => r !== null);
 }
 
-async function describeOne(apiKey: string, frame: CapturedFrame): Promise<FrameSummary> {
+async function describeOne(access: AiAccess, frame: CapturedFrame): Promise<FrameSummary> {
   const content = await chatCompletion(
-    apiKey,
+    access,
     MODELS.frameDescribe,
     [
       { role: "system", content: SYSTEM_PROMPT },

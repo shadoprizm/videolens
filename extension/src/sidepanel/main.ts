@@ -19,6 +19,17 @@ import {
   type LocalVideo,
 } from "../lib/localFile";
 import { verifyApiKey } from "../lib/openai";
+import type { AiAccess } from "../lib/openai";
+import {
+  completeManagedReport,
+  disconnectPro,
+  fetchProEntitlement,
+  openProAccount,
+  reserveManagedReport,
+  resumeProConnection,
+  startProConnection,
+  type ProEntitlement,
+} from "../lib/pro";
 import {
   download,
   printHtmlReport,
@@ -28,12 +39,19 @@ import {
 } from "../lib/report";
 import {
   acceptPrivacyDisclosure,
+  getAnalysisProvider,
   getApiKey,
   getMaxFrames,
+  getProCloudSave,
+  getProSession,
   hasAcceptedPrivacyDisclosure,
   resetPrivacyDisclosure,
+  setAnalysisProvider,
   setApiKey,
   setMaxFrames,
+  setProCloudSave,
+  type AnalysisProvider,
+  type StoredProSession,
 } from "../lib/storage";
 import { buildTimeline } from "../lib/timeline";
 import { MODE_ORDER, MODE_PROMPTS } from "../lib/modes";
@@ -52,6 +70,11 @@ interface State {
   qa: QaEntry[];
   error: string | null;
   privacyDisclosureAccepted: boolean;
+  analysisProvider: AnalysisProvider;
+  proSession: StoredProSession | null;
+  proEntitlement: ProEntitlement | null;
+  proCloudSave: boolean;
+  managedReportId: string | null;
 }
 
 const state: State = {
@@ -65,6 +88,11 @@ const state: State = {
   qa: [],
   error: null,
   privacyDisclosureAccepted: false,
+  analysisProvider: "byok",
+  proSession: null,
+  proEntitlement: null,
+  proCloudSave: false,
+  managedReportId: null,
 };
 
 const PRIMARY_REPORT_MODES: AnalysisMode[] = ["general", "key_insights", "tutorial", "interview"];
@@ -105,6 +133,16 @@ void (async () => {
     return;
   }
   state.maxFrames = await getMaxFrames(DEFAULTS.maxFrames);
+  state.analysisProvider = await getAnalysisProvider();
+  state.proCloudSave = await getProCloudSave();
+  state.proSession = await getProSession();
+  if (!state.proSession) state.proSession = await resumeProConnection();
+  if (state.proSession) {
+    state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => null);
+  } else if (state.analysisProvider === "pro") {
+    state.analysisProvider = "byok";
+    await setAnalysisProvider("byok");
+  }
   render();
 })();
 
@@ -130,10 +168,11 @@ function renderPrivacyDisclosure(): void {
       <h1 id="privacy-title">Before you analyze</h1>
       <p>VideoLens needs your permission to handle the data required for AI video analysis.</p>
       <ul class="privacy-list">
-        <li><b>Sent directly to OpenAI:</b> the selected video's frames, audio or captions, page title, and your prompt. OpenAI processes them using your own API key.</li>
-        <li><b>Stored only in Chrome on this device:</b> your OpenAI API key, consent, and settings.</li>
+        <li><b>Private / BYOK mode:</b> the selected video's frames, audio or captions, page title, and your prompt go directly from Chrome to OpenAI using your key. VideoLens does not receive them.</li>
+        <li><b>Pro / Managed mode:</b> the same analysis content passes through VideoLens to OpenAI so you do not need an API key. Raw frames and audio are not kept.</li>
+        <li><b>Cloud reports are optional:</b> a completed report is stored in your VideoLens account only when you turn on cloud saving.</li>
       </ul>
-      <div class="privacy-note">VideoLens has no video-analysis server and no extension analytics. We never receive your videos, prompts, API key, or reports.</div>
+      <div class="privacy-note">Your OpenAI key always stays in Chrome. VideoLens runs no extension analytics and never sells your data. You can use Private mode forever without creating an account.</div>
       <button class="btn btn-primary" id="accept-privacy">I agree to this data use — Continue</button>
       <p class="privacy-links"><a href="${LINKS.privacy}" target="_blank">Read the full privacy policy</a></p>
     </section>`,
@@ -150,8 +189,8 @@ function renderPrivacyDisclosure(): void {
 
 function renderBadge(): void {
   if (state.privacyDisclosureAccepted) {
-    badge.textContent = "";
-    badge.className = "brand-badge";
+    badge.textContent = state.analysisProvider === "pro" ? "PRO" : "PRIVATE";
+    badge.className = `brand-badge ${state.analysisProvider === "pro" ? "pro" : ""}`;
   }
 }
 
@@ -177,6 +216,36 @@ function renderMain(): void {
     state.error = null;
     render();
   });
+
+  const providerSection = el(`<div class="section"><span class="label">Analysis mode</span></div>`);
+  const providerPicker = el(`<div class="seg provider-seg"></div>`);
+  const privateButton = el(
+    `<button class="${state.analysisProvider === "byok" ? "active" : ""}">Private · your key</button>`,
+  ) as HTMLButtonElement;
+  const proButton = el(
+    `<button class="${state.analysisProvider === "pro" ? "active pro-active" : ""}">Pro · managed</button>`,
+  ) as HTMLButtonElement;
+  privateButton.addEventListener("click", () => void chooseProvider("byok"));
+  proButton.addEventListener("click", () => void chooseProvider("pro"));
+  providerPicker.append(privateButton, proButton);
+  providerSection.appendChild(providerPicker);
+  if (state.analysisProvider === "pro") {
+    const entitlement = state.proEntitlement;
+    providerSection.appendChild(
+      el(
+        `<div class="provider-note pro-note"><b>${state.proSession ? esc(state.proSession.email) : "Account required"}</b><span>` +
+          (entitlement
+            ? `${entitlement.managedReportsRemaining} of ${entitlement.managedReportsLimit} managed reports remaining`
+            : "Connect your account in Settings to use managed AI") +
+          `</span></div>`,
+      ),
+    );
+  } else {
+    providerSection.appendChild(
+      el(`<p class="hint">Your content goes directly to OpenAI. VideoLens never receives your key, prompt, media, or report.</p>`),
+    );
+  }
+  root.appendChild(providerSection);
 
   // Source picker
   const sourceSection = el(`<div class="section"><span class="label">Source</span></div>`);
@@ -271,14 +340,21 @@ function renderMain(): void {
   const framesSection = el(
     `<div class="section"><span class="label">Max frames — <span id="mf-val">${state.maxFrames}</span></span></div>`,
   );
-  const slider = el(`<input type="range" min="5" max="80" step="5">`) as HTMLInputElement;
-  slider.value = String(state.maxFrames);
+  const sliderMax = state.analysisProvider === "pro" ? 40 : 80;
+  const effectiveMaxFrames = Math.min(state.maxFrames, sliderMax);
+  const slider = el(`<input type="range" min="5" max="${sliderMax}" step="5">`) as HTMLInputElement;
+  slider.value = String(effectiveMaxFrames);
+  framesSection.querySelector("#mf-val")!.textContent = String(effectiveMaxFrames);
   const cost = el(`<div class="cost"></div>`);
   const updateCost = () => {
     const minutes = state.sourceKind === "file" && state.localVideo ? state.localVideo.duration / 60 : 3.0;
-    const [low, high] = estimateCost(state.maxFrames, Math.max(0.5, minutes));
-    const assumed = state.sourceKind === "file" && state.localVideo ? "your file" : "~3-min video";
-    cost.innerHTML = `Estimated OpenAI cost: <b>~$${low.toFixed(2)}–$${high.toFixed(2)}</b> · ${assumed} · billed to your key`;
+    if (state.analysisProvider === "pro") {
+      cost.innerHTML = `<b>Included in your managed-report allowance</b> · up to 40 sampled frames`;
+    } else {
+      const [low, high] = estimateCost(state.maxFrames, Math.max(0.5, minutes));
+      const assumed = state.sourceKind === "file" && state.localVideo ? "your file" : "~3-min video";
+      cost.innerHTML = `Estimated OpenAI cost: <b>~$${low.toFixed(2)}–$${high.toFixed(2)}</b> · ${assumed} · billed to your key`;
+    }
   };
   slider.addEventListener("input", () => {
     state.maxFrames = Number(slider.value);
@@ -291,9 +367,25 @@ function renderMain(): void {
   root.append(framesSection);
 
   // Run
-  const run = el(`<button class="btn btn-primary">Analyze video</button>`) as HTMLButtonElement;
+  const run = el(`<button class="btn btn-primary">${state.analysisProvider === "pro" ? "Create managed report" : "Analyze privately"}</button>`) as HTMLButtonElement;
   run.addEventListener("click", () => void runAnalysis());
   root.append(run, cost);
+}
+
+async function chooseProvider(provider: AnalysisProvider, returnToMain = false): Promise<void> {
+  if (provider === "pro" && !state.proSession) {
+    state.error = "Connect your VideoLens account to use managed mode.";
+    state.view = "settings";
+    render();
+    return;
+  }
+  state.analysisProvider = provider;
+  await setAnalysisProvider(provider);
+  if (provider === "pro" && state.proSession) {
+    state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => null);
+  }
+  if (returnToMain) state.view = state.analysis ? "results" : "main";
+  render();
 }
 
 interface StepHandle {
@@ -427,17 +519,23 @@ function renderResults(): void {
   const ask = async () => {
     const q = qaInput.value.trim();
     if (!q) return;
-    const apiKey = await getApiKey();
-    if (!apiKey) {
-      state.error = "Add your OpenAI API key in Settings first.";
-      state.view = "settings";
-      render();
-      return;
+    let access: AiAccess;
+    if (state.managedReportId && state.proSession) {
+      access = { kind: "pro", token: state.proSession.token, reportId: state.managedReportId };
+    } else {
+      const apiKey = await getApiKey();
+      if (!apiKey) {
+        state.error = "Add your OpenAI API key in Settings first.";
+        state.view = "settings";
+        render();
+        return;
+      }
+      access = { kind: "byok", apiKey };
     }
     qaBtn.disabled = true;
     qaBtn.textContent = "…";
     try {
-      const answer = await askQuestion(apiKey, q, a.timeline, a);
+      const answer = await askQuestion(access, q, a.timeline, a);
       state.qa.push({ question: q, answer });
       render();
     } catch (e) {
@@ -465,24 +563,84 @@ function renderSettings(): void {
     render();
   });
   root.appendChild(back);
+  if (state.error) {
+    root.appendChild(el(`<div class="banner error">${esc(state.error)}</div>`));
+    state.error = null;
+  }
+
+  const entitlement = state.proEntitlement;
+  const accountCard = state.proSession
+    ? el(
+        `<div class="card pro-account-card"><div class="account-heading"><div><h3>VideoLens account</h3><b>${esc(state.proSession.email)}</b></div><span class="plan-pill">${entitlement?.plan === "pro" ? "PRO" : "FREE"}</span></div>
+          <p class="hint">${entitlement ? `${entitlement.managedReportsRemaining} of ${entitlement.managedReportsLimit} managed reports remaining.` : "Checking managed-report allowance…"}</p>
+          <div class="settings-actions"><button class="btn btn-primary btn-sm" id="use-pro">Use managed mode</button><button class="btn btn-secondary btn-sm" id="manage-account">Account &amp; billing</button><button class="btn btn-ghost btn-sm" id="disconnect-pro">Disconnect</button></div>
+          <label class="cloud-toggle"><input type="checkbox" id="cloud-save" ${state.proCloudSave ? "checked" : ""}><span><b>Save completed reports to my cloud library</b><small>Off by default. Raw video, frames, and audio are never saved.</small></span></label>
+        </div>`,
+      )
+    : el(
+        `<div class="card pro-account-card"><div class="account-heading"><div><h3>VideoLens Pro</h3><b>No API key required</b></div><span class="plan-pill">PRO</span></div>
+          <p class="hint">Connect a free account for one managed starter report. Pro includes 20 managed reports per calendar month for $12/month or $99/year.</p>
+          <button class="btn btn-primary" id="connect-pro">Connect VideoLens account</button>
+          <p class="hint" style="margin-bottom:0">A browser tab opens for secure passwordless sign-in. Your website login and billing credentials are not stored in the extension.</p>
+        </div>`,
+      );
+  root.appendChild(accountCard);
+
+  if (state.proSession) {
+    accountCard.querySelector("#use-pro")!.addEventListener("click", () => void chooseProvider("pro", true));
+    accountCard.querySelector("#manage-account")!.addEventListener("click", openProAccount);
+    accountCard.querySelector("#disconnect-pro")!.addEventListener("click", async () => {
+      await disconnectPro();
+      state.proSession = null;
+      state.proEntitlement = null;
+      state.analysisProvider = "byok";
+      await setAnalysisProvider("byok");
+      render();
+    });
+    accountCard.querySelector<HTMLInputElement>("#cloud-save")!.addEventListener("change", async (event) => {
+      state.proCloudSave = (event.currentTarget as HTMLInputElement).checked;
+      await setProCloudSave(state.proCloudSave);
+    });
+  } else {
+    const connectButton = accountCard.querySelector<HTMLButtonElement>("#connect-pro")!;
+    connectButton.addEventListener("click", async () => {
+      connectButton.disabled = true;
+      connectButton.textContent = "Waiting for browser approval…";
+      try {
+        state.proSession = await startProConnection();
+        state.proEntitlement = await fetchProEntitlement(state.proSession.token);
+        state.analysisProvider = "pro";
+        await setAnalysisProvider("pro");
+        state.error = null;
+        render();
+      } catch (error) {
+        state.error = (error as Error).message;
+        connectButton.disabled = false;
+        connectButton.textContent = "Connect VideoLens account";
+        render();
+      }
+    });
+  }
 
   // OpenAI key
   const keyCard = el(
-    `<div class="card"><h3>OpenAI API key</h3>
+    `<div class="card"><h3>Private mode · OpenAI API key</h3>
       <div class="row"><input type="password" class="grow" id="api-key" placeholder="sk-...">
       <button class="btn btn-secondary btn-sm" id="save-key">Save</button></div>
-      <p class="hint">Stored only on this device (<code>chrome.storage.local</code>), sent only to api.openai.com. Analysis costs are billed to your OpenAI account. <a href="${LINKS.openaiKeys}" target="_blank">Get a key →</a></p>
+      <p class="hint">Stored only on this device (<code>chrome.storage.local</code>), sent only to api.openai.com. VideoLens never receives it. Analysis costs are billed to your OpenAI account. <a href="${LINKS.openaiKeys}" target="_blank">Get a key →</a></p>
       <div id="key-status"></div></div>`,
   );
   root.appendChild(keyCard);
   const keyInput = keyCard.querySelector<HTMLInputElement>("#api-key")!;
   const keyStatus = keyCard.querySelector<HTMLElement>("#key-status")!;
-  void getApiKey().then((k) => {
-    if (k) {
-      keyInput.value = k;
-      keyStatus.innerHTML = `<div class="banner ok" style="margin:8px 0 0">Key saved.</div>`;
-    }
-  });
+  if (hasExtensionStorage) {
+    void getApiKey().then((k) => {
+      if (k) {
+        keyInput.value = k;
+        keyStatus.innerHTML = `<div class="banner ok" style="margin:8px 0 0">Key saved.</div>`;
+      }
+    });
+  }
   keyCard.querySelector("#save-key")!.addEventListener("click", async () => {
     const key = keyInput.value.trim();
     if (!key) {
@@ -502,7 +660,7 @@ function renderSettings(): void {
 
   const privacyCard = el(
     `<div class="card"><h3>Privacy &amp; data use</h3>
-      <p class="hint" style="margin:0 0 8px">Review what VideoLens sends to OpenAI, and what stays on this device.</p>
+      <p class="hint" style="margin:0 0 8px">Review the separate data paths for Private and Pro Managed modes.</p>
       <button class="btn btn-secondary btn-sm" id="review-privacy">Review disclosure</button>
       <a class="btn btn-ghost btn-sm" href="${LINKS.privacy}" target="_blank">Full privacy policy</a>
     </div>`,
@@ -527,14 +685,6 @@ function renderSettings(): void {
 async function runAnalysis(): Promise<void> {
   state.error = null;
 
-  const apiKey = await getApiKey();
-  if (!apiKey) {
-    state.error = "Add your OpenAI API key first (Settings → OpenAI API key).";
-    state.view = "settings";
-    render();
-    return;
-  }
-
   if (state.sourceKind === "file" && !state.localVideo) {
     state.error = "Choose a video file first.";
     render();
@@ -542,24 +692,74 @@ async function runAnalysis(): Promise<void> {
   }
 
   const prompt = state.prompt.trim() || MODE_PROMPTS[state.mode].defaultPrompt;
+  let access: AiAccess;
+  let managedReportId: string | null = null;
+
+  if (state.analysisProvider === "pro") {
+    if (!state.proSession) {
+      state.error = "Connect your VideoLens account first.";
+      state.view = "settings";
+      render();
+      return;
+    }
+    try {
+      const reservation = await reserveManagedReport(state.proSession.token, state.proCloudSave);
+      managedReportId = reservation.reportId;
+      state.managedReportId = managedReportId;
+      access = { kind: "pro", token: state.proSession.token, reportId: managedReportId };
+    } catch (error) {
+      state.error = (error as Error).message;
+      state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => state.proEntitlement);
+      render();
+      return;
+    }
+  } else {
+    const apiKey = await getApiKey();
+    if (!apiKey) {
+      state.error = "Add your OpenAI API key first (Settings → Private mode API key).";
+      state.view = "settings";
+      render();
+      return;
+    }
+    state.managedReportId = null;
+    access = { kind: "byok", apiKey };
+  }
 
   try {
+    state.analysis = null;
     state.view = "progress";
     if (state.sourceKind === "tab") {
-      await runTabAnalysis(apiKey, prompt);
+      await runTabAnalysis(access, prompt);
     } else {
-      await runFileAnalysis(apiKey, prompt);
+      await runFileAnalysis(access, prompt);
     }
     state.qa = [];
     state.view = "results";
+    if (managedReportId && state.proSession) {
+      try {
+        await completeManagedReport(
+          state.proSession.token,
+          managedReportId,
+          state.analysis,
+          state.proCloudSave,
+        );
+      } catch (completionError) {
+        state.error = `Your report is ready, but VideoLens could not update the cloud library: ${(completionError as Error).message}`;
+      }
+      state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => state.proEntitlement);
+    }
   } catch (e) {
+    if (managedReportId && state.proSession) {
+      await completeManagedReport(state.proSession.token, managedReportId, state.analysis, false, true).catch(() => undefined);
+      state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => state.proEntitlement);
+    }
     state.error = (e as Error).message;
     state.view = "main";
   }
   render();
 }
 
-async function runTabAnalysis(apiKey: string, prompt: string): Promise<void> {
+async function runTabAnalysis(access: AiAccess, prompt: string): Promise<void> {
   const steps = renderProgress([
     "Finding video on the page",
     "Fetching captions",
@@ -584,15 +784,16 @@ async function runTabAnalysis(apiKey: string, prompt: string): Promise<void> {
   }
 
   steps.set(2, "active");
-  const timestamps = planFrameTimestamps(probe.duration, state.maxFrames, DEFAULTS.frameIntervalSeconds);
+  const maxFrames = state.analysisProvider === "pro" ? Math.min(state.maxFrames, 40) : state.maxFrames;
+  const timestamps = planFrameTimestamps(probe.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
   const frames = await captureTabFrames(tabId, timestamps, DEFAULTS.frameJpegQuality, DEFAULTS.maxFrameEdgePx);
   steps.set(2, "done", `Captured ${frames.length} frames`);
 
   const source = makeTabSource(probe, transcript !== null);
-  await describeAndSynthesize(apiKey, steps, frames, transcript, probe.duration, source, prompt);
+  await describeAndSynthesize(access, steps, frames, transcript, probe.duration, source, prompt);
 }
 
-async function runFileAnalysis(apiKey: string, prompt: string): Promise<void> {
+async function runFileAnalysis(access: AiAccess, prompt: string): Promise<void> {
   const local = state.localVideo!;
   const steps = renderProgress([
     "Sampling frames",
@@ -603,24 +804,25 @@ async function runFileAnalysis(apiKey: string, prompt: string): Promise<void> {
   ]);
 
   steps.set(0, "active");
-  const timestamps = planFrameTimestamps(local.duration, state.maxFrames, DEFAULTS.frameIntervalSeconds);
+  const maxFrames = state.analysisProvider === "pro" ? Math.min(state.maxFrames, 40) : state.maxFrames;
+  const timestamps = planFrameTimestamps(local.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
   const frames = await captureLocalFrames(local, timestamps, (done, total) =>
     steps.set(0, "active", `Sampling frames ${done}/${total}`),
   );
   steps.set(0, "done", `Sampled ${frames.length} frames`);
 
   steps.set(1, "active");
-  const { transcript, limitation } = await transcribeLocalFile(apiKey, local, (done, total) =>
+  const { transcript, limitation } = await transcribeLocalFile(access, local, (done, total) =>
     steps.set(1, "active", `Transcribing audio ${done}/${total}`),
   );
   steps.set(1, "done", transcript ? `Transcribed ${transcript.segments.length} chunks` : "Audio skipped");
 
   const source = makeLocalSource(local, limitation ? [limitation] : []);
-  await describeAndSynthesize(apiKey, steps, frames, transcript, local.duration, source, prompt, 2);
+  await describeAndSynthesize(access, steps, frames, transcript, local.duration, source, prompt, 2);
 }
 
 async function describeAndSynthesize(
-  apiKey: string,
+  access: AiAccess,
   steps: StepHandle,
   frames: CapturedFrame[],
   transcript: Transcript | null,
@@ -630,7 +832,7 @@ async function describeAndSynthesize(
   stepOffset = 3,
 ): Promise<void> {
   steps.set(stepOffset, "active");
-  const summaries = await describeFrames(apiKey, frames, (done, total) =>
+  const summaries = await describeFrames(access, frames, (done, total) =>
     steps.set(stepOffset, "active", `Describing frames ${done}/${total}`),
   );
   steps.set(stepOffset, "done", `Described ${summaries.length} frames`);
@@ -643,7 +845,7 @@ async function describeAndSynthesize(
   steps.set(stepOffset + 1, "done", `Timeline: ${timeline.segments.length} segments`);
 
   steps.set(stepOffset + 2, "active");
-  state.analysis = await analyzeTimeline(apiKey, timeline, source, state.mode, prompt);
+  state.analysis = await analyzeTimeline(access, timeline, source, state.mode, prompt);
   steps.set(stepOffset + 2, "done");
 }
 

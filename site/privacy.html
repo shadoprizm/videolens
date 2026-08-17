@@ -14,7 +14,7 @@
 
   <!-- Open Graph / Twitter -->
   <meta property="og:title" content="Privacy Policy — VideoLens">
-  <meta property="og:description" content="How VideoLens handles data across the tool, the hosted app, and the Chrome extension. We're built so we don't have your data.">
+  <meta property="og:description" content="How VideoLens handles data across Private BYOK mode, Pro Managed mode, accounts, cloud reports, the hosted app, and the Chrome extension.">
   <meta property="og:url" content="https://videolens.io/privacy">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="VideoLens">
@@ -32,7 +32,7 @@
     "name": "VideoLens Privacy Policy",
     "url": "https://videolens.io/privacy",
     "inLanguage": "en",
-    "dateModified": "2026-08-15",
+    "dateModified": "2026-08-17",
     "isPartOf": { "@type": "WebSite", "name": "VideoLens", "url": "https://videolens.io/" },
     "publisher": {
       "@type": "Organization",
@@ -71,24 +71,37 @@
 
   <main class="max-w-3xl mx-auto px-6 py-14 prose-slate">
     <h1 class="text-4xl font-extrabold tracking-tight mb-2">Privacy Policy</h1>
-    <p class="text-sm text-slate-500 mb-10">Last updated: August 15, 2026 · Applies to videolens.io, the hosted app, and the VideoLens Chrome extension.</p>
+    <p class="text-sm text-slate-500 mb-10">Last updated: August 17, 2026 · Applies to videolens.io, VideoLens accounts and Pro, the hosted app, and the VideoLens Chrome extension.</p>
 
     <div class="space-y-10 text-slate-700 leading-relaxed">
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">The short version</h2>
-        <p>VideoLens is built so that we don't have your data. Your videos are processed either on your own machine, in your own browser (the extension), or in an ephemeral session (the hosted app). Your OpenAI API key is yours: the extension stores it only on your device, and the hosted app holds it only for the duration of your session. We run no analytics on your video content and we never see your reports.</p>
+        <p>VideoLens gives you two explicit extension modes. In <strong>Private / BYOK mode</strong>, analysis goes directly from your browser to OpenAI with your key; VideoLens does not receive the video content, prompt, key, or report. In <strong>Pro / Managed mode</strong>, the content required for the analysis passes through VideoLens to OpenAI so you do not need a key. Raw frames and audio are not retained, and a completed report is stored only when you enable cloud saving. The extension contains no analytics.</p>
       </section>
 
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">Chrome extension</h2>
         <ul class="list-disc pl-5 space-y-2">
-          <li><strong>Analysis requests.</strong> The selected video's frames, audio or captions, page title, and your prompt are processed inside the extension and sent to exactly one place: OpenAI's API (api.openai.com), using your own API key, to generate transcripts, frame descriptions, and the analysis. They are never sent to VideoLens servers — we don't have any.</li>
+          <li><strong>Private / BYOK analysis.</strong> The selected video's frames, audio or captions, page title, and your prompt go directly from the extension to OpenAI's API (api.openai.com) using your own API key. They are not sent to VideoLens.</li>
+          <li><strong>Pro / Managed analysis.</strong> If you deliberately select Managed mode, the same analysis content is sent over HTTPS to videolens.io, which authenticates your subscription or starter allowance and forwards it to OpenAI using the VideoLens service account. VideoLens does not write raw frames, audio chunks, captions, or prompts to its database or application logs.</li>
           <li><strong>Your OpenAI API key.</strong> Stored in <code>chrome.storage.local</code> on your device only. It is not synced between browsers and is transmitted only to api.openai.com. Remove it any time in Settings.</li>
-          <li><strong>Analysis results.</strong> Reports, timelines, and Q&amp;A history exist only in your browser. Exporting saves files to your device.</li>
+          <li><strong>Analysis results.</strong> In Private mode, reports, timelines, and Q&amp;A history exist only in your browser. In Managed mode, the completed report is also stored in your account only if you enable “Save completed reports to my cloud library.” That option is off by default.</li>
+          <li><strong>Account connection.</strong> The extension stores a VideoLens session token and account email in <code>chrome.storage.local</code>. The token expires after 30 days and can be removed with Disconnect. Website login and billing credentials are never copied into the extension.</li>
           <li><strong>Browsing data.</strong> The extension reads a page only when you invoke it on that page (Chrome's activeTab permission), solely to find the video element, captions, and page title. It does not track your browsing, run in the background, or inject anything into pages you haven't invoked it on.</li>
           <li><strong>Analytics.</strong> The extension contains no analytics, telemetry, or error reporting of any kind.</li>
         </ul>
         <p class="mt-4"><strong>Chrome Web Store Limited Use.</strong> VideoLens's use and transfer of information received through Chrome extension APIs adheres to the Chrome Web Store User Data Policy, including its Limited Use requirements. The extension uses this information only to provide the video-analysis features the user requests.</p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Accounts, Pro, and cloud reports</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li><strong>Account data.</strong> We store your email address, account ID, subscription status, managed-report usage, and the technical identifiers needed to connect your extension and Stripe customer. Passwordless sign-in is provided by Supabase Auth.</li>
+          <li><strong>Pairing data.</strong> Extension pairing challenges are random, single-use, and expire after 10 minutes. They contain no video content.</li>
+          <li><strong>Cloud reports.</strong> When cloud saving is enabled, we store the completed structured report, including its title, summary, findings, timeline text, mode, and timestamped evidence. We do not store the source video, sampled image files, or audio files.</li>
+          <li><strong>Payments.</strong> Stripe processes payment-card and billing details. VideoLens stores Stripe customer, subscription, product, and price identifiers plus subscription status; it does not receive or store full card numbers.</li>
+          <li><strong>Deletion.</strong> You can delete individual cloud reports from the account page. To delete your account and its stored VideoLens data, contact us at the address below. Stripe may retain transaction records as required for legal, tax, fraud-prevention, and accounting obligations.</li>
+        </ul>
       </section>
 
       <section>
@@ -113,10 +126,12 @@
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">Third parties</h2>
         <ul class="list-disc pl-5 space-y-2">
-          <li><strong>OpenAI</strong> — processes the audio chunks and frames you analyze, under your own account and <a class="text-cyan-700 font-semibold hover:underline" href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">OpenAI's privacy policy</a>.</li>
+          <li><strong>OpenAI</strong> — processes the text, audio chunks, and frames you analyze. Private mode uses your OpenAI account; Managed mode uses the VideoLens service account. Processing is subject to <a class="text-cyan-700 font-semibold hover:underline" href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">OpenAI's privacy policy</a>.</li>
           <li><strong>Vercel</strong> — hosts videolens.io and provides privacy-friendly aggregate Web Analytics and Speed Insights for the public marketing site.</li>
+          <li><strong>Supabase</strong> — provides passwordless authentication and the database for account, entitlement, extension-pairing, usage, and opt-in cloud-report data.</li>
+          <li><strong>Stripe</strong> — processes subscriptions and provides the hosted checkout and billing-management portal.</li>
           <li><strong>Railway</strong> — hosts app.videolens.io and its operational logs, including the limited hosted-app product events described above.</li>
-          <li>There are no ad networks or data brokers, and analytics events never include video content, prompts, reports, or API keys.</li>
+          <li>There are no ad networks or data brokers. We do not sell personal information or use analyzed video content for advertising.</li>
         </ul>
       </section>
 
@@ -124,7 +139,8 @@
         <h2 class="text-xl font-bold text-slate-900 mb-3">Your choices</h2>
         <ul class="list-disc pl-5 space-y-2">
           <li>Remove your API key or uninstall the extension at any time — all locally stored data (key and settings) is deleted with it.</li>
-          <li>For any privacy question, email <a class="text-cyan-700 font-semibold hover:underline" href="mailto:support@videolens.io">support@videolens.io</a>.</li>
+          <li>Use Private / BYOK mode without an account, disable cloud saving while using Pro, delete saved reports from the account page, disconnect the extension, or cancel Pro from the Stripe customer portal.</li>
+          <li>For privacy questions or an account-deletion request, email <a class="text-cyan-700 font-semibold hover:underline" href="mailto:astrawebdevservices@gmail.com">astrawebdevservices@gmail.com</a>.</li>
         </ul>
       </section>
 
