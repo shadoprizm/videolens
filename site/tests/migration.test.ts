@@ -19,4 +19,10 @@ describe("Pro database security migration", () => {
     expect(migration).toContain("grant execute on function public.reserve_managed_report(uuid, text, boolean) to service_role");
     expect(migration).toContain("set search_path = ''");
   });
+
+  it("explicitly exposes only the required database privileges", () => {
+    expect(migration).toContain("grant select, insert, update, delete on table public.profiles to service_role");
+    expect(migration).toContain("grant usage, select on sequence public.ai_requests_id_seq to service_role");
+    expect(migration).toContain("grant select, delete on table public.reports to authenticated");
+  });
 });

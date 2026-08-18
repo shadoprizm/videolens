@@ -7,7 +7,7 @@ VideoLens combines transcription, frame-level vision, and OCR into a single cach
 Key facts:
 
 - **Availability:** Private BYOK mode and the MIT-licensed core are free forever. A signed-in account includes one managed starter report. VideoLens Pro is $12/month or $99/year and includes 20 managed reports per calendar month.
-- **Privacy:** Private mode sends analysis content directly from Chrome to OpenAI with the user's key; VideoLens does not receive it. Managed mode passes requested analysis content through VideoLens to OpenAI. Raw media is not retained, and completed reports are stored only when the user enables cloud saving. The extension has no analytics.
+- **Privacy:** Private mode sends analysis content directly from Chrome to OpenAI with the user's key; VideoLens does not receive it. Managed mode passes requested analysis content through VideoLens and Vercel AI Gateway to the configured AI provider (currently OpenAI). VideoLens does not retain raw media in its database, and completed reports are stored only when the user enables cloud saving. The extension has no analytics.
 - **Sources supported:** Local files plus ~1,500 platforms via yt-dlp (YouTube, Loom, Vimeo, TikTok, Twitch, Twitter/X, Reddit, Google Drive, and more). Not supported: DRM-protected players (Netflix, Disney+) and live streams.
 - **Pipeline:** resolve source → extract audio, frames, and OCR → build a time-windowed timeline → analyze against your prompt and mode → structured findings with timestamp citations. Every step is cached, so re-runs are cheap and follow-up questions cost cents.
 - **Outputs:** Standalone professional HTML, print-quality PDF, Markdown, and JSON, plus follow-up Q&A over the cached timeline.

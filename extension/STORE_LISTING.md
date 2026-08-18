@@ -44,8 +44,8 @@ key stays on your device. A typical video costs $0.05–$1.50 in OpenAI usage,
 billed directly to your OpenAI account.
 
 Pro / Managed mode removes the API-key setup. The analysis content passes
-securely through VideoLens to OpenAI and counts against a managed-report
-allowance. A free account includes one managed starter report. Pro includes
+securely through VideoLens and Vercel AI Gateway to the configured AI provider
+(currently OpenAI) and counts against a managed-report allowance. A free account includes one managed starter report. Pro includes
 20 managed reports per calendar month for $12/month or $99/year. Raw frames
 and audio are not retained. Saving the completed report to your cloud library
 is optional and off by default.
@@ -87,7 +87,7 @@ cross-origin video security can prevent frame capture.
 **Data usage disclosures (Privacy tab):**
 - Check **Personally identifiable information**: an email address is used only when the user explicitly creates/connects a VideoLens account for managed mode, subscription access, and the optional cloud library.
 - Check **Authentication information**: Private mode stores the user's OpenAI API key locally and sends it only to OpenAI. Managed mode stores a limited VideoLens account token locally; website login and payment credentials are not copied into the extension.
-- Check **Website content**: the selected video's frames, audio or captions, page title, analysis prompt, and follow-up questions go directly to OpenAI in Private mode or through VideoLens to OpenAI in Managed mode.
+- Check **Website content**: the selected video's frames, audio or captions, page title, analysis prompt, and follow-up questions go directly to OpenAI in Private mode or through VideoLens and Vercel AI Gateway to the configured AI provider (currently OpenAI) in Managed mode.
 - Check **User-provided content** if offered: prompts, follow-up questions, local video content, and an optionally cloud-saved completed report are user-provided/requested content.
 - Check **Web history** if the dashboard defines it to include the active page URL: VideoLens reads the URL and title only for the page the user explicitly invokes. The source URL can be included in an exported report and in the cloud report only when the user enables cloud saving.
 - Do not check health, financial information, communications, location, or general user activity unless the dashboard's definitions require a category because that information happens to appear inside a user-selected video. Nothing is sold, used for unrelated purposes, advertising, or creditworthiness.

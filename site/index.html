@@ -190,7 +190,7 @@
             "name": "Does VideoLens store my videos or my OpenAI API key?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "In Private BYOK mode, VideoLens has no analysis server: your content and API key go directly from Chrome to OpenAI and reports stay on your device. In Pro Managed mode, selected video content passes through VideoLens to OpenAI. Completed reports are stored only when you explicitly enable cloud saving."
+              "text": "In Private BYOK mode, VideoLens has no analysis server: your content and API key go directly from Chrome to OpenAI and reports stay on your device. In Pro Managed mode, selected video content passes through VideoLens and Vercel AI Gateway to the configured AI provider, currently OpenAI. Completed reports are stored only when you explicitly enable cloud saving."
             }
           },
           {

@@ -71,19 +71,19 @@
 
   <main class="max-w-3xl mx-auto px-6 py-14 prose-slate">
     <h1 class="text-4xl font-extrabold tracking-tight mb-2">Privacy Policy</h1>
-    <p class="text-sm text-slate-500 mb-10">Last updated: August 17, 2026 · Applies to videolens.io, VideoLens accounts and Pro, the hosted app, and the VideoLens Chrome extension.</p>
+    <p class="text-sm text-slate-500 mb-10">Last updated: August 18, 2026 · Applies to videolens.io, VideoLens accounts and Pro, the hosted app, and the VideoLens Chrome extension.</p>
 
     <div class="space-y-10 text-slate-700 leading-relaxed">
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">The short version</h2>
-        <p>VideoLens gives you two explicit extension modes. In <strong>Private / BYOK mode</strong>, analysis goes directly from your browser to OpenAI with your key; VideoLens does not receive the video content, prompt, key, or report. In <strong>Pro / Managed mode</strong>, the content required for the analysis passes through VideoLens to OpenAI so you do not need a key. Raw frames and audio are not retained, and a completed report is stored only when you enable cloud saving. The extension contains no analytics.</p>
+        <p>VideoLens gives you two explicit extension modes. In <strong>Private / BYOK mode</strong>, analysis goes directly from your browser to OpenAI with your key; VideoLens does not receive the video content, prompt, key, or report. In <strong>Pro / Managed mode</strong>, the content required for the analysis passes through VideoLens and Vercel AI Gateway to the configured AI provider (currently OpenAI) so you do not need a key. VideoLens does not retain raw frames or audio in its database, and a completed report is stored only when you enable cloud saving. The extension contains no analytics.</p>
       </section>
 
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">Chrome extension</h2>
         <ul class="list-disc pl-5 space-y-2">
           <li><strong>Private / BYOK analysis.</strong> The selected video's frames, audio or captions, page title, and your prompt go directly from the extension to OpenAI's API (api.openai.com) using your own API key. They are not sent to VideoLens.</li>
-          <li><strong>Pro / Managed analysis.</strong> If you deliberately select Managed mode, the same analysis content is sent over HTTPS to videolens.io, which authenticates your subscription or starter allowance and forwards it to OpenAI using the VideoLens service account. VideoLens does not write raw frames, audio chunks, captions, or prompts to its database or application logs.</li>
+          <li><strong>Pro / Managed analysis.</strong> If you deliberately select Managed mode, the same analysis content is sent over HTTPS to videolens.io, which authenticates your subscription or starter allowance and sends it through Vercel AI Gateway to the configured AI provider (currently OpenAI). VideoLens does not write raw frames, audio chunks, captions, or prompts to its database or intentionally include them in application logs.</li>
           <li><strong>Your OpenAI API key.</strong> Stored in <code>chrome.storage.local</code> on your device only. It is not synced between browsers and is transmitted only to api.openai.com. Remove it any time in Settings.</li>
           <li><strong>Analysis results.</strong> In Private mode, reports, timelines, and Q&amp;A history exist only in your browser. In Managed mode, the completed report is also stored in your account only if you enable “Save completed reports to my cloud library.” That option is off by default.</li>
           <li><strong>Account connection.</strong> The extension stores a VideoLens session token and account email in <code>chrome.storage.local</code>. The token expires after 30 days and can be removed with Disconnect. Website login and billing credentials are never copied into the extension.</li>
@@ -126,8 +126,8 @@
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">Third parties</h2>
         <ul class="list-disc pl-5 space-y-2">
-          <li><strong>OpenAI</strong> — processes the text, audio chunks, and frames you analyze. Private mode uses your OpenAI account; Managed mode uses the VideoLens service account. Processing is subject to <a class="text-cyan-700 font-semibold hover:underline" href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">OpenAI's privacy policy</a>.</li>
-          <li><strong>Vercel</strong> — hosts videolens.io and provides privacy-friendly aggregate Web Analytics and Speed Insights for the public marketing site.</li>
+          <li><strong>OpenAI</strong> — currently provides the AI models that process the text, audio chunks, and frames you analyze. Private mode uses your OpenAI account; Managed mode reaches OpenAI through Vercel AI Gateway. Processing is subject to <a class="text-cyan-700 font-semibold hover:underline" href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">OpenAI's privacy policy</a>.</li>
+          <li><strong>Vercel</strong> — hosts videolens.io, routes Managed-mode AI requests through Vercel AI Gateway, and provides privacy-friendly aggregate Web Analytics and Speed Insights for the public marketing site. Gateway processing is subject to <a class="text-cyan-700 font-semibold hover:underline" href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Vercel's privacy policy</a>.</li>
           <li><strong>Supabase</strong> — provides passwordless authentication and the database for account, entitlement, extension-pairing, usage, and opt-in cloud-report data.</li>
           <li><strong>Stripe</strong> — processes subscriptions and provides the hosted checkout and billing-management portal.</li>
           <li><strong>Railway</strong> — hosts app.videolens.io and its operational logs, including the limited hosted-app product events described above.</li>

@@ -9,7 +9,10 @@
     "stripe:setup": "node scripts/setup-stripe.mjs"
   },
   "dependencies": {
+    "@ai-sdk/gateway": "^4.0.52",
     "@supabase/supabase-js": "2.112.3",
+    "@vercel/oidc": "^3.8.4",
+    "ai": "^7.0.66",
     "jose": "6.2.9",
     "stripe": "22.5.0"
   },

@@ -262,7 +262,7 @@ Or wire it into Cursor / Windsurf / any MCP-aware host the same way as any stdio
 The VideoLens side-panel extension offers two explicit processing modes:
 
 - **Private / BYOK (free forever):** the pipeline runs inside the browser and calls OpenAI directly with the user's key. VideoLens receives no analysis content.
-- **Pro / Managed:** the user connects a passwordless VideoLens account, no OpenAI key is required, and managed calls are counted against the account allowance. Completed reports enter the cloud library only when the user enables cloud saving.
+- **Pro / Managed:** the user connects a passwordless VideoLens account, no OpenAI key is required, and managed calls run through Vercel AI Gateway to the configured provider (currently OpenAI) while counting against the account allowance. Completed reports enter the cloud library only when the user enables cloud saving.
 
 Both modes analyze the current tab (YouTube captions + canvas frame sampling) or a local file (in-browser audio decode → transcription). The OpenAI key used by Private mode never leaves the device.
 

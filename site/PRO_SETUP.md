@@ -41,9 +41,9 @@ Copy the printed product, price, and webhook IDs into Vercel. Configure Stripe's
 
 ## 3. Vercel environment
 
-Set every value shown in `.env.example` for Production and Preview. Generate the extension token secret with at least 32 random characters. `OPENAI_API_KEY` is the server-managed account used only by Pro; Private mode never touches it.
+Set every required value shown in `.env.example` for Production and Preview. Generate the extension token secret with at least 32 random characters. Production managed analysis uses Vercel AI Gateway with the deployment's automatic OIDC identity, so no OpenAI key is required. `AI_GATEWAY_API_KEY` supports local/non-Vercel environments and `OPENAI_API_KEY` remains an optional direct-provider fallback. Private mode never touches any server-managed credential.
 
-The public account configuration endpoint exposes only the Supabase URL, publishable key, plan facts, and feature-availability booleans. It never exposes Stripe, OpenAI, service-role, or JWT secrets.
+The public account configuration endpoint exposes only the Supabase URL, publishable key, plan facts, and feature-availability booleans. It never exposes Stripe, Gateway, OpenAI, service-role, or JWT secrets.
 
 ## 4. Deploy and verify
 
