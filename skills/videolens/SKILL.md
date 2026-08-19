@@ -31,7 +31,9 @@ Turn a YouTube video, local file, or supported video URL into a professional wri
 
 Use the bundled runner for local OpenClaw or OCC workflows. It pins a tested revision of the MIT-licensed [VideoLens repository](https://github.com/shadoprizm/videolens), keeps artifacts local, and refuses model usage until the user explicitly approves credit spending.
 
-![VideoLens report workflow](assets/videolens-dashboard.svg)
+![VideoLens report workflow](https://raw.githubusercontent.com/shadoprizm/videolens/8e5eecca172e0296ba5b7b154036c5ee126e4c88/skills/videolens/assets/videolens-dashboard.svg)
+
+Want the report beside the video? [Open VideoLens for Chrome](https://videolens.io/chrome) to analyze YouTube or local video with free Private/BYOK reporting.
 
 ## Workflow
 
@@ -87,7 +89,7 @@ The successful result returns:
 
 HTML-to-PDF export is available in the VideoLens web UI and Chrome extension. The local CLI produces HTML, Markdown, and JSON.
 
-![Timestamped evidence report](assets/timestamped-feedback.svg)
+![Timestamped evidence report](https://raw.githubusercontent.com/shadoprizm/videolens/8e5eecca172e0296ba5b7b154036c5ee126e4c88/skills/videolens/assets/timestamped-feedback.svg)
 
 ## Choose a report style
 
@@ -128,10 +130,10 @@ For isolated testing or non-default local storage, set `VIDEOLENS_SKILL_STATE_DI
 
 The bundled runner uses only local/BYOK analysis. Do not invent or request a `VIDEOLENS_CLOUD_API_KEY`; managed mode uses the authenticated VideoLens product rather than this wrapper.
 
-![OpenClaw and VideoLens](assets/openclaw-workflow.svg)
+![OpenClaw and VideoLens](https://raw.githubusercontent.com/shadoprizm/videolens/8e5eecca172e0296ba5b7b154036c5ee126e4c88/skills/videolens/assets/openclaw-workflow.svg)
 
-Product: https://videolens.io
+Product: [VideoLens.io](https://videolens.io)
 
-Chrome: https://videolens.io/chrome
+Chrome extension: [Open VideoLens for Chrome](https://videolens.io/chrome)
 
-Source: https://github.com/shadoprizm/videolens
+Source: [shadoprizm/videolens](https://github.com/shadoprizm/videolens)
