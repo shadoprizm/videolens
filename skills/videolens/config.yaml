@@ -1,0 +1,6 @@
+name: videolens-video-intelligence
+description: Manual OCC adapter and portable OpenClaw runner for VideoLens reports.
+enabled: true
+entry_point: skill.py
+timeout_seconds: 7200
+manual_only: true
