@@ -176,9 +176,9 @@ def _save_upload(uploaded) -> Path:
 
 def _estimate_cost(max_frames: int, assumed_minutes: float = 3.0) -> tuple[float, float]:
     """Rough estimate; returns (low, high) USD."""
-    per_frame_low, per_frame_high = 0.003, 0.008
+    per_frame_low, per_frame_high = 0.006, 0.015
     per_min_transcribe = 0.003
-    synth_low, synth_high = 0.03, 0.12
+    synth_low, synth_high = 0.03, 0.15
 
     low = (
         min(max_frames, 5) * per_frame_low

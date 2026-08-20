@@ -1,9 +1,12 @@
 // Mirrors src/videolens/config.py — keep model ids in sync with the Python pipeline.
 export const MODELS = {
   transcribe: "gpt-4o-mini-transcribe",
-  frameDescribe: "gpt-5.4-mini",
-  synthesize: "gpt-5.5",
-};
+  frameDescribe: "gpt-5.6-terra",
+  synthesize: "gpt-5.6-terra",
+  frameReasoningEffort: "none",
+  synthesizeReasoningEffort: "medium",
+  frameImageDetail: "original",
+} as const;
 
 export const DEFAULTS = {
   maxFrames: 40,

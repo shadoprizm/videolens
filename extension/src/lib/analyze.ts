@@ -63,7 +63,7 @@ export async function analyzeTimeline(
       { role: "system", content: systemPrompt },
       { role: "user", content: userMessage },
     ],
-    { jsonObject: true },
+    { jsonObject: true, reasoningEffort: MODELS.synthesizeReasoningEffort },
   );
 
   const data = JSON.parse(content || "{}");
@@ -227,7 +227,7 @@ export async function askQuestion(
       { role: "system", content: QA_SYSTEM_PROMPT },
       { role: "user", content: lines.join("\n") },
     ],
-    { temperature: 0.3 },
+    { reasoningEffort: MODELS.synthesizeReasoningEffort },
   );
   return answer.trim();
 }
@@ -241,11 +241,11 @@ export function fmtTs(seconds: number): string {
 
 // Port of _estimate_cost in src/videolens/web/app.py — returns [low, high] USD.
 export function estimateCost(maxFrames: number, assumedMinutes = 3.0): [number, number] {
-  const perFrameLow = 0.003;
-  const perFrameHigh = 0.008;
+  const perFrameLow = 0.006;
+  const perFrameHigh = 0.015;
   const perMinTranscribe = 0.003;
   const synthLow = 0.03;
-  const synthHigh = 0.12;
+  const synthHigh = 0.15;
 
   const low =
     Math.min(maxFrames, 5) * perFrameLow +

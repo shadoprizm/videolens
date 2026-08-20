@@ -16,7 +16,7 @@ from videolens.processors.build_timeline import build_timeline
 from videolens.processors.describe_frames import describe_frames
 from videolens.processors.download import fetch_to_local
 from videolens.processors.extract_audio import chunk_audio, extract_audio
-from videolens.processors.extract_frames import extract_frames
+from videolens.processors.extract_frames import FRAME_PROCESSING_VERSION, extract_frames
 from videolens.processors.extract_metadata import probe_metadata
 from videolens.processors.transcribe_audio import transcribe
 from videolens.resolvers import resolve_source
@@ -80,7 +80,16 @@ def run_extraction(
 
     cache_key = compute_cache_key(
         resolved.source_url,
-        {"frame_interval": frame_interval, "max_frames": max_frames, "mode": mode.value},
+        {
+            "frame_interval": frame_interval,
+            "max_frames": max_frames,
+            "mode": mode.value,
+            "transcribe_model": _transcribe_model_for(mode, config),
+            "frame_model": config.models.frame_describe,
+            "frame_reasoning_effort": config.models.frame_reasoning_effort,
+            "frame_image_detail": config.models.frame_image_detail,
+            "frame_processing": FRAME_PROCESSING_VERSION,
+        },
     )
     cache = Cache(config.cache_root, cache_key)
     console.print(f"[dim]cache: {cache.dir}[/dim]")
@@ -289,7 +298,12 @@ def _ensure_analysis(
     config: Config,
     console: Console,
 ) -> Analysis:
-    cache_key_inputs = {"prompt": prompt, "mode": mode.value, "model": config.models.synthesize}
+    cache_key_inputs = {
+        "prompt": prompt,
+        "mode": mode.value,
+        "model": config.models.synthesize,
+        "reasoning_effort": config.models.synthesize_reasoning_effort,
+    }
     prompt_hash = hashlib.sha256(
         _json.dumps(cache_key_inputs, sort_keys=True).encode()
     ).hexdigest()[:8]

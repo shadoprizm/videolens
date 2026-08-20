@@ -10,15 +10,17 @@ export interface ChatMessage {
   content: string | Array<Record<string, unknown>>;
 }
 
+type ReasoningEffort = "none" | "low" | "medium" | "high" | "xhigh" | "max";
+
 export async function chatCompletion(
   apiKey: string,
   model: string,
   messages: ChatMessage[],
-  opts: { jsonObject?: boolean; temperature?: number } = {},
+  opts: { jsonObject?: boolean; reasoningEffort?: ReasoningEffort } = {},
 ): Promise<string> {
   const body: Record<string, unknown> = { model, messages };
   if (opts.jsonObject) body.response_format = { type: "json_object" };
-  if (opts.temperature !== undefined) body.temperature = opts.temperature;
+  if (opts.reasoningEffort !== undefined) body.reasoning_effort = opts.reasoningEffort;
 
   const res = await fetch(`${BASE}/chat/completions`, {
     method: "POST",

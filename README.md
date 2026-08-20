@@ -202,18 +202,20 @@ Defaults are in `src/videolens/config.py`:
 |---|---|
 | Transcription (general/bug) | `gpt-4o-mini-transcribe` |
 | Transcription (meeting) | `gpt-4o-transcribe-diarize` |
-| Frame describe + OCR (per frame) | `gpt-5.4-mini` |
-| Final analysis synthesis | `gpt-5.5` |
+| Prompt enhancement + frame OCR | `gpt-5.6-terra` (no reasoning) |
+| Final analysis + follow-up Q&A | `gpt-5.6-terra` (medium reasoning) |
 
-Swap them by editing the `Models` dataclass.
+Swap the model IDs, reasoning effort, and image detail by editing the `Models` dataclass. Frames
+are bounded to 1920x1080 before using original-detail vision input, preserving OCR quality without
+letting 4K uploads create unbounded image-token costs.
 
 ## Cost guide
 
 Rough order-of-magnitude:
 
-- A 30-second video with 5 frames → well under $0.05
-- A 5-minute video with 20 frames → typically under $0.20
-- A 30-minute meeting with 40 frames → typically $0.50–$1.50
+- A 30-second video with 5 frames → typically under $0.15
+- A 5-minute video with 20 frames → typically under $0.50
+- A 30-minute meeting with 40 frames → typically $0.75–$2.00
 
 Per-prompt analysis cache means asking a second question of an already-extracted video costs only the synthesis call (cents).
 

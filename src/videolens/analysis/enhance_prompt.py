@@ -44,9 +44,8 @@ def enhance_prompt(
 ) -> str:
     """Return a sharper version of the user's prompt, tuned to the selected mode.
 
-    Uses the cheap describe-frames model since this is a tiny text-only call
-    (one user-prompt-sized input, one user-prompt-sized output) and the result
-    only seeds the much larger synthesis call.
+    Uses the frame model with reasoning disabled since this is a small,
+    tightly-scoped rewrite that seeds the larger synthesis call.
     """
     prompt = (prompt or "").strip()
     if not prompt:
@@ -62,6 +61,7 @@ def enhance_prompt(
     try:
         response = client.chat.completions.create(
             model=models.frame_describe,
+            reasoning_effort=models.frame_reasoning_effort,
             messages=[
                 {"role": "system", "content": SYSTEM},
                 {"role": "user", "content": user_message},

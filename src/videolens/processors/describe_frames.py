@@ -47,7 +47,7 @@ def describe_frames(
     results: dict[int, FrameSummary] = {}
 
     def task(idx: int, frame: Frame) -> tuple[int, FrameSummary]:
-        return idx, _describe_one(frame, client, models.frame_describe)
+        return idx, _describe_one(frame, client, models)
 
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
         futures = [pool.submit(task, i, f) for i, f in enumerate(frames)]
@@ -66,13 +66,14 @@ def describe_frames(
     return ordered
 
 
-def _describe_one(frame: Frame, client: OpenAI, model: str) -> FrameSummary:
+def _describe_one(frame: Frame, client: OpenAI, models: Models) -> FrameSummary:
     image_b64 = base64.b64encode(frame.path.read_bytes()).decode("ascii")
     data_url = f"data:image/jpeg;base64,{image_b64}"
 
     try:
         response = client.chat.completions.create(
-            model=model,
+            model=models.frame_describe,
+            reasoning_effort=models.frame_reasoning_effort,
             response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
@@ -80,7 +81,13 @@ def _describe_one(frame: Frame, client: OpenAI, model: str) -> FrameSummary:
                     "role": "user",
                     "content": [
                         {"type": "text", "text": USER_PROMPT},
-                        {"type": "image_url", "image_url": {"url": data_url}},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": data_url,
+                                "detail": models.frame_image_detail,
+                            },
+                        },
                     ],
                 },
             ],

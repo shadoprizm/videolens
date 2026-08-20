@@ -55,11 +55,11 @@ def ask_question(
     try:
         response = client.chat.completions.create(
             model=models.synthesize,
+            reasoning_effort=models.synthesize_reasoning_effort,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_message},
             ],
-            temperature=0.3,
         )
     except Exception as exc:
         raise AskQuestionError(f"Q&A call failed ({models.synthesize}): {exc}") from exc

@@ -56,11 +56,14 @@ async function describeOne(apiKey: string, frame: CapturedFrame): Promise<FrameS
         role: "user",
         content: [
           { type: "text", text: USER_PROMPT },
-          { type: "image_url", image_url: { url: frame.dataUrl } },
+          {
+            type: "image_url",
+            image_url: { url: frame.dataUrl, detail: MODELS.frameImageDetail },
+          },
         ],
       },
     ],
-    { jsonObject: true },
+    { jsonObject: true, reasoningEffort: MODELS.frameReasoningEffort },
   );
   const data = JSON.parse(content || "{}");
   return {

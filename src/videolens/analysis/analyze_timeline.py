@@ -74,6 +74,7 @@ def analyze_timeline(
     try:
         response = client.chat.completions.create(
             model=models.synthesize,
+            reasoning_effort=models.synthesize_reasoning_effort,
             response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": system_prompt},

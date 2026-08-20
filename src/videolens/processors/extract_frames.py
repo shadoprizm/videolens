@@ -10,6 +10,11 @@ class FrameExtractionError(RuntimeError):
     pass
 
 
+MAX_FRAME_WIDTH = 1920
+MAX_FRAME_HEIGHT = 1080
+FRAME_PROCESSING_VERSION = "bounded-1920x1080-v1"
+
+
 def extract_frames(
     video_path: Path,
     dest_dir: Path,
@@ -20,7 +25,9 @@ def extract_frames(
     """Sample frames at an adaptive interval that respects max_frames.
 
     Strategy for MVP: pick interval = max(frame_interval, duration / max_frames),
-    then sample with `fps=1/interval`. Scene-change priority is a v2 enhancement.
+    then sample with `fps=1/interval`. Frames are bounded to 1920x1080 before
+    vision analysis so GPT-5.6's original-detail mode cannot bill unbounded 4K
+    image input. Scene-change priority is a v2 enhancement.
     """
     if max_frames <= 0:
         raise FrameExtractionError("max_frames must be > 0")
@@ -35,6 +42,10 @@ def extract_frames(
         interval = max(interval, target)
 
     fps_expr = f"1/{interval}"
+    scale_expr = (
+        f"scale=w='min({MAX_FRAME_WIDTH},iw)':h='min({MAX_FRAME_HEIGHT},ih)'"
+        ":force_original_aspect_ratio=decrease:force_divisible_by=2"
+    )
     out_pattern = str(dest_dir / "frame_%04d.jpg")
 
     cmd = [
@@ -43,7 +54,7 @@ def extract_frames(
         "-i",
         str(video_path),
         "-vf",
-        f"fps={fps_expr}",
+        f"fps={fps_expr},{scale_expr}",
         "-q:v",
         "3",
         out_pattern,
