@@ -56,7 +56,10 @@ def fetch_to_local(source: ResolvedSource, dest_dir: Path) -> tuple[Path, dict[s
         ydl_opts.update(
             {
                 "extractor_args": {
-                    "youtube": {"player_client": ["mweb"]},
+                    "youtube": {
+                        "player_client": ["web_embedded"],
+                        "fetch_pot": ["always"],
+                    },
                     "youtubepot-bgutilhttp": {"base_url": ["http://127.0.0.1:4416"]},
                 },
                 "force_ipv4": True,

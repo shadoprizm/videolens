@@ -41,7 +41,10 @@ def test_youtube_uses_embedded_client_and_ipv4(monkeypatch, tmp_path: Path) -> N
     assert path == tmp_path / "video.mp4"
     assert info["title"] == "test"
     assert captured["extractor_args"] == {
-        "youtube": {"player_client": ["mweb"]},
+        "youtube": {
+            "player_client": ["web_embedded"],
+            "fetch_pot": ["always"],
+        },
         "youtubepot-bgutilhttp": {"base_url": ["http://127.0.0.1:4416"]},
     }
     assert captured["force_ipv4"] is True

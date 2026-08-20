@@ -41,9 +41,12 @@ WORKDIR /app
 COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY app.py ./app.py
 COPY .streamlit ./.streamlit
+COPY scripts ./scripts
 COPY src ./src
 
 RUN uv sync --frozen --no-dev --extra ui
+
+RUN chmod +x /app/scripts/start-hosted.sh
 
 # The hosted app is an interactive product surface, not a search landing page.
 # Give its initial HTML a useful title and keep the thin Streamlit shell out of
@@ -54,4 +57,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8501
 
-CMD ["sh", "-c", "deno run --allow-env --allow-net --allow-ffi=/opt/bgutil-provider/node_modules --allow-read=/opt/bgutil-provider/node_modules /opt/bgutil-provider/src/main.ts & exec videolens ui --host 0.0.0.0 --port ${PORT:-8501} --no-open"]
+CMD ["/app/scripts/start-hosted.sh"]
