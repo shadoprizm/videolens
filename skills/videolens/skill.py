@@ -17,7 +17,7 @@ from urllib.parse import quote, urlsplit
 REPO_URL = "https://github.com/shadoprizm/videolens.git"
 RUNTIME_REF = "d742a586a4abdc5457f971e0b0e1b916247c916d"
 EXPECTED_REPO_ORIGINS = {REPO_URL, "git@github.com:shadoprizm/videolens.git"}
-FALLBACK_REQUIREMENTS = Path(__file__).with_name("requirements.lock")
+LOCKED_REQUIREMENTS = Path(__file__).with_name("requirements.lock")
 RUNTIME_STAMP_SCHEMA = 1
 SPEND_ACTIONS = {"analyze"}
 SAFE_HOST_ENV_VARS = {
@@ -362,7 +362,7 @@ def _runtime_stamp_path(repo_dir: Path) -> Path:
 
 
 def _requirements_digest() -> str:
-    return hashlib.sha256(FALLBACK_REQUIREMENTS.read_bytes()).hexdigest()
+    return hashlib.sha256(LOCKED_REQUIREMENTS.read_bytes()).hexdigest()
 
 
 def _write_runtime_stamp(repo_dir: Path, installer: str) -> None:
@@ -401,34 +401,45 @@ def _ensure_runtime(spec: dict[str, Any]) -> dict[str, Any]:
         maximum=3600,
         name="bootstrap_timeout_seconds",
     )
-    uv = _uv_command()
-    if uv:
-        result = _run_command(
-            [uv, "sync", "--frozen", "--no-dev", "--extra", "ui"],
-            cwd=repo_dir,
-            timeout=timeout,
-        )
-        if result["success"]:
-            _write_runtime_stamp(repo_dir, "uv")
-        return result
-
     python = shutil.which("python3") or sys.executable
     venv_python = _venv_python(repo_dir)
     steps: list[dict[str, Any]] = []
-    if not FALLBACK_REQUIREMENTS.is_file():
+    if not LOCKED_REQUIREMENTS.is_file():
         return {
             "success": False,
             "steps": steps,
             "error": "The bundled hash-pinned Python requirements file is missing.",
         }
-    if not venv_python.exists():
-        create = _run_command([python, "-m", "venv", str(repo_dir / ".venv")], timeout=timeout)
-        steps.append(create)
-        if not create["success"]:
-            return {"success": False, "steps": steps}
-
-    install = _run_command(
-        [
+    uv = _uv_command()
+    if uv:
+        create_command = [
+            uv,
+            "venv",
+            "--clear",
+            "--python",
+            python,
+            str(repo_dir / ".venv"),
+        ]
+        install_command = [
+            uv,
+            "pip",
+            "install",
+            "--python",
+            str(venv_python),
+            "--require-hashes",
+            "--requirement",
+            str(LOCKED_REQUIREMENTS),
+        ]
+        installer = "uv"
+    else:
+        create_command = [
+            python,
+            "-m",
+            "venv",
+            "--clear",
+            str(repo_dir / ".venv"),
+        ]
+        install_command = [
             str(venv_python),
             "-m",
             "pip",
@@ -437,14 +448,19 @@ def _ensure_runtime(spec: dict[str, Any]) -> dict[str, Any]:
             "--disable-pip-version-check",
             "--require-hashes",
             "--requirement",
-            str(FALLBACK_REQUIREMENTS),
-        ],
-        cwd=repo_dir,
-        timeout=timeout,
-    )
+            str(LOCKED_REQUIREMENTS),
+        ]
+        installer = "pip"
+
+    create = _run_command(create_command, cwd=repo_dir, timeout=timeout)
+    steps.append(create)
+    if not create["success"]:
+        return {"success": False, "steps": steps}
+
+    install = _run_command(install_command, cwd=repo_dir, timeout=timeout)
     steps.append(install)
     if install["success"]:
-        _write_runtime_stamp(repo_dir, "pip")
+        _write_runtime_stamp(repo_dir, installer)
     return {
         "success": install["success"],
         "steps": steps,
@@ -568,12 +584,6 @@ def _new_run_dir(spec: dict[str, Any]) -> Path:
     return (_runs_dir() / slug).resolve()
 
 
-def _videolens_executable(repo_dir: Path) -> Path | None:
-    bin_name = "videolens.exe" if os.name == "nt" else "videolens"
-    candidate = repo_dir / ".venv" / ("Scripts" if os.name == "nt" else "bin") / bin_name
-    return candidate if candidate.exists() else None
-
-
 def _build_analyze_command(spec: dict[str, Any], output_dir: Path) -> list[str]:
     _require_fields(spec, "source", "prompt")
     mode = str(spec.get("mode") or "general").strip()
@@ -581,11 +591,7 @@ def _build_analyze_command(spec: dict[str, Any], output_dir: Path) -> list[str]:
         raise ValueError(f"Unsupported mode: {mode}. Valid modes: {', '.join(sorted(VALID_MODES))}")
 
     repo_dir = _repo_dir()
-    executable = _videolens_executable(repo_dir)
-    if executable:
-        command = [str(executable), "analyze"]
-    else:
-        command = [str(_venv_python(repo_dir)), "-m", "videolens.cli", "analyze"]
+    command = [str(_venv_python(repo_dir)), "-m", "videolens.cli", "analyze"]
 
     command.extend(
         [

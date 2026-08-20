@@ -57,13 +57,13 @@ OCC integrations may instead pass the same JSON object through task `pre_instruc
 
 ## Bootstrap
 
-Bootstrap downloads the pinned open-source runtime from `github.com/shadoprizm/videolens` into the OpenClaw/OCC data directory and installs its Python environment from locked dependencies. It writes only under the managed VideoLens state directory, receives a sanitized environment without `OPENAI_API_KEY`, and does not analyze a video or spend model credits.
+Bootstrap downloads the pinned open-source runtime from `github.com/shadoprizm/videolens` into the OpenClaw/OCC data directory and installs a minimal analysis-only Python environment from locked dependencies. It writes only under the managed VideoLens state directory, receives a sanitized environment without `OPENAI_API_KEY`, and does not analyze a video or spend model credits.
 
 ```bash
 python3 "{baseDir}/skill.py" --spec '{"action":"bootstrap","allow_runtime_install":true}'
 ```
 
-The runner uses `uv sync --frozen --no-dev` when available. Otherwise, it creates `.venv` with `python3` and installs from the skill's bundled, version-locked, hash-verified requirements file. A runtime stamp binds the environment to the tested source revision and dependency lock. Do not set `allow_runtime_install` until the user has approved repository download, dependency installation, and persistent managed files.
+The runner recreates its managed `.venv` and installs only the dependencies required by `videolens analyze` from the skill's bundled, version-locked, hash-verified requirements file. It uses `uv` when available and standard `python3`/`pip` otherwise; UI, web-server, PDF, and development dependencies are excluded. A runtime stamp binds the environment to the tested source revision and dependency lock. Do not set `allow_runtime_install` until the user has approved repository download, environment replacement, dependency installation, and persistent managed files.
 
 ## Analyze
 

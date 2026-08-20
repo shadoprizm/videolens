@@ -194,9 +194,9 @@ def test_analyze_command_supports_all_modes_and_current_flags(
     skill: ModuleType, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     repo_dir = tmp_path / "videolens"
-    executable = repo_dir / ".venv" / "bin" / "videolens"
-    executable.parent.mkdir(parents=True)
-    executable.touch()
+    venv_python = repo_dir / ".venv" / "bin" / "python"
+    venv_python.parent.mkdir(parents=True)
+    venv_python.touch()
     monkeypatch.setattr(skill, "_repo_dir", lambda: repo_dir)
 
     for mode in skill.VALID_MODES:
@@ -209,7 +209,7 @@ def test_analyze_command_supports_all_modes_and_current_flags(
             },
             tmp_path / "output",
         )
-        assert command[:2] == [str(executable), "analyze"]
+        assert command[:4] == [str(venv_python), "-m", "videolens.cli", "analyze"]
         assert command[command.index("--mode") + 1] == mode
         assert command[command.index("--capture-duration") + 1] == "90.0"
         assert "--json" in command
@@ -226,7 +226,7 @@ def test_python_fallback_creates_a_venv_and_installs_runtime(
 
     def fake_run(command: list[str], **_: object) -> dict[str, object]:
         calls.append(command)
-        if command[1:3] == ["-m", "venv"]:
+        if "venv" in command:
             venv_python = repo_dir / ".venv" / "bin" / "python"
             venv_python.parent.mkdir(parents=True)
             venv_python.touch()
@@ -243,34 +243,46 @@ def test_python_fallback_creates_a_venv_and_installs_runtime(
 
     assert result["success"] is True
     assert calls[0][1:3] == ["-m", "venv"]
+    assert "--clear" in calls[0]
     assert calls[1][0] == str(repo_dir / ".venv" / "bin" / "python")
     assert "--no-input" in calls[1]
     assert "--disable-pip-version-check" in calls[1]
     assert "--require-hashes" in calls[1]
-    assert calls[1][-2:] == ["--requirement", str(skill.FALLBACK_REQUIREMENTS)]
+    assert calls[1][-2:] == ["--requirement", str(skill.LOCKED_REQUIREMENTS)]
     stamp = json.loads(skill._runtime_stamp_path(repo_dir).read_text(encoding="utf-8"))
     assert stamp["runtime_ref"] == skill.RUNTIME_REF
     assert stamp["requirements_sha256"] == skill._requirements_digest()
     assert stamp["installer"] == "pip"
 
 
-def test_uv_runtime_install_uses_the_committed_lock(
+def test_uv_runtime_install_recreates_a_minimal_hash_locked_environment(
     skill: ModuleType, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     calls: list[list[str]] = []
     monkeypatch.setattr(skill, "_repo_dir", lambda: tmp_path)
     monkeypatch.setattr(skill, "_uv_command", lambda: "/usr/local/bin/uv")
+
     def fake_run(command: list[str], **_: object) -> dict[str, object]:
         calls.append(command)
-        (tmp_path / ".venv").mkdir()
-        return {"success": True}
+        if command[1] == "venv":
+            venv_python = tmp_path / ".venv" / "bin" / "python"
+            venv_python.parent.mkdir(parents=True)
+            venv_python.touch()
+        return {
+            "success": True,
+            "returncode": 0,
+            "stdout": "ok",
+            "stderr": "",
+        }
 
     monkeypatch.setattr(skill, "_run_command", fake_run)
 
     assert skill._ensure_runtime({})["success"] is True
-    assert calls == [
-        ["/usr/local/bin/uv", "sync", "--frozen", "--no-dev", "--extra", "ui"]
-    ]
+    assert calls[0][0:2] == ["/usr/local/bin/uv", "venv"]
+    assert "--clear" in calls[0]
+    assert calls[1][0:3] == ["/usr/local/bin/uv", "pip", "install"]
+    assert "--require-hashes" in calls[1]
+    assert calls[1][-2:] == ["--requirement", str(skill.LOCKED_REQUIREMENTS)]
     assert skill._runtime_stamp_matches(tmp_path) is True
 
 
