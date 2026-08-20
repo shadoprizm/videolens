@@ -49,14 +49,16 @@ def fetch_to_local(source: ResolvedSource, dest_dir: Path) -> tuple[Path, dict[s
     }
 
     if source.source_type == SourceType.YOUTUBE:
-        # YouTube now requires an external JS challenge solver for full yt-dlp
-        # support, and its default android_vr client can return HTTP 403 for
-        # ordinary public videos. The web_embedded client is currently the
-        # token-free path recommended by yt-dlp for embeddable videos. The
-        # Docker image supplies Deno and yt-dlp[default] supplies yt-dlp-ejs.
+        # YouTube now requires an external JS challenge solver and proof-of-origin
+        # tokens for reliable server-side downloads. Railway's data-center IP is
+        # blocked without them. The image supplies Deno + yt-dlp-ejs and starts
+        # the pinned BgUtils provider on localhost.
         ydl_opts.update(
             {
-                "extractor_args": {"youtube": {"player_client": ["web_embedded"]}},
+                "extractor_args": {
+                    "youtube": {"player_client": ["mweb"]},
+                    "youtubepot-bgutilhttp": {"base_url": ["http://127.0.0.1:4416"]},
+                },
                 "force_ipv4": True,
             }
         )
@@ -91,6 +93,8 @@ def _is_youtube_access_error(message: str) -> bool:
             "no video formats found",
             "not available on this app",
             "embedding disabled",
+            "sign in to confirm",
+            "not a bot",
         )
     )
 

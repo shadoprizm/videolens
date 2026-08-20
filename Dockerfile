@@ -4,6 +4,7 @@ FROM python:3.12-slim
 # challenges. Deno is the runtime recommended by yt-dlp and is enabled by
 # default when present on PATH.
 COPY --from=denoland/deno:bin-2.7.14 /deno /usr/local/bin/deno
+COPY --from=brainicism/bgutil-ytdlp-pot-provider:1.3.1-deno /app /opt/bgutil-provider
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -14,7 +15,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     STREAMLIT_SERVER_HEADLESS=true \
     STREAMLIT_SERVER_ENABLE_CORS=false \
     STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=false \
-    STREAMLIT_SERVER_ENABLE_WEBSOCKET_COMPRESSION=false
+    STREAMLIT_SERVER_ENABLE_WEBSOCKET_COMPRESSION=false \
+    DENO_DIR=/opt/bgutil-provider/.cache/deno \
+    DENO_NO_PROMPT=1 \
+    DENO_NO_UPDATE_CHECK=1
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -50,4 +54,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8501
 
-CMD ["sh", "-c", "videolens ui --host 0.0.0.0 --port ${PORT:-8501} --no-open"]
+CMD ["sh", "-c", "deno run --allow-env --allow-net --allow-ffi=/opt/bgutil-provider/node_modules --allow-read=/opt/bgutil-provider/node_modules /opt/bgutil-provider/src/main.ts & exec videolens ui --host 0.0.0.0 --port ${PORT:-8501} --no-open"]
