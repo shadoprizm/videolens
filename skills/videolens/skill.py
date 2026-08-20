@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -11,10 +12,25 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib import error, request
+from urllib.parse import quote, urlsplit
 
 REPO_URL = "https://github.com/shadoprizm/videolens.git"
 RUNTIME_REF = "d742a586a4abdc5457f971e0b0e1b916247c916d"
+EXPECTED_REPO_ORIGINS = {REPO_URL, "git@github.com:shadoprizm/videolens.git"}
+FALLBACK_REQUIREMENTS = Path(__file__).with_name("requirements.lock")
+RUNTIME_STAMP_SCHEMA = 1
 SPEND_ACTIONS = {"analyze"}
+SAFE_HOST_ENV_VARS = {
+    "COMSPEC",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "PATH",
+    "SSL_CERT_DIR",
+    "SSL_CERT_FILE",
+    "SYSTEMROOT",
+    "WINDIR",
+}
 VALID_MODES = {
     "general",
     "bug",
@@ -74,7 +90,23 @@ def _task_api_url(context: dict[str, Any]) -> str:
     gateway_url = str(
         context.get("gateway_url") or f"http://127.0.0.1:{_gateway_port()}"
     ).rstrip("/")
-    return f"{gateway_url}/api/tasks/{task_id}"
+    parsed = urlsplit(gateway_url)
+    hostname = (parsed.hostname or "").rstrip(".").lower()
+    if (
+        parsed.scheme != "http"
+        or hostname not in {"127.0.0.1", "localhost", "::1"}
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.path not in {"", "/"}
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise ValueError("gateway_url must be an HTTP loopback origin with no path or credentials")
+    try:
+        parsed.port
+    except ValueError as exc:
+        raise ValueError("gateway_url contains an invalid port") from exc
+    return f"{gateway_url}/api/tasks/{quote(str(task_id), safe='')}"
 
 
 def _fetch_task_payload(context: dict[str, Any]) -> dict[str, Any]:
@@ -141,6 +173,53 @@ def _bounded_float(
     return parsed
 
 
+def _sanitized_base_env() -> dict[str, str]:
+    """Build a minimal subprocess environment without inheriting host secrets."""
+    env = {
+        name: value
+        for name in SAFE_HOST_ENV_VARS
+        if (value := os.environ.get(name)) is not None
+    }
+    env.setdefault("PATH", os.defpath)
+    isolated_home = _state_root() / "subprocess-home"
+    isolated_tmp = _state_root() / "tmp"
+    env.update(
+        {
+            "HOME": str(isolated_home),
+            "USERPROFILE": str(isolated_home),
+            "TEMP": str(isolated_tmp),
+            "TMP": str(isolated_tmp),
+            "TMPDIR": str(isolated_tmp),
+            "XDG_CACHE_HOME": str(_state_root() / "cache"),
+            "UV_CACHE_DIR": str(_state_root() / "cache" / "uv"),
+            "PIP_CACHE_DIR": str(_state_root() / "cache" / "pip"),
+            "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+            "PYTHONNOUSERSITE": "1",
+            "PYTHONUNBUFFERED": "1",
+        }
+    )
+    return env
+
+
+def _prepare_subprocess_dirs() -> None:
+    for path in (
+        _state_root() / "subprocess-home",
+        _state_root() / "tmp",
+        _state_root() / "cache",
+    ):
+        path.mkdir(parents=True, exist_ok=True)
+
+
+def _analysis_env() -> dict[str, str]:
+    env = _sanitized_base_env()
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if api_key:
+        env["OPENAI_API_KEY"] = api_key
+    env["VIDEOLENS_CACHE_DIR"] = str(_state_root() / "cache" / "videolens")
+    env["PYTHONPATH"] = str(_repo_dir() / "src")
+    return env
+
+
 def _run_command(
     command: list[str],
     *,
@@ -152,7 +231,7 @@ def _run_command(
         completed = subprocess.run(
             command,
             cwd=str(cwd) if cwd else None,
-            env=env,
+            env=env if env is not None else _sanitized_base_env(),
             capture_output=True,
             text=True,
             timeout=timeout,
@@ -190,6 +269,7 @@ def _ensure_repo(spec: dict[str, Any]) -> dict[str, Any]:
     state_dir = _state_root()
     repo_dir = _repo_dir()
     state_dir.mkdir(parents=True, exist_ok=True)
+    _prepare_subprocess_dirs()
     timeout = _bounded_int(
         spec.get("bootstrap_timeout_seconds"),
         default=900,
@@ -217,7 +297,7 @@ def _ensure_repo(spec: dict[str, Any]) -> dict[str, Any]:
         }
 
     origin = _git_value(repo_dir, "remote", "get-url", "origin")
-    if origin not in {REPO_URL, "git@github.com:shadoprizm/videolens.git"}:
+    if origin not in EXPECTED_REPO_ORIGINS:
         return {
             "success": False,
             "steps": steps,
@@ -226,14 +306,6 @@ def _ensure_repo(spec: dict[str, Any]) -> dict[str, Any]:
         }
 
     current_ref = _git_value(repo_dir, "rev-parse", "HEAD")
-    if current_ref == RUNTIME_REF:
-        return {
-            "success": True,
-            "steps": steps,
-            "runtime_ref": RUNTIME_REF,
-            "stdout": "Pinned VideoLens runtime is ready.",
-        }
-
     if current_ref and not _repo_is_clean(repo_dir):
         return {
             "success": False,
@@ -243,6 +315,14 @@ def _ensure_repo(spec: dict[str, Any]) -> dict[str, Any]:
                 "The managed VideoLens runtime has local changes. Preserve or remove those changes "
                 "before the skill switches to its tested revision."
             ),
+        }
+
+    if current_ref == RUNTIME_REF:
+        return {
+            "success": True,
+            "steps": steps,
+            "runtime_ref": RUNTIME_REF,
+            "stdout": "Pinned VideoLens runtime is ready.",
         }
 
     fetch = _run_command(
@@ -277,6 +357,41 @@ def _venv_python(repo_dir: Path) -> Path:
     return repo_dir / ".venv" / "bin" / "python"
 
 
+def _runtime_stamp_path(repo_dir: Path) -> Path:
+    return repo_dir / ".venv" / ".videolens-skill-runtime.json"
+
+
+def _requirements_digest() -> str:
+    return hashlib.sha256(FALLBACK_REQUIREMENTS.read_bytes()).hexdigest()
+
+
+def _write_runtime_stamp(repo_dir: Path, installer: str) -> None:
+    _runtime_stamp_path(repo_dir).write_text(
+        json.dumps(
+            {
+                "schema": RUNTIME_STAMP_SCHEMA,
+                "runtime_ref": RUNTIME_REF,
+                "requirements_sha256": _requirements_digest(),
+                "installer": installer,
+            },
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def _runtime_stamp_matches(repo_dir: Path) -> bool:
+    try:
+        stamp = json.loads(_runtime_stamp_path(repo_dir).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError):
+        return False
+    return (
+        stamp.get("schema") == RUNTIME_STAMP_SCHEMA
+        and stamp.get("runtime_ref") == RUNTIME_REF
+        and stamp.get("requirements_sha256") == _requirements_digest()
+    )
+
+
 def _ensure_runtime(spec: dict[str, Any]) -> dict[str, Any]:
     repo_dir = _repo_dir()
     timeout = _bounded_int(
@@ -288,11 +403,24 @@ def _ensure_runtime(spec: dict[str, Any]) -> dict[str, Any]:
     )
     uv = _uv_command()
     if uv:
-        return _run_command([uv, "sync", "--extra", "ui"], cwd=repo_dir, timeout=timeout)
+        result = _run_command(
+            [uv, "sync", "--frozen", "--no-dev", "--extra", "ui"],
+            cwd=repo_dir,
+            timeout=timeout,
+        )
+        if result["success"]:
+            _write_runtime_stamp(repo_dir, "uv")
+        return result
 
     python = shutil.which("python3") or sys.executable
     venv_python = _venv_python(repo_dir)
     steps: list[dict[str, Any]] = []
+    if not FALLBACK_REQUIREMENTS.is_file():
+        return {
+            "success": False,
+            "steps": steps,
+            "error": "The bundled hash-pinned Python requirements file is missing.",
+        }
     if not venv_python.exists():
         create = _run_command([python, "-m", "venv", str(repo_dir / ".venv")], timeout=timeout)
         steps.append(create)
@@ -300,11 +428,23 @@ def _ensure_runtime(spec: dict[str, Any]) -> dict[str, Any]:
             return {"success": False, "steps": steps}
 
     install = _run_command(
-        [str(venv_python), "-m", "pip", "install", "-e", ".[ui]"],
+        [
+            str(venv_python),
+            "-m",
+            "pip",
+            "install",
+            "--no-input",
+            "--disable-pip-version-check",
+            "--require-hashes",
+            "--requirement",
+            str(FALLBACK_REQUIREMENTS),
+        ],
         cwd=repo_dir,
         timeout=timeout,
     )
     steps.append(install)
+    if install["success"]:
+        _write_runtime_stamp(repo_dir, "pip")
     return {
         "success": install["success"],
         "steps": steps,
@@ -317,13 +457,34 @@ def _ensure_runtime(spec: dict[str, Any]) -> dict[str, Any]:
 def _collect_runtime_state() -> dict[str, Any]:
     repo_dir = _repo_dir()
     venv_python = _venv_python(repo_dir)
-    current_ref = _git_value(repo_dir, "rev-parse", "HEAD") if repo_dir.exists() else None
+    repo_present = repo_dir.exists()
+    git_repo_present = (repo_dir / ".git").exists()
+    current_ref = _git_value(repo_dir, "rev-parse", "HEAD") if git_repo_present else None
+    origin = _git_value(repo_dir, "remote", "get-url", "origin") if git_repo_present else None
+    repo_clean = _repo_is_clean(repo_dir) if git_repo_present else False
+    pyproject_present = (repo_dir / "pyproject.toml").exists()
+    runtime_stamp_matches = _runtime_stamp_matches(repo_dir) if venv_python.exists() else False
+    runtime_ready = all(
+        (
+            git_repo_present,
+            origin in EXPECTED_REPO_ORIGINS,
+            current_ref == RUNTIME_REF,
+            repo_clean,
+            pyproject_present,
+            venv_python.exists(),
+            runtime_stamp_matches,
+        )
+    )
     return {
         "state_dir": str(_state_root()),
         "repo_dir": str(repo_dir),
         "runs_dir": str(_runs_dir()),
-        "repo_present": repo_dir.exists(),
-        "pyproject_present": (repo_dir / "pyproject.toml").exists(),
+        "repo_present": repo_present,
+        "git_repo_present": git_repo_present,
+        "repo_origin": origin,
+        "repo_origin_matches": origin in EXPECTED_REPO_ORIGINS,
+        "repo_clean": repo_clean,
+        "pyproject_present": pyproject_present,
         "runtime_ref": current_ref,
         "runtime_ref_expected": RUNTIME_REF,
         "runtime_ref_matches": current_ref == RUNTIME_REF,
@@ -335,6 +496,8 @@ def _collect_runtime_state() -> dict[str, Any]:
         "openai_api_key_present": bool(os.environ.get("OPENAI_API_KEY", "").strip()),
         "venv_python": str(venv_python),
         "venv_present": venv_python.exists(),
+        "runtime_stamp_matches": runtime_stamp_matches,
+        "runtime_ready": runtime_ready,
     }
 
 
@@ -350,18 +513,29 @@ def _build_preflight_report(spec: dict[str, Any], state: dict[str, Any]) -> dict
         issues.append("uv or python3 is required")
     if not state["repo_present"]:
         issues.append("VideoLens runtime is not bootstrapped")
-    elif not state["runtime_ref_matches"]:
-        issues.append("VideoLens runtime is not on the skill's tested revision")
+    elif not state["git_repo_present"]:
+        issues.append("VideoLens runtime path is not a git repository")
+    else:
+        if not state["repo_origin_matches"]:
+            issues.append("VideoLens runtime origin does not match the trusted repository")
+        if not state["runtime_ref_matches"]:
+            issues.append("VideoLens runtime is not on the skill's tested revision")
+        if not state["repo_clean"]:
+            issues.append("VideoLens runtime has local changes")
     if state["repo_present"] and not state["pyproject_present"]:
         issues.append("VideoLens pyproject.toml is missing")
     if state["repo_present"] and not state["venv_present"]:
         issues.append("VideoLens Python environment is not bootstrapped")
+    elif state["venv_present"] and not state["runtime_stamp_matches"]:
+        issues.append("VideoLens Python environment has not passed the current lock verification")
     if not state["openai_api_key_present"]:
         issues.append("OPENAI_API_KEY is missing for local analysis")
 
     next_steps: list[str] = []
-    if not state["repo_present"] or not state["runtime_ref_matches"] or not state["venv_present"]:
-        next_steps.append("Run the bootstrap action")
+    if not state["runtime_ready"]:
+        next_steps.append(
+            "After explicit user approval, run bootstrap with allow_runtime_install=true"
+        )
     if not state["openai_api_key_present"]:
         next_steps.append("Configure OPENAI_API_KEY before local analysis")
     if not next_steps:
@@ -374,7 +548,6 @@ def _build_preflight_report(spec: dict[str, Any], state: dict[str, Any]) -> dict
         "issues": issues,
         "next_steps": next_steps,
         "state": state,
-        "requested_spec": spec,
     }
 
 
@@ -411,8 +584,6 @@ def _build_analyze_command(spec: dict[str, Any], output_dir: Path) -> list[str]:
     executable = _videolens_executable(repo_dir)
     if executable:
         command = [str(executable), "analyze"]
-    elif _uv_command():
-        command = [str(_uv_command()), "run", "videolens", "analyze"]
     else:
         command = [str(_venv_python(repo_dir)), "-m", "videolens.cli", "analyze"]
 
@@ -457,13 +628,46 @@ def _build_analyze_command(spec: dict[str, Any], output_dir: Path) -> list[str]:
     return command
 
 
+def _redact_analysis_command(command: list[str]) -> list[str]:
+    redacted = list(command)
+    try:
+        analyze_index = redacted.index("analyze")
+        if analyze_index + 1 < len(redacted):
+            redacted[analyze_index + 1] = "<user-selected-video>"
+    except ValueError:
+        pass
+    try:
+        prompt_index = redacted.index("--prompt")
+        if prompt_index + 1 < len(redacted):
+            redacted[prompt_index + 1] = "<user-prompt>"
+    except ValueError:
+        pass
+    return redacted
+
+
+def _redact_analysis_output(value: Any, spec: dict[str, Any]) -> str:
+    text = str(value or "")
+    sensitive_values = (
+        str(spec.get("source") or ""),
+        str(spec.get("prompt") or ""),
+        os.environ.get("OPENAI_API_KEY", "").strip(),
+    )
+    for sensitive in sensitive_values:
+        if sensitive:
+            text = text.replace(sensitive, "<redacted>")
+    if len(text) > 4000:
+        return f"{text[:4000]}\n<diagnostic output truncated>"
+    return text
+
+
 def _run_analyze(spec: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
     repo_dir = _repo_dir()
     output_dir = _new_run_dir(spec)
     output_dir.mkdir(parents=True, exist_ok=True)
+    _prepare_subprocess_dirs()
     result = _run_command(
         _build_analyze_command(spec, output_dir),
-        env=os.environ.copy(),
+        env=_analysis_env(),
         cwd=repo_dir,
         timeout=_bounded_int(
             spec.get("command_timeout_seconds"),
@@ -486,10 +690,10 @@ def _run_analyze(spec: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
         "report_html_path": str(report_html) if report_html.exists() else None,
         "report_markdown_path": str(report_markdown) if report_markdown.exists() else None,
         "analysis_json_path": str(analysis_json) if analysis_json.exists() else None,
-        "command": result["command"],
+        "command": _redact_analysis_command(result["command"]),
         "returncode": result["returncode"],
-        "stdout": result["stdout"],
-        "stderr": result["stderr"],
+        "stdout": _redact_analysis_output(result["stdout"], spec),
+        "stderr": _redact_analysis_output(result["stderr"], spec),
         "state": state,
     }
 
@@ -510,7 +714,25 @@ def _execute_spec(spec: dict[str, Any]) -> dict[str, Any]:
             "error": "Set allow_credit_spend to true only after the user confirms model/API usage.",
         }
 
-    if action in {"bootstrap", "analyze"}:
+    if action not in {"bootstrap", "analyze"}:
+        raise ValueError(f"Unsupported action: {action}")
+
+    runtime_install_required = action == "bootstrap" or not state["runtime_ready"]
+    if runtime_install_required and not bool(spec.get("allow_runtime_install")):
+        return {
+            "success": False,
+            "summary": f"Refusing {action} without allow_runtime_install=true",
+            "action": action,
+            "state": state,
+            "error": (
+                "Bootstrap clones the pinned VideoLens GitHub revision, creates files under the "
+                "managed skill state directory, and installs Python dependencies. Set "
+                "allow_runtime_install to true only after the user explicitly approves those "
+                "network and filesystem changes."
+            ),
+        }
+
+    if runtime_install_required:
         repo_result = _ensure_repo(spec)
         if not repo_result["success"]:
             return {
@@ -532,6 +754,13 @@ def _execute_spec(spec: dict[str, Any]) -> dict[str, Any]:
                 "state": _collect_runtime_state(),
             }
         state = _collect_runtime_state()
+        if not state["runtime_ready"]:
+            return {
+                "success": False,
+                "summary": "VideoLens runtime failed its post-bootstrap integrity check",
+                "action": action,
+                "state": state,
+            }
         if action == "bootstrap":
             return {
                 "success": True,
@@ -541,17 +770,15 @@ def _execute_spec(spec: dict[str, Any]) -> dict[str, Any]:
                 "runtime": runtime_result,
                 "state": state,
             }
-        if not state["openai_api_key_present"]:
-            return {
-                "success": False,
-                "summary": "OPENAI_API_KEY is missing",
-                "action": action,
-                "state": state,
-                "error": "Configure OPENAI_API_KEY before running local VideoLens analysis.",
-            }
-        return _run_analyze(spec, state)
-
-    raise ValueError(f"Unsupported action: {action}")
+    if not state["openai_api_key_present"]:
+        return {
+            "success": False,
+            "summary": "OPENAI_API_KEY is missing",
+            "action": action,
+            "state": state,
+            "error": "Configure OPENAI_API_KEY before running local VideoLens analysis.",
+        }
+    return _run_analyze(spec, state)
 
 
 def run(context: dict[str, Any]) -> dict[str, Any]:
@@ -561,11 +788,10 @@ def run(context: dict[str, Any]) -> dict[str, Any]:
         spec = _parse_task_spec(str(task_payload.get("pre_instructions") or ""))
         return _execute_spec(spec)
     except error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
         return {
             "success": False,
             "summary": f"Failed to load task configuration: HTTP {exc.code}",
-            "error": body or str(exc),
+            "error": "The local OpenClaw/OCC task API request failed.",
             "action": "preflight",
         }
     except Exception as exc:
@@ -573,7 +799,6 @@ def run(context: dict[str, Any]) -> dict[str, Any]:
             "success": False,
             "summary": f"VideoLens wrapper failed: {exc}",
             "error": str(exc),
-            "context": _json_safe(context),
         }
 
 

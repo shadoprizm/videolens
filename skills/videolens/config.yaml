@@ -1,5 +1,5 @@
 name: videolens-video-intelligence
-description: Manual OCC adapter and portable OpenClaw runner for VideoLens reports.
+description: Manually downloads a pinned VideoLens runtime, installs dependencies after opt-in, and sends selected video-derived content to OpenAI after separate opt-in.
 enabled: true
 entry_point: skill.py
 timeout_seconds: 7200
