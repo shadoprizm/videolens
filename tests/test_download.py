@@ -16,7 +16,7 @@ def _youtube_source() -> ResolvedSource:
     )
 
 
-def test_youtube_uses_embedded_client_and_ipv4(monkeypatch, tmp_path: Path) -> None:
+def test_youtube_uses_embedded_client_tokens_and_ipv6(monkeypatch, tmp_path: Path) -> None:
     captured: dict = {}
 
     class FakeYoutubeDL:
@@ -47,7 +47,7 @@ def test_youtube_uses_embedded_client_and_ipv4(monkeypatch, tmp_path: Path) -> N
         },
         "youtubepot-bgutilhttp": {"base_url": ["http://127.0.0.1:4416"]},
     }
-    assert captured["force_ipv4"] is True
+    assert captured["source_address"] == "::"
     assert captured["noplaylist"] is True
 
 

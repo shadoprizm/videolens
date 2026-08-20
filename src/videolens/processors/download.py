@@ -62,7 +62,9 @@ def fetch_to_local(source: ResolvedSource, dest_dir: Path) -> tuple[Path, dict[s
                     },
                     "youtubepot-bgutilhttp": {"base_url": ["http://127.0.0.1:4416"]},
                 },
-                "force_ipv4": True,
+                # Railway's shared IPv4 egress is subject to YouTube bot blocks.
+                # Bind yt-dlp and its PO-token requests to Railway's IPv6 egress.
+                "source_address": "::",
             }
         )
 
