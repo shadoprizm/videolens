@@ -1,5 +1,10 @@
 FROM python:3.12-slim
 
+# yt-dlp requires an external JavaScript runtime for YouTube's current player
+# challenges. Deno is the runtime recommended by yt-dlp and is enabled by
+# default when present on PATH.
+COPY --from=denoland/deno:bin-2.7.14 /deno /usr/local/bin/deno
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \

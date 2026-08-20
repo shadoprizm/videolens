@@ -66,7 +66,6 @@ def enhance_prompt(
                 {"role": "system", "content": SYSTEM},
                 {"role": "user", "content": user_message},
             ],
-            temperature=0.4,
         )
     except Exception as exc:
         raise EnhancePromptError(f"enhance call failed ({models.frame_describe}): {exc}") from exc

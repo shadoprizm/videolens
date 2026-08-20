@@ -43,12 +43,33 @@ def fetch_to_local(source: ResolvedSource, dest_dir: Path) -> tuple[Path, dict[s
         "subtitleslangs": ["en", "en-US", "en-GB"],
         "subtitlesformat": "vtt",
         "merge_output_format": "mp4",
+        "noplaylist": True,
+        "retries": 3,
+        "fragment_retries": 3,
     }
+
+    if source.source_type == SourceType.YOUTUBE:
+        # YouTube now requires an external JS challenge solver for full yt-dlp
+        # support, and its default android_vr client can return HTTP 403 for
+        # ordinary public videos. The web_embedded client is currently the
+        # token-free path recommended by yt-dlp for embeddable videos. The
+        # Docker image supplies Deno and yt-dlp[default] supplies yt-dlp-ejs.
+        ydl_opts.update(
+            {
+                "extractor_args": {"youtube": {"player_client": ["web_embedded"]}},
+                "force_ipv4": True,
+            }
+        )
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(source.source_url, download=True)
     except yt_dlp.utils.DownloadError as exc:
+        if source.source_type == SourceType.YOUTUBE and _is_youtube_access_error(str(exc)):
+            raise DownloadError(
+                "YouTube blocked this video's embedded download. Try the Upload a video file tab "
+                "instead; some videos disable embedded playback."
+            ) from exc
         raise DownloadError(f"yt-dlp failed: {exc}") from exc
 
     if info is None:
@@ -59,6 +80,19 @@ def fetch_to_local(source: ResolvedSource, dest_dir: Path) -> tuple[Path, dict[s
         raise DownloadError(f"No video file written under {dest_dir}.")
 
     return video_path, info
+
+
+def _is_youtube_access_error(message: str) -> bool:
+    message = message.lower()
+    return any(
+        marker in message
+        for marker in (
+            "http error 403",
+            "no video formats found",
+            "not available on this app",
+            "embedding disabled",
+        )
+    )
 
 
 def _find_video_file(dest_dir: Path) -> Path | None:
