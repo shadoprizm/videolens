@@ -70,13 +70,18 @@ export async function captureLocalFrames(
 }
 
 function seek(v: HTMLVideoElement, t: number): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    const ready = () => !v.seeking && v.readyState >= 2 && Math.abs(v.currentTime - t) < 0.1;
+    if (ready()) { resolve(); return; }
     const done = () => {
       v.removeEventListener("seeked", done);
       clearTimeout(timer);
-      requestAnimationFrame(() => setTimeout(resolve, 30));
+      requestAnimationFrame(() => setTimeout(() => ready() ? resolve() : reject(new Error("The video could not be read at the requested time. Please retry.")), 30));
     };
-    const timer = setTimeout(done, 3000);
+    const timer = setTimeout(() => {
+      v.removeEventListener("seeked", done);
+      reject(new Error("The video took too long to seek. Please retry."));
+    }, 3000);
     v.addEventListener("seeked", done);
     v.currentTime = t;
   });

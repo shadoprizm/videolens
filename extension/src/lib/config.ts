@@ -2,7 +2,7 @@
 export const MODELS = {
   transcribe: "gpt-4o-mini-transcribe",
   frameDescribe: "gpt-5.4-mini",
-  synthesize: "gpt-5.5",
+  synthesize: "gpt-5.6-terra",
 };
 
 export const DEFAULTS = {

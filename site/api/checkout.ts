@@ -1,6 +1,7 @@
 import { authenticate } from "./_lib/auth.js";
 import { optionalEnv, requireEnv, siteUrl } from "./_lib/env.js";
 import { ApiError, errorResponse, json, options, readJson } from "./_lib/http.js";
+import { getEntitlement } from "./_lib/entitlements.js";
 import { stripeClient } from "./_lib/stripe.js";
 import { supabaseAdmin } from "./_lib/supabase.js";
 
@@ -21,13 +22,12 @@ export async function handler(request: Request): Promise<Response> {
     }
 
     const admin = supabaseAdmin();
-    const { data: existing } = await admin
-      .from("subscriptions")
-      .select("plan,status")
-      .eq("user_id", user.id)
-      .single<{ plan: string; status: string }>();
-    if (existing?.plan === "pro" && ["active", "trialing"].includes(existing.status)) {
-      throw new ApiError(409, "already_subscribed", "You already have an active Pro subscription.");
+    const entitlement = await getEntitlement(user.id);
+    if (entitlement.complimentary?.state === "pending" && !entitlement.hasBillingSubscription) {
+      throw new ApiError(409, "complimentary_scan_required", "Complete your next successful managed scan to activate your free month before choosing a paid plan.");
+    }
+    if (!entitlement.canUpgrade) {
+      throw new ApiError(409, "already_subscribed", "Use Manage billing to change your existing subscription.");
     }
 
     const { data: profile, error: profileError } = await admin
@@ -52,6 +52,12 @@ export async function handler(request: Request): Promise<Response> {
     const priceId = body.billing === "monthly"
       ? requireEnv("STRIPE_PRO_MONTHLY_PRICE_ID")
       : requireEnv("STRIPE_PRO_ANNUAL_PRICE_ID");
+    // Round upward to whole trial days so every remaining complimentary
+    // hour is preserved, even when less than one day remains.
+    const remainingMs = entitlement.complimentary?.state === "active"
+      ? new Date(entitlement.complimentary.expiresAt!).getTime() - Date.now()
+      : 0;
+    const trialDays = remainingMs > 0 ? Math.max(1, Math.ceil(remainingMs / 86_400_000)) : null;
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
@@ -61,7 +67,14 @@ export async function handler(request: Request): Promise<Response> {
       success_url: `${siteUrl()}/account?checkout=success`,
       cancel_url: `${siteUrl()}/account?checkout=cancelled`,
       metadata: { user_id: user.id, billing: body.billing },
-      subscription_data: { metadata: { user_id: user.id } },
+      subscription_data: {
+        metadata: { user_id: user.id, ...(trialDays ? { complimentary_conversion: "true" } : {}) },
+        ...(trialDays ? {
+          trial_period_days: trialDays,
+          trial_settings: { end_behavior: { missing_payment_method: "cancel" as const } },
+        } : {}),
+      },
+      ...(trialDays ? { custom_text: { submit: { message: `Your paid plan starts after ${trialDays} free days. Today's charge is $0. Cancel in Manage billing before the trial ends to avoid a charge.` } } } : {}),
     });
     if (!session.url) throw new Error("Stripe Checkout did not return a URL.");
     return json(request, { url: session.url });

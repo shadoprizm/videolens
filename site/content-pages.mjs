@@ -1,4 +1,4 @@
-export const lastmod = "2026-08-17";
+export const lastmod = "2026-08-18";
 
 export const pages = [
   {

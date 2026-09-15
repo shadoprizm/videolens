@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "VideoLens — Rezumate video YouTube",
+    "description": "Numele extensiei afișat în browser și magazinul de extensii."
+  },
+  "extensionDescription": {
+    "message": "Transformă videoclipuri YouTube și fișiere locale în rapoarte cu timpi, în limba ta. Mod Privat cu cheie proprie și Pro opțional.",
+    "description": "Descrierea scurtă a extensiei."
+  },
+  "actionTitle": {
+    "message": "Deschide VideoLens",
+    "description": "Textul butonului VideoLens din bara de instrumente."
+  }
+}

@@ -2,9 +2,11 @@ import { authenticate } from "./_lib/auth.js";
 import { getEntitlement, reserveReport } from "./_lib/entitlements.js";
 import { ApiError, errorResponse, json, options, readJson } from "./_lib/http.js";
 import { supabaseAdmin } from "./_lib/supabase.js";
+import { libraryUpload } from "./_lib/libraryUpload.js";
 
 interface ReportRequest {
-  action?: "reserve" | "complete";
+  action?: "reserve" | "complete" | "upload";
+  report?: unknown;
   reportId?: string;
   deviceId?: string;
   cloudSave?: boolean;
@@ -28,6 +30,8 @@ export async function handler(request: Request): Promise<Response> {
     const admin = supabaseAdmin();
 
     if (request.method === "GET") {
+      const offset = Number(new URL(request.url).searchParams.get("offset") || 0);
+      if (!Number.isSafeInteger(offset) || offset < 0) throw new ApiError(400, "invalid_offset", "Invalid library page.");
       const { data, error } = await admin
         .from("reports")
         .select("id,title,source_type,mode,report_data,created_at,updated_at,completed_at")
@@ -35,9 +39,10 @@ export async function handler(request: Request): Promise<Response> {
         .eq("cloud_saved", true)
         .eq("status", "complete")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .order("id", { ascending: false })
+        .range(offset, offset + 99);
       if (error) throw error;
-      return json(request, { reports: data || [] });
+      return json(request, { reports: data || [], nextOffset: data?.length === 100 ? offset + 100 : null });
     }
 
     if (request.method === "DELETE") {
@@ -50,6 +55,13 @@ export async function handler(request: Request): Promise<Response> {
 
     if (request.method !== "POST") return json(request, { error: "method_not_allowed" }, 405);
     const body = await readJson<ReportRequest>(request);
+
+    if (body.action === "upload") {
+      const report = libraryUpload(body.report);
+      const { data, error } = await admin.rpc("upload_library_report", { p_user_id: user.id, p_report: report });
+      if (error) throw error;
+      return json(request, { reportId: data, saved: true });
+    }
 
     if (body.action === "reserve") {
       const deviceId = user.deviceId || body.deviceId?.trim() || "";

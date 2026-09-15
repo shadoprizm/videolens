@@ -1,25 +1,41 @@
 import { build } from "esbuild";
-import { cpSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 
-const outdir = "dist";
+const targetArg = process.argv.find((arg) => arg.startsWith("--target="));
+const target = targetArg?.slice("--target=".length) ?? "chrome";
+
+if (target !== "chrome" && target !== "firefox") {
+  throw new Error(`Unsupported extension target: ${target}`);
+}
+
+const outdir = target === "firefox" ? "dist-firefox" : "dist";
+const browserTarget = target === "firefox" ? "firefox140" : "chrome116";
 
 rmSync(outdir, { recursive: true, force: true });
 mkdirSync(outdir, { recursive: true });
 
-// Service worker and side panel are ES modules; the injected capture code
-// lives inside sidepanel via chrome.scripting (no standalone content script).
+// Chrome runs the background bundle as a service worker. Firefox runs the
+// same bundle as a non-persistent background script. The injected capture
+// code lives inside the sidebar via chrome.scripting in both browsers.
 await build({
   entryPoints: {
-    background: "src/background.ts",
+    background: target === "firefox" ? "src/background.firefox.ts" : "src/background.ts",
     sidepanel: "src/sidepanel/main.ts",
+    reader: "src/reader/main.ts",
   },
   bundle: true,
   format: "esm",
-  target: "chrome116",
+  target: browserTarget,
   outdir,
   sourcemap: false,
   minify: false,
+  define: { __REPORT_CSS__: JSON.stringify(readFileSync("../site/cloud-report.css", "utf8")) },
 });
 
 cpSync("public", outdir, { recursive: true });
-console.log("built → dist/");
+cpSync("../site/cloud-report.css", `${outdir}/cloud-report.css`);
+rmSync(`${outdir}/.DS_Store`, { force: true });
+if (target === "firefox") {
+  cpSync("manifest.firefox.json", `${outdir}/manifest.json`);
+}
+console.log(`built ${target} → ${outdir}/`);

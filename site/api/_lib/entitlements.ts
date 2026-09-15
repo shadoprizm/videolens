@@ -1,5 +1,4 @@
 import { ApiError } from "./http.js";
-import { planConfig } from "./env.js";
 import { supabaseAdmin } from "./supabase.js";
 
 export interface Entitlement {
@@ -11,52 +10,18 @@ export interface Entitlement {
   periodEndsAt: string | null;
   cancelAtPeriodEnd: boolean;
   canUseManagedAi: boolean;
-}
-
-interface SubscriptionRow {
-  plan: string;
-  status: string;
-  current_period_start: string | null;
-  current_period_end: string | null;
-  cancel_at_period_end: boolean;
+  hasBillingSubscription: boolean;
+  canUpgrade: boolean;
+  billingStartsAt: string | null;
+  complimentary: { state: "pending" | "active" | "expired"; activatedAt: string | null; expiresAt: string | null } | null;
 }
 
 export async function getEntitlement(userId: string): Promise<Entitlement> {
-  const admin = supabaseAdmin();
-  const { data: subscription, error } = await admin
-    .from("subscriptions")
-    .select("plan,status,current_period_start,current_period_end,cancel_at_period_end")
-    .eq("user_id", userId)
-    .single<SubscriptionRow>();
-  if (error || !subscription) throw error || new Error("Subscription row missing.");
-
-  const isPro = subscription.plan === "pro" && ["active", "trialing"].includes(subscription.status);
-  const plan = isPro ? "pro" : "free";
-  const limit = isPro ? planConfig.proManagedReports : planConfig.freeManagedReports;
-  const now = new Date();
-  const periodStart = isPro
-    ? `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`
-    : "1970-01-01";
-  const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-
-  const { count, error: countError } = await admin
-    .from("reports")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .eq("quota_period_start", periodStart);
-  if (countError) throw countError;
-  const used = count || 0;
-
-  return {
-    plan,
-    subscriptionStatus: subscription.status,
-    managedReportsUsed: used,
-    managedReportsLimit: limit,
-    managedReportsRemaining: Math.max(0, limit - used),
-    periodEndsAt: isPro ? nextMonth.toISOString() : null,
-    cancelAtPeriodEnd: isPro && subscription.cancel_at_period_end,
-    canUseManagedAi: used < limit,
-  };
+  const { data, error } = await supabaseAdmin().rpc("get_managed_entitlement", { p_user_id: userId });
+  if (error || !data) throw error || new Error("Entitlement unavailable.");
+  // Internal quota identifiers are used only by the database reservation function.
+  const { quotaPeriodStart: _period, quotaGrantId: _grant, ...entitlement } = data;
+  return entitlement as Entitlement;
 }
 
 export interface Reservation {
@@ -73,6 +38,9 @@ export async function reserveReport(userId: string, deviceId: string, cloudSave:
     p_cloud_save: cloudSave,
   });
   if (error) {
+    if (error.message.includes("managed_report_retry_limited")) {
+      throw new ApiError(429, "managed_report_retry_limited", "Several scans have failed recently. Your allowance is preserved. Please try again in an hour.");
+    }
     if (error.message.includes("managed_report_quota_exhausted")) {
       throw new ApiError(402, "managed_report_quota_exhausted", "Your managed-report allowance is used up.");
     }
@@ -88,8 +56,8 @@ export async function reserveReport(userId: string, deviceId: string, cloudSave:
   };
 }
 
-export async function recordAiRequest(userId: string, reportId: string, kind: "chat" | "transcription"): Promise<void> {
-  const { error } = await supabaseAdmin().rpc("record_managed_ai_request", {
+export async function recordAiRequest(userId: string, reportId: string, kind: "chat" | "transcription"): Promise<number> {
+  const { data, error } = await supabaseAdmin().rpc("begin_managed_ai_request", {
     p_user_id: userId,
     p_report_id: reportId,
     p_kind: kind,
@@ -103,4 +71,6 @@ export async function recordAiRequest(userId: string, reportId: string, kind: "c
     }
     throw error;
   }
+  if (!Number.isSafeInteger(Number(data)) || Number(data) <= 0) throw new Error("AI request tracking failed.");
+  return Number(data);
 }

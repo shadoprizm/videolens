@@ -9,7 +9,7 @@ export async function handler(request: Request): Promise<Response> {
   try {
     const user = await authenticate(request);
     return json(request, {
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, isAdministrator: user.isAdministrator },
       entitlement: await getEntitlement(user.id),
     });
   } catch (error) {

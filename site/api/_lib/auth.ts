@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { jwtVerify, SignJWT } from "jose";
 import type { User } from "@supabase/supabase-js";
+import { isAdministrator } from "./admin.js";
 import { ApiError } from "./http.js";
 import { requireEnv } from "./env.js";
 import { ensureUserRecords, supabaseAdmin } from "./supabase.js";
@@ -10,6 +11,7 @@ export interface AuthenticatedUser {
   email: string | null;
   source: "website" | "extension";
   deviceId: string | null;
+  isAdministrator: boolean;
 }
 
 function bearerToken(request: Request): string {
@@ -39,6 +41,7 @@ export async function authenticate(request: Request): Promise<AuthenticatedUser>
       email: typeof payload.email === "string" ? payload.email : null,
       source: "extension",
       deviceId: payload.device_id,
+      isAdministrator: false,
     };
   } catch {
     // A website session is a Supabase access token. Validate it against Auth;
@@ -52,7 +55,7 @@ export async function authenticate(request: Request): Promise<AuthenticatedUser>
 }
 
 function fromSupabaseUser(user: User): AuthenticatedUser {
-  return { id: user.id, email: user.email || null, source: "website", deviceId: null };
+  return { id: user.id, email: user.email || null, source: "website", deviceId: null, isAdministrator: isAdministrator(user) };
 }
 
 export async function createExtensionToken(

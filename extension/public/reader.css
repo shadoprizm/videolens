@@ -1,0 +1,13 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: #eef3f8; color: #172338; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.reader-toolbar { position: sticky; top: 0; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 24px; background: #f8fafcf5; border-bottom: 1px solid #dbe4ed; }
+.reader-toolbar a, .reader-toolbar button { display: inline-block; border: 1px solid #cbd5e1; border-radius: 9px; padding: 9px 12px; background: white; color: #334155; text-decoration: none; font: inherit; font-size: 13px; cursor: pointer; }
+.reader-toolbar button:hover, .reader-toolbar a:hover { color: #0e7490; border-color: #0891b2; }
+#reader-status { color: #64748b; font-size: 12px; }
+#reader-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+#reader-content { max-width: 960px; margin: 24px auto 60px; background: white; box-shadow: 0 12px 60px #0f172a12; }
+.reader-error, .reader-library { padding: 32px; line-height: 1.6; }
+.reader-library > a { display: block; padding: 20px 0; border-top: 1px solid #e2e8f0; color: #0e7490; font-size: 18px; font-weight: 650; text-decoration: none; }
+:focus-visible { outline: 3px solid #0891b2; outline-offset: 3px; }
+@media (max-width: 600px) { .reader-toolbar { padding: 12px; } #reader-actions { margin-left: 0; } #reader-content { margin: 0; } }
+@media print { .reader-toolbar { display: none; } body { background: white; } #reader-content { max-width: none; margin: 0; box-shadow: none; } }

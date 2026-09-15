@@ -6,6 +6,7 @@ import { lastmod, pages } from "./content-pages.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 const out = join(root, "dist");
+const extensionPreview = join(root, "extension-report-setup.png");
 const siteUrl = "https://videolens.io";
 const pageBySlug = new Map(pages.map((page) => [page.slug, page]));
 const workflowBySlug = {
@@ -236,10 +237,10 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
 const staticFiles = [
-  "index.html", "privacy.html", "account.html", "robots.txt", "llms.txt",
-  "content.css", "account.css", "analytics.js", "favicon.svg", "favicon.ico", "favicon-16x16.png",
+  "index.html", "privacy.html", "account.html", "admin.html", "admin.css", "chrome.html", "recipe-preview.html", "robots.txt", "llms.txt",
+  "content.css", "account.css", "cloud-report.css", "analytics.js", "favicon.svg", "favicon.ico", "favicon-16x16.png",
   "favicon-32x32.png", "apple-touch-icon.png", "android-chrome-192x192.png",
-  "android-chrome-512x512.png", "site.webmanifest", "og.png", "googlecc8e26327b14309f.html"
+  "android-chrome-512x512.png", "site.webmanifest", "og.png", "og-extension-launch.png", "googlecc8e26327b14309f.html"
 ];
 
 for (const file of staticFiles) {
@@ -248,7 +249,10 @@ for (const file of staticFiles) {
   cpSync(source, join(out, file));
 }
 
-for (const file of ["index.html", "privacy.html", "account.html"]) {
+if (!existsSync(extensionPreview)) throw new Error("Missing Chrome extension product preview");
+cpSync(extensionPreview, join(out, "extension-report-setup.png"));
+
+for (const file of ["index.html", "privacy.html", "account.html", "chrome.html"]) {
   const output = join(out, file);
   const html = readFileSync(output, "utf8").replace(
     "/_vercel/insights/script.js",
@@ -259,12 +263,18 @@ for (const file of ["index.html", "privacy.html", "account.html"]) {
 
 await build({
   entryPoints: [join(root, "account.ts")],
+  define: { __REPORT_CSS__: JSON.stringify(readFileSync(join(root, "cloud-report.css"), "utf8")) },
   bundle: true,
   format: "esm",
   platform: "browser",
   target: ["es2022"],
   minify: true,
   outfile: join(out, "account.js"),
+});
+
+await build({
+  entryPoints: [join(root, "admin.ts")], bundle: true, format: "esm",
+  platform: "browser", target: ["es2022"], minify: true, outfile: join(out, "admin.js"),
 });
 
 for (const page of pages) {

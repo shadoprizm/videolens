@@ -1,4 +1,7 @@
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
+import { reportBody, reportDate, reportFilename, reportHtml, reportJson, reportMarkdown, reportMode, reportSearchText, reportTitle, type CloudReport } from "./cloud-report.js";
+
+declare const __REPORT_CSS__: string;
 
 interface PublicConfig {
   proAvailable: boolean;
@@ -7,25 +10,7 @@ interface PublicConfig {
   supabasePublishableKey: string | null;
 }
 
-interface Entitlement {
-  plan: "free" | "pro";
-  subscriptionStatus: string;
-  managedReportsUsed: number;
-  managedReportsLimit: number;
-  managedReportsRemaining: number;
-  periodEndsAt: string | null;
-  cancelAtPeriodEnd: boolean;
-}
-
-interface CloudReport {
-  id: string;
-  title: string;
-  source_type: string | null;
-  mode: string | null;
-  report_data: Record<string, unknown> | null;
-  created_at: string;
-  completed_at: string | null;
-}
+import type { Entitlement } from "./api/_lib/entitlements.js";
 
 const loadingView = byId("loading-view");
 const unavailableView = byId("unavailable-view");
@@ -37,6 +22,9 @@ let supabase: SupabaseClient | null = null;
 let session: Session | null = null;
 let config: PublicConfig | null = null;
 let reports: CloudReport[] = [];
+let reportSearch = new Map<string, string>();
+let activeReport: CloudReport | null = null;
+const reader = byId<HTMLDialogElement>("report-reader");
 
 void boot();
 
@@ -71,10 +59,23 @@ function bindEvents(): void {
     button.addEventListener("click", () => void startCheckout(button.dataset.billing as "monthly" | "annual", button));
   });
   byId<HTMLInputElement>("report-search").addEventListener("input", renderReports);
+  byId("close-report").addEventListener("click", () => reader.close());
+  reader.addEventListener("close", () => {
+    activeReport = null;
+    byId("reader-content").replaceChildren();
+    document.body.classList.remove("reading-report");
+    if (location.hash.startsWith("#report=")) history.replaceState(null, "", location.pathname + location.search);
+  });
+  window.addEventListener("hashchange", openLinkedReport);
+  byId("reader-actions").append(exportMenu(() => activeReport));
 }
 
 async function renderSession(): Promise<void> {
   if (!session) {
+    if (reader.open) reader.close();
+    reports = [];
+    reportSearch.clear();
+    byId("report-list").replaceChildren();
     showOnly(signedOutView);
     showCheckoutMessage();
     return;
@@ -127,7 +128,7 @@ async function signOut(): Promise<void> {
 }
 
 async function loadEntitlement(): Promise<void> {
-  const response = await apiFetch<{ entitlement: Entitlement }>("/api/entitlement");
+  const response = await apiFetch<{ entitlement: Entitlement; user: { isAdministrator: boolean } }>("/api/entitlement");
   const entitlement = response.entitlement;
   const isPro = entitlement.plan === "pro";
   byId("plan-name").textContent = isPro ? "VideoLens Pro" : "Free";
@@ -140,8 +141,25 @@ async function loadEntitlement(): Promise<void> {
     : entitlement.managedReportsRemaining > 0
       ? "Your account includes one managed starter report. BYOK reports remain unlimited."
       : "Starter report used. Add Pro for 20 managed reports per calendar month, or keep using BYOK free.";
-  byId("upgrade-actions").hidden = isPro;
-  byId("manage-billing").hidden = !isPro;
+  byId("upgrade-actions").hidden = !entitlement.canUpgrade;
+  byId("manage-billing").hidden = !entitlement.hasBillingSubscription || response.user.isAdministrator;
+  const offer = entitlement.complimentary;
+  const offerNote = byId("complimentary-note");
+  offerNote.hidden = !offer;
+  if (offer?.state === "pending") {
+    offerNote.textContent = "Your complimentary month is ready. Complete your next successful managed scan to unlock 30 days of Pro and 20 additional managed reports. No card required. You can choose a paid plan after activation.";
+  } else if (offer?.state === "active") {
+    offerNote.textContent = entitlement.hasBillingSubscription
+      ? `Your complimentary access lasts until ${formatDate(offer.expiresAt!)}. ${entitlement.billingStartsAt ? `Your selected paid plan starts billing ${formatDate(entitlement.billingStartsAt)}. Manage or cancel it below.` : "Your paid subscription is managed separately below."}`
+      : `Complimentary Pro ends ${formatDate(offer.expiresAt!)}. No charge: your account returns to Free and your saved reports remain available. Choose a paid plan below to continue; billing will start after your complimentary access (the date is shown at checkout).`;
+    if (!entitlement.hasBillingSubscription) byId("plan-status").textContent = "Complimentary Pro";
+  } else if (offer?.state === "expired") {
+    offerNote.textContent = entitlement.hasBillingSubscription
+      ? "Your complimentary month has ended. Your selected subscription is managed below."
+      : "Your complimentary month has ended. Your account and saved reports remain available. Choose Pro below to continue managed scanning, or use Private mode with your own key.";
+  }
+  byId("admin-link").hidden = !response.user.isAdministrator;
+  if (response.user.isAdministrator) byId("plan-status").textContent = "Administrator · permanent Pro";
 }
 
 function renderExtensionConnect(): void {
@@ -199,64 +217,144 @@ async function openPortal(): Promise<void> {
 }
 
 async function loadReports(): Promise<void> {
-  const response = await apiFetch<{ reports: CloudReport[] }>("/api/reports");
-  reports = response.reports;
+  const accountId = session?.user.id;
+  const loaded: CloudReport[] = [];
+  let offset: number | null = 0;
+  do {
+    const page: { reports: CloudReport[]; nextOffset: number | null } = await apiFetch(`/api/reports?offset=${offset}`);
+    loaded.push(...page.reports);
+    offset = page.nextOffset ?? null;
+  } while (offset !== null);
+  if (!session || session.user.id !== accountId) return;
+  reports = [...new Map(loaded.map(report => [report.id, report])).values()];
+  reportSearch = new Map(reports.map(report => [report.id, reportSearchText(report)]));
   renderReports();
+  openLinkedReport();
 }
 
 function renderReports(): void {
   const root = byId("report-list");
   const empty = byId("empty-library");
-  const query = byId<HTMLInputElement>("report-search").value.trim().toLowerCase();
-  const visible = reports.filter((report) => {
-    const summary = typeof report.report_data?.summary === "string" ? report.report_data.summary : "";
-    return `${report.title} ${report.mode || ""} ${summary}`.toLowerCase().includes(query);
-  });
+  const query = byId<HTMLInputElement>("report-search").value.trim().toLocaleLowerCase();
+  const visible = reports.filter(report => reportSearch.get(report.id)?.includes(query));
+  byId("library-count").textContent = query ? `${visible.length} of ${reports.length} reports` : `${reports.length} saved ${reports.length === 1 ? "report" : "reports"}`;
   root.replaceChildren();
   empty.hidden = visible.length > 0;
+  empty.querySelector("h3")!.textContent = reports.length ? "No reports match your search." : "No cloud reports yet.";
+  empty.querySelector("p")!.textContent = reports.length
+    ? "Try a different search or clear the search box."
+    : "In extension Settings, connect this account and choose Upload existing reports to my cloud library. Requires extension 0.4.5 or newer.";
 
   for (const report of visible) {
     const card = document.createElement("article");
     card.className = "report-card";
     const copy = document.createElement("div");
     const title = document.createElement("h3");
-    title.textContent = report.title;
+    const titleButton = document.createElement("button");
+    titleButton.className = "report-title-button";
+    titleButton.type = "button";
+    titleButton.textContent = reportTitle(report);
+    titleButton.addEventListener("click", () => openReport(report));
+    title.append(titleButton);
     const summary = document.createElement("p");
     summary.textContent = typeof report.report_data?.summary === "string"
       ? report.report_data.summary
       : "Saved VideoLens report";
+    summary.className = "report-excerpt";
     const meta = document.createElement("div");
     meta.className = "report-meta";
-    meta.textContent = `${report.mode || "Report"} · ${formatDate(report.completed_at || report.created_at)}`;
+    const qaCount = Array.isArray(report.report_data?.qa) ? report.report_data.qa.length : 0;
+    meta.textContent = `${reportMode(report)} · ${reportDate(report)}${qaCount ? ` · ${qaCount} follow-up ${qaCount === 1 ? "answer" : "answers"}` : ""}`;
     copy.append(title, summary, meta);
 
     const actions = document.createElement("div");
     actions.className = "report-actions";
-    const download = document.createElement("button");
-    download.type = "button";
-    download.textContent = "JSON";
-    download.addEventListener("click", () => downloadReport(report));
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "open-report";
+    open.textContent = "Open report";
+    open.setAttribute("aria-label", `Open report: ${reportTitle(report)}`);
+    open.addEventListener("click", () => openReport(report));
     const remove = document.createElement("button");
     remove.type = "button";
     remove.textContent = "Delete";
+    remove.className = "delete-report";
+    remove.setAttribute("aria-label", `Delete cloud report: ${reportTitle(report)}`);
     remove.addEventListener("click", () => void deleteReport(report));
-    actions.append(download, remove);
+    actions.append(open, exportMenu(() => report), remove);
     card.append(copy, actions);
     root.appendChild(card);
   }
 }
 
-function downloadReport(report: CloudReport): void {
-  const blob = new Blob([JSON.stringify(report.report_data, null, 2)], { type: "application/json" });
+function openReport(report: CloudReport): void {
+  activeReport = report;
+  byId("reader-title").textContent = reportTitle(report);
+  byId("reader-content").innerHTML = reportBody(report);
+  if (!reader.open) reader.showModal();
+  byId("reader-content").scrollTop = 0;
+  document.body.classList.add("reading-report");
+  history.replaceState(null, "", `${location.pathname}${location.search}#report=${encodeURIComponent(report.id)}`);
+}
+
+function openLinkedReport(): void {
+  if (!location.hash.startsWith("#report=")) { if (reader.open) reader.close(); return; }
+  const id = new URLSearchParams(location.hash.slice(1)).get("report");
+  const report = reports.find(candidate => candidate.id === id);
+  if (report && activeReport !== report) openReport(report);
+  else if (session && !report) setMessage("This report is unavailable in your cloud library.", "error");
+}
+
+function exportMenu(getReport: () => CloudReport | null): HTMLSelectElement {
+  const select = document.createElement("select");
+  select.className = "report-export";
+  select.setAttribute("aria-label", "Export report");
+  for (const [value, label] of [["", "Export…"], ["pdf", "Print / Save PDF"], ["html", "Download HTML"], ["md", "Download Markdown"], ["json", "Download JSON"]]) {
+    select.add(new Option(label, value));
+  }
+  select.addEventListener("change", () => {
+    const report = getReport(), format = select.value;
+    select.value = "";
+    if (!report || !format) return;
+    try {
+      if (format === "pdf") printReport(report);
+      else downloadReport(report, format);
+    } catch (error) { setMessage(asMessage(error), "error"); }
+  });
+  return select;
+}
+
+function printReport(report: CloudReport): void {
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    downloadReport(report, "html");
+    window.alert("Your browser blocked the print window. The HTML report was downloaded; open it and choose Print to save a PDF.");
+    return;
+  }
+  printWindow.opener = null;
+  printWindow.document.open();
+  printWindow.addEventListener("load", () => {
+    printWindow.document.querySelectorAll("details").forEach(details => { details.open = true; });
+    printWindow.focus();
+    printWindow.print();
+  }, { once: true });
+  printWindow.document.write(reportHtml(report, __REPORT_CSS__));
+  printWindow.document.close();
+}
+
+function downloadReport(report: CloudReport, format: string): void {
+  const content = format === "html" ? reportHtml(report, __REPORT_CSS__) : format === "md" ? reportMarkdown(report) : reportJson(report);
+  const mime = format === "html" ? "text/html" : format === "md" ? "text/markdown" : "application/json";
+  const blob = new Blob([content], { type: `${mime};charset=utf-8` });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = `${report.title.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "videolens-report"}.json`;
+  link.download = reportFilename(report, format);
   link.click();
   setTimeout(() => URL.revokeObjectURL(link.href), 1_000);
 }
 
 async function deleteReport(report: CloudReport): Promise<void> {
-  if (!confirm(`Delete “${report.title}” from your cloud library?`)) return;
+  if (!confirm(`Delete “${reportTitle(report)}” from your cloud library? Your local extension copy will remain available.`)) return;
   try {
     await apiFetch(`/api/reports?id=${encodeURIComponent(report.id)}`, { method: "DELETE" });
     reports = reports.filter((candidate) => candidate.id !== report.id);

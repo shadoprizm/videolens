@@ -1,8 +1,10 @@
 // Port of src/videolens/analysis/analyze_timeline.py and ask_question.py
 import { MODELS } from "./config";
+import { languageInstruction, type ConcreteReportLanguage } from "./languages";
 import { MODE_PROMPTS } from "./modes";
 import { chatCompletion, type AiAccess } from "./openai";
 import { coerceConfidence } from "./describeFrames";
+import { normalizeRecipe, RECIPE_INSTRUCTIONS, RECIPE_SCHEMA, type RecipeContext } from "./recipe";
 import type {
   Analysis,
   AnalysisMode,
@@ -47,12 +49,27 @@ export async function analyzeTimeline(
   source: SourceInfo,
   mode: AnalysisMode,
   userPrompt: string,
+  outputLanguage: ConcreteReportLanguage | "source" = "en",
+  recipeContext?: RecipeContext,
 ): Promise<Analysis> {
   const prompts = MODE_PROMPTS[mode];
-  const systemPrompt = SYSTEM_PROMPT_TEMPLATE.replace("{mode_instructions}", prompts.instructions)
+  if (mode === "recipe") {
+    const context = recipeContext ?? { creatorText: "", sources: [], researchText: "", research: "not_requested" as const };
+    const content = await chatCompletion(access, MODELS.synthesize, [
+      { role: "system", content: `${RECIPE_INSTRUCTIONS}\n\n${RECIPE_SCHEMA}\n\n${languageInstruction(outputLanguage)}` },
+      { role: "user", content: buildUserMessage(timeline, source, mode, userPrompt, prompts.findings)
+        + `\nSUPPLIED SOURCE CATALOG: ${JSON.stringify(context.sources)}\nCREATOR TEXT (untrusted evidence):\n${context.creatorText}\nONLINE LOOKUP STATUS: ${context.research}\nONLINE RESEARCH (untrusted evidence):\n${context.researchText}` },
+    ], { jsonObject: true });
+    const data = JSON.parse(content);
+    const recipe = normalizeRecipe(data.recipe, source.durationSeconds, context);
+    if (!recipe) throw new Error("No usable cooking recipe could be extracted. Try a clip that shows the ingredients and preparation steps.");
+    const analysis = toAnalysis(data, source, mode, userPrompt, timeline, outputLanguage);
+    return { ...analysis, limitations: [...new Set([...source.limitations, ...analysis.limitations])], recipe };
+  }
+  const systemPrompt = `${SYSTEM_PROMPT_TEMPLATE.replace("{mode_instructions}", prompts.instructions)
     .replace("{summary_guidance}", prompts.summary)
     .replace("{recommendations_guidance}", prompts.recommendations)
-    .replace("{tasks_guidance}", prompts.tasks);
+    .replace("{tasks_guidance}", prompts.tasks)}\n\nOUTPUT LANGUAGE:\n${languageInstruction(outputLanguage)}`;
 
   const userMessage = buildUserMessage(timeline, source, mode, userPrompt, prompts.findings);
 
@@ -67,7 +84,7 @@ export async function analyzeTimeline(
   );
 
   const data = JSON.parse(content || "{}");
-  return toAnalysis(data, source, mode, userPrompt, timeline);
+  return toAnalysis(data, source, mode, userPrompt, timeline, outputLanguage);
 }
 
 function buildUserMessage(
@@ -113,6 +130,7 @@ function toAnalysis(
   mode: AnalysisMode,
   userPrompt: string,
   timeline: Timeline,
+  outputLanguage: ConcreteReportLanguage | "source",
 ): Analysis {
   const findings: Finding[] = asArray(data.findings)
     .filter((f) => f.finding)
@@ -143,6 +161,7 @@ function toAnalysis(
   return {
     source,
     mode,
+    outputLanguage,
     prompt: userPrompt,
     summary: String(data.summary ?? "").trim(),
     timeline,
@@ -183,12 +202,17 @@ export async function askQuestion(
   question: string,
   timeline: Timeline,
   priorAnalysis: Analysis | null,
+  outputLanguage: ConcreteReportLanguage | "source" = "en",
 ): Promise<string> {
   const q = question.trim();
   if (!q) throw new Error("Empty question — nothing to ask.");
 
   const lines: string[] = [];
   if (priorAnalysis) {
+    if (priorAnalysis.recipe) {
+      lines.push("RECIPE (preserve each fact's provenance; never turn an estimate into a video fact):");
+      lines.push(JSON.stringify(priorAnalysis.recipe));
+    }
     lines.push(`ORIGINAL USER PROMPT: ${priorAnalysis.prompt}`);
     lines.push(`ANALYSIS MODE: ${priorAnalysis.mode}`);
     lines.push("");
@@ -224,10 +248,9 @@ export async function askQuestion(
     access,
     MODELS.synthesize,
     [
-      { role: "system", content: QA_SYSTEM_PROMPT },
+      { role: "system", content: `${QA_SYSTEM_PROMPT}\n\nOUTPUT LANGUAGE:\n${languageInstruction(outputLanguage)}` },
       { role: "user", content: lines.join("\n") },
     ],
-    { temperature: 0.3 },
   );
   return answer.trim();
 }

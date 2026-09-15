@@ -1,6 +1,7 @@
 import { analyzeTimeline, askQuestion, estimateCost, fmtTs } from "../lib/analyze";
 import {
   captureTabFrames,
+  ensureTabCapturePermission,
   fetchYouTubeCaptions,
   getActiveTabId,
   makeTabSource,
@@ -9,7 +10,20 @@ import {
 } from "../lib/capture";
 import { DEFAULTS, LINKS } from "../lib/config";
 import { describeFrames } from "../lib/describeFrames";
-import { DEMO_ANALYSIS, DEMO_QA } from "../lib/demo";
+import { demoContent } from "../lib/demo";
+import { uploadLocalLibrary, uploadReportCopy } from "../lib/cloudLibrary";
+import { cloudCopy } from "../lib/cloudLibraryCopy";
+import { readerCopy } from "../lib/readerCopy";
+import { browserLanguage, documentLanguage, modeDefaultPrompt, modeLabel, t, type UiKey } from "../lib/i18n";
+import {
+  normalizeLanguageTag,
+  reportCopy,
+  REPORT_LANGUAGE_NAMES,
+  REPORT_LANGUAGE_OPTIONS,
+  resolveReportLanguage,
+  type ConcreteReportLanguage,
+  type ReportLanguage,
+} from "../lib/languages";
 import {
   captureLocalFrames,
   closeLocalVideo,
@@ -38,33 +52,62 @@ import {
   toMarkdown,
 } from "../lib/report";
 import {
+  clearReportLibrary,
+  countSavedReports,
+  deleteSavedReport,
+  ensurePersistentReportStorage,
+  exportReportLibrary,
+  getReportLibraryStorageStatus,
+  getSavedReport,
+  importReportLibrary,
+  listSavedReports,
+  MAX_LIBRARY_IMPORT_BYTES,
+  ReportLibraryQuotaError,
+  saveReport,
+  type SavedReportSummary,
+} from "../lib/reportLibrary";
+import {
   acceptPrivacyDisclosure,
   getAnalysisProvider,
   getApiKey,
+  hasCompletedFirstReport,
   getMaxFrames,
   getProCloudSave,
+  getCloudLibraryEnabled,
+  setCloudLibraryEnabled,
+  getReportLanguage,
   getProSession,
   hasAcceptedPrivacyDisclosure,
   resetPrivacyDisclosure,
+  markFirstReportCompleted,
   setAnalysisProvider,
   setApiKey,
   setMaxFrames,
-  setProCloudSave,
+  setReportLanguage,
   type AnalysisProvider,
   type StoredProSession,
 } from "../lib/storage";
 import { buildTimeline } from "../lib/timeline";
-import { MODE_ORDER, MODE_PROMPTS } from "../lib/modes";
+import { MODE_ORDER } from "../lib/modes";
+import { recipeFrameTimestamps, type RecipeContext } from "../lib/recipe";
+import { describeRecipeFrames } from "../lib/describeFrames";
+import { fetchRecipeCreatorText } from "../lib/capture";
+import { analyzeRecipeWithResearch } from "../lib/recipeAnalysis";
+import { recipeCopy } from "../lib/recipeCopy";
+import { recipeHtml, RECIPE_CSS } from "../lib/recipeReport";
 import type { Analysis, AnalysisMode, CapturedFrame, QaEntry, Transcript } from "../lib/types";
 
 type SourceKind = "tab" | "file";
+type PanelView = "home" | "reportSetup" | "accessSetup" | "library" | "settings" | "progress" | "results";
 
 interface State {
-  view: "main" | "settings" | "progress" | "results";
+  recipeLookup: boolean;
+  view: PanelView;
   sourceKind: SourceKind;
   mode: AnalysisMode;
   prompt: string;
   maxFrames: number;
+  setupMaxFrames: number;
   localVideo: LocalVideo | null;
   analysis: Analysis | null;
   qa: QaEntry[];
@@ -75,14 +118,34 @@ interface State {
   proEntitlement: ProEntitlement | null;
   proCloudSave: boolean;
   managedReportId: string | null;
+  reportLanguage: ReportLanguage;
+  savedReportId: string | null;
+  recentReports: SavedReportSummary[];
+  savedReportCount: number;
+  libraryError: string | null;
+  libraryExpanded: boolean;
+  libraryQuery: string;
+  libraryLatestReportId: string | null;
+  libraryInvalidCount: number;
+  libraryNotice: string | null;
+  libraryStorageRatio: number | null;
+  libraryStorageFull: boolean;
+  libraryLoading: boolean;
+  hasCompletedFirstReport: boolean;
+  privateAccessReady: boolean;
+  modePickerExpanded: boolean;
+  moreOptionsExpanded: boolean;
+  startupError: string | null;
 }
 
 const state: State = {
-  view: "main",
+  recipeLookup: false,
+  view: "home",
   sourceKind: "tab",
   mode: "general",
   prompt: "",
   maxFrames: DEFAULTS.maxFrames,
+  setupMaxFrames: DEFAULTS.maxFrames,
   localVideo: null,
   analysis: null,
   qa: [],
@@ -93,88 +156,277 @@ const state: State = {
   proEntitlement: null,
   proCloudSave: false,
   managedReportId: null,
+  reportLanguage: "browser",
+  savedReportId: null,
+  recentReports: [],
+  savedReportCount: 0,
+  libraryError: null,
+  libraryExpanded: false,
+  libraryQuery: "",
+  libraryLatestReportId: null,
+  libraryInvalidCount: 0,
+  libraryNotice: null,
+  libraryStorageRatio: null,
+  libraryStorageFull: false,
+  libraryLoading: true,
+  hasCompletedFirstReport: false,
+  privateAccessReady: false,
+  modePickerExpanded: false,
+  moreOptionsExpanded: false,
+  startupError: null,
 };
 
 const PRIMARY_REPORT_MODES: AnalysisMode[] = ["general", "key_insights", "tutorial", "interview"];
+const recipeStyle = document.createElement("style");
+recipeStyle.textContent = RECIPE_CSS;
+document.head.appendChild(recipeStyle);
+let librarySearchTimer: number | null = null;
+let libraryRefreshSequence = 0;
+let cloudLibraryEnabled = false;
+let cloudUploadBusy = false;
+let cloudUploadCancelled = false;
+let cloudUploadNotice = "";
+
+function updateCloudUploadStatus(): void {
+  const status = document.getElementById("cloud-upload-status");
+  if (status) status.textContent = cloudUploadNotice;
+  const button = document.getElementById("upload-library") as HTMLButtonElement | null;
+  if (button) button.disabled = cloudUploadBusy;
+}
+
+async function uploadExistingLibrary(): Promise<void> {
+  if (cloudUploadBusy || !state.proSession) return;
+  const session = state.proSession;
+  cloudUploadBusy = true;
+  cloudUploadCancelled = false;
+  updateCloudUploadStatus();
+  try {
+    const count = await countSavedReports();
+    if (count && !confirm(cloudCopy("confirm", { count, email: session.email }))) return;
+    const result = await uploadLocalLibrary(session.token, (progress) => {
+      cloudUploadNotice = `${cloudCopy("progress", { done: progress.done, total: progress.total, failed: progress.failed })} ${cloudCopy("stay")}`;
+      updateCloudUploadStatus();
+    }, () => cloudUploadCancelled);
+    cloudUploadNotice = result.cancelled ? cloudCopy("stopped") : cloudCopy("finished", { done: result.done, failed: result.failed, skipped: result.skipped });
+  } catch {
+    cloudUploadNotice = cloudCopy("failed");
+  } finally {
+    cloudUploadBusy = false;
+    updateCloudUploadStatus();
+  }
+}
 
 const root = document.getElementById("view-root")!;
 const badge = document.getElementById("entitlement-badge")!;
+const libraryButton = document.getElementById("btn-library") as HTMLButtonElement;
+const libraryLabel = document.getElementById("library-label")!;
 const settingsButton = document.getElementById("btn-settings") as HTMLButtonElement;
 const hasExtensionStorage = typeof chrome !== "undefined" && Boolean(chrome.storage?.local);
+document.documentElement.lang = documentLanguage();
+document.title = "VideoLens";
+libraryButton.title = t("reportLibrary");
+libraryButton.setAttribute("aria-label", t("reportLibrary"));
+libraryLabel.textContent = t("libraryNav");
+settingsButton.title = t("settings");
+settingsButton.setAttribute("aria-label", t("settings"));
+libraryButton.addEventListener("click", () => {
+  if (state.startupError || !state.privacyDisclosureAccepted || state.view === "progress") return;
+  state.view = state.view === "library" ? "home" : "library";
+  state.error = null;
+  render();
+});
 settingsButton.addEventListener("click", () => {
-  if (!state.privacyDisclosureAccepted) return;
-  state.view = state.view === "settings" ? "main" : "settings";
+  if (state.startupError || !state.privacyDisclosureAccepted || state.view === "progress") return;
+  state.view = state.view === "settings" ? "home" : "settings";
+  state.error = null;
   render();
 });
 
-void (async () => {
-  // A localhost-only preview path lets the exact packaged UI and report be
-  // visually tested and captured without installing an unpacked extension.
-  if (!hasExtensionStorage) {
+void initializeSidePanel();
+
+async function initializeSidePanel(): Promise<void> {
+  try {
+    // A localhost-only preview path lets the exact packaged UI and report be
+    // visually tested and captured without installing an unpacked extension.
+    if (!hasExtensionStorage) {
+      await initializePreview();
+      render();
+      return;
+    }
+
+    state.privacyDisclosureAccepted = await hasAcceptedPrivacyDisclosure();
+    if (!state.privacyDisclosureAccepted) {
+      render();
+      return;
+    }
+
+    await loadStoredSettings();
+
+    // Render from local state before optional network and IndexedDB recovery.
+    // A slow Pro endpoint or busy report library must never leave the panel blank.
+    render();
+    void hydrateDeferredState();
+  } catch (error) {
+    console.error("VideoLens startup:", error);
+    state.startupError = t("startupFailedBody");
+    render();
+  }
+}
+
+async function loadStoredSettings(): Promise<void> {
+  const [maxFrames, reportLanguage, analysisProvider, proCloudSave, proSession, apiKey, completedFirstReport, libraryCloudEnabled] = await Promise.all([
+    getMaxFrames(DEFAULTS.maxFrames),
+    getReportLanguage(),
+    getAnalysisProvider(),
+    getProCloudSave(),
+    getProSession(),
+    getApiKey(),
+    hasCompletedFirstReport(),
+    getCloudLibraryEnabled(),
+  ]);
+  state.maxFrames = maxFrames;
+  state.reportLanguage = reportLanguage;
+  state.analysisProvider = analysisProvider;
+  state.proCloudSave = proCloudSave;
+  cloudLibraryEnabled = libraryCloudEnabled;
+  state.proSession = proSession;
+  state.privateAccessReady = Boolean(apiKey);
+  state.hasCompletedFirstReport = completedFirstReport;
+}
+
+async function initializePreview(): Promise<void> {
     const preview = new URLSearchParams(location.search).get("preview");
+    const demo = demoContent(documentLanguage());
     if (preview === "report") {
-      document.open();
-      document.write(toHtmlReport(DEMO_ANALYSIS, DEMO_QA));
-      document.close();
+      const reportDocument = new window.DOMParser().parseFromString(toHtmlReport(demo.analysis, demo.qa), "text/html");
+      document.documentElement.replaceWith(document.importNode(reportDocument.documentElement, true));
       return;
     }
     state.privacyDisclosureAccepted = preview !== "privacy";
     if (preview === "results") {
-      state.analysis = DEMO_ANALYSIS;
-      state.qa = [...DEMO_QA];
+      state.analysis = demo.analysis;
+      state.qa = [...demo.qa];
       state.view = "results";
     }
-    render();
-    return;
-  }
-  state.privacyDisclosureAccepted = await hasAcceptedPrivacyDisclosure();
-  if (!state.privacyDisclosureAccepted) {
-    render();
-    return;
-  }
-  state.maxFrames = await getMaxFrames(DEFAULTS.maxFrames);
-  state.analysisProvider = await getAnalysisProvider();
-  state.proCloudSave = await getProCloudSave();
-  state.proSession = await getProSession();
-  if (!state.proSession) state.proSession = await resumeProConnection();
-  if (state.proSession) {
-    state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => null);
-  } else if (state.analysisProvider === "pro") {
-    state.analysisProvider = "byok";
-    await setAnalysisProvider("byok");
-  }
+    if (preview === "library" && typeof indexedDB !== "undefined") {
+      if (await countSavedReports() === 0) {
+        await saveReport({ analysis: demo.analysis, qa: demo.qa });
+        await saveReport({
+          analysis: {
+            ...demo.analysis,
+            source: { ...demo.analysis.source, title: "Product onboarding review" },
+            mode: "ux",
+          },
+          qa: [],
+        });
+      }
+      const library = await listSavedReports({ limit: 6 });
+      state.recentReports = library.reports;
+      state.savedReportCount = library.total;
+      state.libraryLatestReportId = library.latestReportId;
+      state.libraryInvalidCount = library.invalid;
+      state.libraryLoading = false;
+      state.view = "library";
+    }
+    if (preview !== "library") state.libraryLoading = false;
+}
+
+async function hydrateDeferredState(): Promise<void> {
+  await Promise.allSettled([
+    hydrateReportLibrary(),
+    hydrateProState(),
+  ]);
   render();
-})();
+}
+
+async function hydrateReportLibrary(): Promise<void> {
+  try {
+    await ensurePersistentReportStorage();
+    await refreshReportLibrary();
+    if (!state.hasCompletedFirstReport && state.savedReportCount > 0) {
+      state.hasCompletedFirstReport = true;
+      if (hasExtensionStorage) await markFirstReportCompleted();
+    }
+  } finally {
+    state.libraryLoading = false;
+  }
+}
+
+async function hydrateProState(): Promise<void> {
+  try {
+    if (!state.proSession) state.proSession = await resumeProConnection();
+    state.proEntitlement = state.proSession
+      ? await fetchProEntitlement(state.proSession.token).catch(() => null)
+      : null;
+  } catch (error) {
+    console.error("Pro recovery:", error);
+    state.proEntitlement = null;
+  }
+}
 
 // ── rendering ───────────────────────────────────────────────────────────────
 
 function render(): void {
-  settingsButton.disabled = !state.privacyDisclosureAccepted;
+  const navigationDisabled = Boolean(state.startupError) || !state.privacyDisclosureAccepted || state.view === "progress";
+  settingsButton.disabled = navigationDisabled;
+  libraryButton.disabled = navigationDisabled;
+  settingsButton.classList.toggle("active", state.view === "settings");
+  libraryButton.classList.toggle("active", state.view === "library");
   renderBadge();
+  root.classList.toggle(
+    "results-view",
+    !state.startupError && state.privacyDisclosureAccepted && state.view === "results" && Boolean(state.analysis),
+  );
   root.replaceChildren();
-  if (!state.privacyDisclosureAccepted) renderPrivacyDisclosure();
+  if (state.startupError) renderStartupError();
+  else if (!state.privacyDisclosureAccepted) renderPrivacyDisclosure();
   else if (state.view === "settings") renderSettings();
+  else if (state.view === "library") renderLibraryView();
+  else if (state.view === "reportSetup") renderReportSetup();
+  else if (state.view === "accessSetup") renderAccessSetup();
   else if (state.view === "results" && state.analysis) renderResults();
-  else renderMain();
+  else renderHome();
+}
+
+function renderStartupError(): void {
+  badge.textContent = t("startupFailedBadge");
+  badge.className = "brand-badge";
+  const section = el(
+    `<section class="startup-state" role="alert">
+      <h1>${esc(t("startupFailedTitle"))}</h1>
+      <p>${esc(state.startupError ?? t("startupFailedBody"))}</p>
+      <button class="btn btn-primary" id="reload-extension">${esc(t("reloadExtension"))}</button>
+    </section>`,
+  );
+  section.querySelector("#reload-extension")!.addEventListener("click", () => location.reload());
+  root.appendChild(section);
 }
 
 function renderPrivacyDisclosure(): void {
-  badge.textContent = "Privacy first";
+  badge.textContent = t("privacyFirst");
   badge.className = "brand-badge";
 
   const disclosure = el(
     `<section class="privacy-disclosure" aria-labelledby="privacy-title">
       <div class="privacy-lock" aria-hidden="true">✓</div>
-      <h1 id="privacy-title">Before you analyze</h1>
-      <p>VideoLens needs your permission to handle the data required for AI video analysis.</p>
-      <ul class="privacy-list">
-        <li><b>Private / BYOK mode:</b> the selected video's frames, audio or captions, page title, and your prompt go directly from Chrome to OpenAI using your key. VideoLens does not receive them.</li>
-        <li><b>Pro / Managed mode:</b> the same analysis content passes through VideoLens to OpenAI so you do not need an API key. Raw frames and audio are not kept.</li>
-        <li><b>Cloud reports are optional:</b> a completed report is stored in your VideoLens account only when you turn on cloud saving.</li>
-      </ul>
-      <div class="privacy-note">Your OpenAI key always stays in Chrome. VideoLens runs no extension analytics and never sells your data. You can use Private mode forever without creating an account.</div>
-      <button class="btn btn-primary" id="accept-privacy">I agree to this data use — Continue</button>
-      <p class="privacy-links"><a href="${LINKS.privacy}" target="_blank">Read the full privacy policy</a></p>
+      <h1 id="privacy-title">${esc(t("beforeAnalyze"))}</h1>
+      <p>${esc(t("disclosureIntro"))}</p>
+      <div class="privacy-promises">
+        <p><b>${esc(t("privacyLocalSummary"))}</b></p>
+        <p><b>${esc(t("privacyChoiceSummary"))}</b></p>
+      </div>
+      <details class="privacy-details">
+        <summary>${esc(t("privacyDetails"))}</summary>
+        <ul class="privacy-list">
+          <li><b>${esc(t("disclosurePrivateTitle"))}</b> ${esc(t("disclosurePrivateBody"))}</li>
+          <li><b>${esc(t("disclosureProTitle"))}</b> ${esc(t("disclosureProBody"))}</li>
+          <li><b>${esc(t("disclosureLocalTitle"))}</b> ${esc(t("disclosureLocalBody"))}</li>
+          <li><b>${esc(t("disclosureCloudTitle"))}</b> ${esc(t("disclosureCloudBody"))}</li>
+        </ul>
+        <div class="privacy-note">${esc(t("disclosureNote"))}</div>
+      </details>
+      <button class="btn btn-primary" id="accept-privacy">${esc(t("disclosureAccept"))}</button>
+      <p class="privacy-links"><a href="${LINKS.privacy}" target="_blank">${esc(t("privacyPolicy"))}</a></p>
     </section>`,
   );
   root.appendChild(disclosure);
@@ -182,135 +434,189 @@ function renderPrivacyDisclosure(): void {
   disclosure.querySelector("#accept-privacy")!.addEventListener("click", async () => {
     await acceptPrivacyDisclosure();
     state.privacyDisclosureAccepted = true;
-    state.maxFrames = await getMaxFrames(DEFAULTS.maxFrames);
+    await loadStoredSettings();
     render();
+    void hydrateDeferredState();
   });
 }
 
 function renderBadge(): void {
-  if (state.privacyDisclosureAccepted) {
-    badge.textContent = state.analysisProvider === "pro" ? "PRO" : "PRIVATE";
-    badge.className = `brand-badge ${state.analysisProvider === "pro" ? "pro" : ""}`;
+  if (!state.privacyDisclosureAccepted) return;
+  const ready = isProviderReady(state.analysisProvider);
+  badge.textContent = ready ? (state.analysisProvider === "pro" ? "PRO" : t("privateBadge")) : "";
+  badge.className = `brand-badge ${ready && state.analysisProvider === "pro" ? "pro" : ""}`;
+}
+
+function renderHome(): void {
+  appendCurrentError();
+
+  const introduction = state.hasCompletedFirstReport
+    ? el(`<section class="home-heading compact-home"><h1>${esc(t("newReport"))}</h1></section>`)
+    : el(
+        `<section class="product-intro home-heading">
+          <div class="product-kicker">${esc(t("productKicker"))}</div>
+          <h1>${esc(t("productTitle"))}</h1>
+          <p>${esc(t("productBody"))}</p>
+        </section>`,
+      );
+  root.appendChild(introduction);
+
+  const sourceSection = el(
+    `<section class="source-start" aria-labelledby="source-title">
+      <h2 id="source-title">${esc(t("chooseSource"))}</h2>
+      <div class="source-actions"></div>
+    </section>`,
+  );
+  const actions = sourceSection.querySelector(".source-actions")!;
+  const pageButton = el(
+    `<button class="source-choice source-choice-primary" id="choose-page-video">
+      <span class="source-choice-icon" aria-hidden="true">▶</span>
+      <span><b>${esc(t("videoOnPage"))}</b><small>${esc(t("pageSourceHelp"))}</small></span>
+      <span class="source-choice-arrow" aria-hidden="true">→</span>
+    </button>`,
+  ) as HTMLButtonElement;
+  const fileButton = el(
+    `<button class="source-choice" id="choose-local-file">
+      <span class="source-choice-icon file-icon" aria-hidden="true">＋</span>
+      <span><b>${esc(t("localFile"))}</b><small>${esc(t("fileSourceHelp"))}</small></span>
+      <span class="source-choice-arrow" aria-hidden="true">→</span>
+    </button>`,
+  ) as HTMLButtonElement;
+  const fileInput = el(`<input type="file" accept="video/*,.mkv" hidden>`) as HTMLInputElement;
+  pageButton.addEventListener("click", () => openReportSetup("tab"));
+  fileButton.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => void selectLocalVideo(fileInput));
+  actions.append(pageButton, fileButton, fileInput);
+  root.appendChild(sourceSection);
+
+  if (!state.hasCompletedFirstReport) {
+    const sample = el(`<button class="sample-link home-sample" id="view-sample">${esc(t("sampleReport"))}</button>`);
+    sample.addEventListener("click", showSampleReport);
+    root.appendChild(sample);
   }
 }
 
-function renderMain(): void {
-  if (state.error) {
-    root.appendChild(el(`<div class="banner error">${esc(state.error)}</div>`));
-  }
+function openReportSetup(sourceKind: SourceKind): void {
+  state.sourceKind = sourceKind;
+  state.mode = "general";
+  state.prompt = "";
+  state.setupMaxFrames = Math.min(state.maxFrames, state.analysisProvider === "pro" ? 40 : 80);
+  state.modePickerExpanded = false;
+  state.moreOptionsExpanded = false;
+  state.analysis = null;
+  state.qa = [];
+  state.savedReportId = null;
+  state.managedReportId = null;
+  state.error = null;
+  state.view = "reportSetup";
+  render();
+}
 
-  root.appendChild(
-    el(
-      `<div class="product-intro">
-        <div class="product-kicker">Video → professional report</div>
-        <h1>Turn the video into something useful.</h1>
-        <p>Choose a report style, then VideoLens extracts the important ideas and cites the exact moments that support them.</p>
-        <button class="sample-link" id="view-sample">See a complete sample report →</button>
-      </div>`,
-    ),
-  );
-  root.querySelector("#view-sample")!.addEventListener("click", () => {
-    state.analysis = DEMO_ANALYSIS;
-    state.qa = [...DEMO_QA];
-    state.view = "results";
+async function selectLocalVideo(input: HTMLInputElement): Promise<void> {
+  const file = input.files?.[0];
+  if (!file) return;
+  if (state.localVideo) closeLocalVideo(state.localVideo);
+  state.localVideo = null;
+  state.error = null;
+  try {
+    state.localVideo = await openLocalVideo(file);
+    openReportSetup("file");
+  } catch (error) {
+    state.error = localizeKnownError((error as Error).message);
+    state.view = "home";
+    render();
+  }
+}
+
+function showSampleReport(): void {
+  const demo = demoContent(documentLanguage());
+  state.analysis = demo.analysis;
+  state.qa = [...demo.qa];
+  state.savedReportId = null;
+  state.managedReportId = null;
+  state.view = "results";
+  state.error = null;
+  render();
+}
+
+function renderReportSetup(): void {
+  const back = el(`<button class="back-link">${esc(t("back"))}</button>`);
+  back.addEventListener("click", () => {
+    state.view = "home";
     state.error = null;
     render();
   });
+  root.appendChild(back);
+  appendCurrentError();
 
-  const providerSection = el(`<div class="section"><span class="label">Analysis mode</span></div>`);
-  const providerPicker = el(`<div class="seg provider-seg"></div>`);
-  const privateButton = el(
-    `<button class="${state.analysisProvider === "byok" ? "active" : ""}">Private · your key</button>`,
-  ) as HTMLButtonElement;
-  const proButton = el(
-    `<button class="${state.analysisProvider === "pro" ? "active pro-active" : ""}">Pro · managed</button>`,
-  ) as HTMLButtonElement;
-  privateButton.addEventListener("click", () => void chooseProvider("byok"));
-  proButton.addEventListener("click", () => void chooseProvider("pro"));
-  providerPicker.append(privateButton, proButton);
-  providerSection.appendChild(providerPicker);
-  if (state.analysisProvider === "pro") {
-    const entitlement = state.proEntitlement;
-    providerSection.appendChild(
-      el(
-        `<div class="provider-note pro-note"><b>${state.proSession ? esc(state.proSession.email) : "Account required"}</b><span>` +
-          (entitlement
-            ? `${entitlement.managedReportsRemaining} of ${entitlement.managedReportsLimit} managed reports remaining`
-            : "Connect your account in Settings to use managed AI") +
-          `</span></div>`,
-      ),
-    );
-  } else {
-    providerSection.appendChild(
-      el(`<p class="hint">Your content goes directly to OpenAI. VideoLens never receives your key, prompt, media, or report.</p>`),
-    );
-  }
-  root.appendChild(providerSection);
+  root.appendChild(
+    el(`<section class="setup-heading"><div class="product-kicker">${esc(t("reportSetupKicker"))}</div><h1>${esc(t("confirmReport"))}</h1></section>`),
+  );
 
-  // Source picker
-  const sourceSection = el(`<div class="section"><span class="label">Source</span></div>`);
-  const seg = el(`<div class="seg"></div>`);
-  const tabBtn = el(
-    `<button class="${state.sourceKind === "tab" ? "active" : ""}">Video on this page</button>`,
-  ) as HTMLButtonElement;
-  const fileBtn = el(
-    `<button class="${state.sourceKind === "file" ? "active" : ""}">Local file</button>`,
-  ) as HTMLButtonElement;
-  tabBtn.addEventListener("click", () => {
-    state.sourceKind = "tab";
+  const sourceName = state.sourceKind === "file" && state.localVideo
+    ? state.localVideo.file.name
+    : t("videoOnPage");
+  const sourceMeta = state.sourceKind === "file" && state.localVideo
+    ? fmtTs(state.localVideo.duration)
+    : t("pageSourceHelp");
+  root.appendChild(
+    el(`<div class="source-summary"><span class="source-summary-icon" aria-hidden="true">${state.sourceKind === "file" ? "＋" : "▶"}</span><span><b>${esc(sourceName)}</b><small>${esc(sourceMeta)}</small></span></div>`),
+  );
+
+  const modeCard = el(
+    `<section class="report-choice" aria-labelledby="report-choice-title">
+      <span class="label">${esc(t("reportStyle"))}</span>
+      <div class="report-choice-row">
+        <div><h2 id="report-choice-title">${esc(modeLabel(state.mode))}</h2><p>${esc(modeDefaultPrompt(state.mode))}</p></div>
+        <button class="change-link" id="change-report-type" aria-expanded="${state.modePickerExpanded}">${esc(t("changeReportType"))}</button>
+      </div>
+    </section>`,
+  );
+  modeCard.querySelector("#change-report-type")!.addEventListener("click", () => {
+    state.modePickerExpanded = !state.modePickerExpanded;
     render();
   });
-  fileBtn.addEventListener("click", () => {
-    state.sourceKind = "file";
-    render();
-  });
-  seg.append(tabBtn, fileBtn);
-  sourceSection.appendChild(seg);
+  if (state.modePickerExpanded) modeCard.appendChild(createModeSelect());
+  root.appendChild(modeCard);
 
-  if (state.sourceKind === "tab") {
-    sourceSection.appendChild(
-      el(
-        `<p class="hint">Open the page with the video (YouTube or any HTML5 player), click the VideoLens toolbar icon there, then analyze. DRM-protected sites (Netflix etc.) can't be captured.</p>`,
-      ),
-    );
-  } else {
-    const drop = el(
-      `<div class="file-drop ${state.localVideo ? "has-file" : ""}" style="margin-top:8px">` +
-        (state.localVideo
-          ? `<b>${esc(state.localVideo.file.name)}</b><br>${fmtTs(state.localVideo.duration)} · click to change`
-          : "Click to choose a video file<br><span style='font-size:11px'>mp4 / webm / mov — processed locally</span>") +
-        `</div>`,
-    );
-    const input = el(`<input type="file" accept="video/*,.mkv" style="display:none">`) as HTMLInputElement;
-    drop.addEventListener("click", () => input.click());
-    input.addEventListener("change", async () => {
-      const file = input.files?.[0];
-      if (!file) return;
-      if (state.localVideo) closeLocalVideo(state.localVideo);
-      state.localVideo = null;
-      state.error = null;
-      try {
-        state.localVideo = await openLocalVideo(file);
-      } catch (e) {
-        state.error = (e as Error).message;
-      }
-      render();
+  if (state.mode === "recipe") {
+    const copy = recipeCopy(documentLanguage());
+    const options = el(`<section class="card"><p class="hint">${esc(copy.sampling)}</p><label class="recipe-lookup-label"><input type="checkbox" id="recipe-lookup" ${state.recipeLookup ? "checked" : ""}> ${esc(copy.lookup)}</label><p class="hint">${esc(copy.lookupHelp)}</p></section>`);
+    options.querySelector<HTMLInputElement>("#recipe-lookup")!.addEventListener("change", event => {
+      state.recipeLookup = (event.target as HTMLInputElement).checked;
     });
-    sourceSection.append(drop, input);
+    root.appendChild(options);
   }
-  root.appendChild(sourceSection);
 
-  // Report style
-  const modeSection = el(`<div class="section"><span class="label">Report style</span></div>`);
-  const select = el(`<select></select>`) as HTMLSelectElement;
+  const advanced = el(
+    `<details class="advanced-options" ${state.moreOptionsExpanded ? "open" : ""}>
+      <summary>${esc(t("moreOptions"))}<span>${esc(t("moreOptionsSummary"))}</span></summary>
+      <div class="advanced-options-body"></div>
+    </details>`,
+  ) as HTMLDetailsElement;
+  advanced.addEventListener("toggle", () => {
+    state.moreOptionsExpanded = advanced.open;
+  });
+  renderAdvancedOptions(advanced.querySelector(".advanced-options-body")!);
+  root.appendChild(advanced);
+
+  const run = el(`<button class="btn btn-primary create-report">${esc(t("createReport"))}</button>`) as HTMLButtonElement;
+  run.addEventListener("click", requestAnalysisStart);
+  const cost = el(`<div class="cost setup-cost"></div>`);
+  updateCostDisclosure(cost);
+  root.append(run, cost);
+}
+
+function createModeSelect(): HTMLSelectElement {
+  const select = el(`<select class="report-mode-select" aria-label="${esc(t("reportStyle"))}"></select>`) as HTMLSelectElement;
   const primaryGroup = document.createElement("optgroup");
-  primaryGroup.label = "Written reports";
+  primaryGroup.label = t("writtenReports");
   const specialistGroup = document.createElement("optgroup");
-  specialistGroup.label = "Specialized analysis";
+  specialistGroup.label = t("specializedAnalysis");
   for (const mode of MODE_ORDER) {
     const option = document.createElement("option");
     option.value = mode;
-    option.textContent = MODE_PROMPTS[mode].label;
+    option.textContent = modeLabel(mode);
     option.selected = mode === state.mode;
     (PRIMARY_REPORT_MODES.includes(mode) ? primaryGroup : specialistGroup).appendChild(option);
   }
@@ -318,63 +624,521 @@ function renderMain(): void {
   select.addEventListener("change", () => {
     state.mode = select.value as AnalysisMode;
     state.prompt = "";
+    state.modePickerExpanded = false;
     render();
   });
-  modeSection.append(
-    select,
-    el(`<p class="hint mode-hint">${esc(MODE_PROMPTS[state.mode].defaultPrompt)}</p>`),
-  );
-  root.appendChild(modeSection);
+  return select;
+}
 
-  // Prompt
-  const promptSection = el(`<div class="section"><span class="label">Focus <span class="optional">optional</span></span></div>`);
-  const textarea = el(
-    `<textarea placeholder="${esc(MODE_PROMPTS[state.mode].defaultPrompt)}"></textarea>`,
-  ) as HTMLTextAreaElement;
+function renderAdvancedOptions(container: Element): void {
+  const languageSection = el(`<div class="section"><span class="label">${esc(t("reportLanguage"))}</span></div>`);
+  const languageSelect = el(`<select></select>`) as HTMLSelectElement;
+  for (const language of REPORT_LANGUAGE_OPTIONS) {
+    const option = document.createElement("option");
+    option.value = language;
+    option.textContent = language === "browser"
+      ? t("browserLanguage")
+      : language === "source"
+        ? t("sameAsVideo")
+        : REPORT_LANGUAGE_NAMES[language];
+    option.selected = language === state.reportLanguage;
+    languageSelect.appendChild(option);
+  }
+  languageSelect.addEventListener("change", () => {
+    state.reportLanguage = languageSelect.value as ReportLanguage;
+    if (hasExtensionStorage) void setReportLanguage(state.reportLanguage);
+  });
+  languageSection.append(languageSelect, el(`<p class="hint">${esc(t("reportLanguageHelp"))}</p>`));
+
+  const promptSection = el(`<div class="section"><span class="label">${esc(t("focus"))} <span class="optional">${esc(t("optional"))}</span></span></div>`);
+  const textarea = el(`<textarea placeholder="${esc(modeDefaultPrompt(state.mode))}"></textarea>`) as HTMLTextAreaElement;
   textarea.value = state.prompt;
   textarea.addEventListener("input", () => (state.prompt = textarea.value));
   promptSection.appendChild(textarea);
-  root.appendChild(promptSection);
 
-  // Frames slider + cost
-  const framesSection = el(
-    `<div class="section"><span class="label">Max frames — <span id="mf-val">${state.maxFrames}</span></span></div>`,
-  );
-  const sliderMax = state.analysisProvider === "pro" ? 40 : 80;
-  const effectiveMaxFrames = Math.min(state.maxFrames, sliderMax);
+  const sliderMax = state.analysisProvider === "byok" ? 80 : 40;
+  const effectiveMaxFrames = Math.min(state.setupMaxFrames, sliderMax);
+  const framesSection = el(`<div class="section"><span class="label">${esc(t("maxFrames", { count: effectiveMaxFrames }))}</span></div>`);
   const slider = el(`<input type="range" min="5" max="${sliderMax}" step="5">`) as HTMLInputElement;
   slider.value = String(effectiveMaxFrames);
-  framesSection.querySelector("#mf-val")!.textContent = String(effectiveMaxFrames);
-  const cost = el(`<div class="cost"></div>`);
-  const updateCost = () => {
-    const minutes = state.sourceKind === "file" && state.localVideo ? state.localVideo.duration / 60 : 3.0;
-    if (state.analysisProvider === "pro") {
-      cost.innerHTML = `<b>Included in your managed-report allowance</b> · up to 40 sampled frames`;
-    } else {
-      const [low, high] = estimateCost(state.maxFrames, Math.max(0.5, minutes));
-      const assumed = state.sourceKind === "file" && state.localVideo ? "your file" : "~3-min video";
-      cost.innerHTML = `Estimated OpenAI cost: <b>~$${low.toFixed(2)}–$${high.toFixed(2)}</b> · ${assumed} · billed to your key`;
-    }
-  };
   slider.addEventListener("input", () => {
-    state.maxFrames = Number(slider.value);
-    framesSection.querySelector("#mf-val")!.textContent = slider.value;
-    updateCost();
-    void setMaxFrames(state.maxFrames);
+    state.setupMaxFrames = Number(slider.value);
+    state.maxFrames = state.setupMaxFrames;
+    framesSection.querySelector(".label")!.textContent = t("maxFrames", { count: state.setupMaxFrames });
+    const cost = root.querySelector<HTMLElement>(".setup-cost");
+    if (cost) updateCostDisclosure(cost);
+    if (hasExtensionStorage) void setMaxFrames(state.maxFrames);
   });
-  updateCost();
-  framesSection.append(slider);
-  root.append(framesSection);
+  framesSection.appendChild(slider);
+  container.append(languageSection, promptSection);
+  if (state.mode !== "recipe") container.append(framesSection);
+}
 
-  // Run
-  const run = el(`<button class="btn btn-primary">${state.analysisProvider === "pro" ? "Create managed report" : "Analyze privately"}</button>`) as HTMLButtonElement;
-  run.addEventListener("click", () => void runAnalysis());
-  root.append(run, cost);
+function updateCostDisclosure(cost: HTMLElement): void {
+  if (state.mode === "recipe") {
+    cost.textContent = recipeCopy(documentLanguage()).cost + (state.analysisProvider === "pro" && isProviderReady("pro") ? ` ${t("includedAllowance")}.` : "");
+    return;
+  }
+  if (!isProviderReady(state.analysisProvider)) {
+    cost.textContent = t("accessAfterCreate");
+    return;
+  }
+  if (state.analysisProvider === "pro") {
+    cost.replaceChildren(el(`<span><b>${esc(t("includedAllowance"))}</b> · ${esc(t("sampledFrames40"))}</span>`));
+    return;
+  }
+  const minutes = state.sourceKind === "file" && state.localVideo ? state.localVideo.duration / 60 : 3.0;
+  const [low, high] = estimateCost(state.setupMaxFrames, Math.max(0.5, minutes));
+  const assumed = state.sourceKind === "file" && state.localVideo ? t("yourFile") : t("threeMinuteVideo");
+  cost.replaceChildren(el(`<span>${esc(t("estimatedCost"))} <b>~$${low.toFixed(2)}–$${high.toFixed(2)}</b> · ${esc(assumed)} · ${esc(t("billedToKey"))}</span>`));
+}
+
+function requestAnalysisStart(): void {
+  state.error = null;
+  if (!isProviderReady(state.analysisProvider)) {
+    state.view = "accessSetup";
+    render();
+    return;
+  }
+  void runAnalysis();
+}
+
+function isProviderReady(provider: AnalysisProvider): boolean {
+  if (provider === "byok") return state.privateAccessReady;
+  if (!state.proSession) return false;
+  return state.proEntitlement === null
+    || (state.proEntitlement.canUseManagedAi && state.proEntitlement.managedReportsRemaining > 0);
+}
+
+function renderAccessSetup(): void {
+  const back = el(`<button class="back-link">${esc(t("backToReport"))}</button>`);
+  back.addEventListener("click", () => {
+    state.view = "reportSetup";
+    state.error = null;
+    render();
+  });
+  root.appendChild(back);
+  appendCurrentError();
+  root.appendChild(
+    el(`<section class="setup-heading access-heading"><div class="product-kicker">${esc(t("aiAccessKicker"))}</div><h1>${esc(t("chooseAiAccess"))}</h1><p>${esc(t("chooseAiAccessBody"))}</p></section>`),
+  );
+
+  const managedReady = isProviderReady("pro");
+  const managedUnavailable = Boolean(state.proSession && state.proEntitlement && !managedReady);
+  const managed = el(
+    `<section class="access-card managed-access">
+      <div class="access-card-heading"><span class="plan-pill">${state.proSession && state.proEntitlement?.plan === "pro" ? "PRO" : esc(t("starter"))}</span><h2>${esc(t("managedAccessTitle"))}</h2></div>
+      <p>${esc(t("managedAccessBody"))}</p>
+      ${state.proSession ? `<small>${esc(state.proSession.email)}${state.proEntitlement ? ` · ${esc(t("reportsRemaining", { remaining: state.proEntitlement.managedReportsRemaining, limit: state.proEntitlement.managedReportsLimit }))}` : ""}</small>` : ""}
+      <button class="btn btn-primary" id="managed-access-action">${esc(managedReady ? t("useManaged") : managedUnavailable ? t("accountBilling") : t("connectAccount"))}</button>
+    </section>`,
+  );
+  const managedButton = managed.querySelector<HTMLButtonElement>("#managed-access-action")!;
+  if (managedReady) {
+    managedButton.addEventListener("click", () => startWithProvider("pro"));
+  } else if (managedUnavailable) {
+    managedButton.addEventListener("click", openProAccount);
+  } else {
+    managedButton.addEventListener("click", () => void connectManagedAccess(managedButton));
+  }
+  root.appendChild(managed);
+
+  const privateCard = el(
+    `<section class="access-card private-access">
+      <div class="access-card-heading"><h2>${esc(t("privateAccessTitle"))}</h2></div>
+      <p>${esc(t("privateAccessBody"))}</p>
+      <div class="private-access-controls"></div>
+    </section>`,
+  );
+  const privateControls = privateCard.querySelector(".private-access-controls")!;
+  if (state.privateAccessReady) {
+    const usePrivate = el(`<button class="btn btn-secondary">${esc(t("usePrivateAccess"))}</button>`) as HTMLButtonElement;
+    usePrivate.addEventListener("click", () => startWithProvider("byok"));
+    privateControls.appendChild(usePrivate);
+  } else {
+    const keyRow = el(
+      `<form class="row"><input type="password" class="grow" id="access-api-key" placeholder="sk-..." aria-label="${esc(t("privateApiKey"))}"><button type="submit" class="btn btn-secondary btn-sm" id="save-access-key">${esc(t("saveKeyForReport"))}</button></form>`,
+    );
+    const keyInput = keyRow.querySelector<HTMLInputElement>("#access-api-key")!;
+    const saveButton = keyRow.querySelector<HTMLButtonElement>("#save-access-key")!;
+    keyRow.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void saveAccessKey(keyInput, saveButton);
+    });
+    privateControls.append(keyRow, el(`<p class="hint access-key-help"><a href="${LINKS.openaiKeys}" target="_blank">${esc(t("getKey"))}</a></p>`));
+  }
+  root.appendChild(privateCard);
+}
+
+function startWithProvider(provider: AnalysisProvider): void {
+  state.analysisProvider = provider;
+  state.error = null;
+  void runAnalysis();
+  if (hasExtensionStorage) void setAnalysisProvider(provider);
+}
+
+async function connectManagedAccess(button: HTMLButtonElement): Promise<void> {
+  button.disabled = true;
+  button.textContent = t("waitingApproval");
+  try {
+    state.proSession = await startProConnection();
+    cloudLibraryEnabled = await getCloudLibraryEnabled();
+    state.proEntitlement = await fetchProEntitlement(state.proSession.token);
+    state.analysisProvider = "pro";
+    if (hasExtensionStorage) await setAnalysisProvider("pro");
+    state.error = null;
+  } catch (error) {
+    state.error = localizeKnownError((error as Error).message);
+  }
+  render();
+}
+
+async function saveAccessKey(input: HTMLInputElement, button: HTMLButtonElement): Promise<void> {
+  const key = input.value.trim();
+  if (!key) return;
+  button.disabled = true;
+  button.textContent = t("checkingKey");
+  const valid = await verifyApiKey(key).catch(() => false);
+  if (!valid) {
+    state.error = t("keyRejected");
+    render();
+    return;
+  }
+  await setApiKey(key);
+  await setAnalysisProvider("byok");
+  state.privateAccessReady = true;
+  state.analysisProvider = "byok";
+  state.error = null;
+  render();
+}
+
+function renderLibraryView(): void {
+  const back = el(`<button class="back-link">${esc(t("back"))}</button>`);
+  back.addEventListener("click", () => {
+    state.view = "home";
+    render();
+  });
+  root.append(back, renderReportLibrary());
+}
+
+function appendCurrentError(): void {
+  if (state.error) root.appendChild(el(`<div class="banner error">${esc(state.error)}</div>`));
+}
+
+function renderReportLibrary(): HTMLElement {
+  const section = el(
+    `<section class="report-library" aria-labelledby="report-library-title">
+      <div class="library-heading">
+        <h2 id="report-library-title">${esc(t("reportLibrary"))}</h2>
+        <span>${esc(t("reportsSavedLocally", { count: state.savedReportCount }))}</span>
+      </div>
+      <p class="library-help">${esc(t("localLibraryHelp"))}</p>
+    </section>`,
+  );
+
+  if (state.libraryError) {
+    section.appendChild(el(`<div class="banner error library-error">${esc(state.libraryError)}</div>`));
+  }
+  if (state.libraryNotice) {
+    section.appendChild(el(`<div class="banner ok library-error" aria-live="polite">${esc(state.libraryNotice)}</div>`));
+  }
+  if (state.libraryStorageFull) {
+    section.appendChild(el(`<div class="banner error library-error">${esc(t("storageFullWarning"))}</div>`));
+  } else if (state.libraryStorageRatio !== null && state.libraryStorageRatio >= 0.85) {
+    section.appendChild(el(`<div class="banner trial library-error">${esc(t("storagePressureWarning", {
+      percent: Math.min(100, Math.round(state.libraryStorageRatio * 100)),
+    }))}</div>`));
+  }
+  if (state.libraryInvalidCount > 0) {
+    section.appendChild(el(`<div class="banner trial library-error">${esc(t("corruptReportsIsolated", {
+      count: state.libraryInvalidCount,
+    }))}</div>`));
+  }
+
+  if (state.libraryLoading) {
+    section.appendChild(el(`<p class="library-empty" role="status">${esc(t("libraryLoading"))}</p>`));
+    return section;
+  }
+
+  if (state.libraryLatestReportId) {
+    const continueButton = el(
+      `<button class="btn btn-secondary library-continue">${esc(t("continueLastReport"))}</button>`,
+    ) as HTMLButtonElement;
+    continueButton.addEventListener("click", () => void openLocalReport(state.libraryLatestReportId!));
+    section.appendChild(continueButton);
+  }
+
+  if (state.savedReportCount > 0) {
+    const search = el(
+      `<div class="library-search"><label for="library-search">${esc(t("searchReports"))}</label><input id="library-search" type="search" placeholder="${esc(t("searchReportsPlaceholder"))}"></div>`,
+    );
+    const searchInput = search.querySelector<HTMLInputElement>("#library-search")!;
+    searchInput.value = state.libraryQuery;
+    searchInput.addEventListener("input", () => {
+      state.libraryQuery = searchInput.value;
+      state.libraryExpanded = state.libraryQuery.trim().length > 0;
+      if (librarySearchTimer !== null) window.clearTimeout(librarySearchTimer);
+      librarySearchTimer = window.setTimeout(async () => {
+        await refreshReportLibrary();
+        render();
+        const nextInput = root.querySelector<HTMLInputElement>("#library-search");
+        nextInput?.focus();
+        nextInput?.setSelectionRange(nextInput.value.length, nextInput.value.length);
+      }, 180);
+    });
+    section.appendChild(search);
+  }
+
+  if (state.recentReports.length > 0) {
+    const recentHeading = el(`<div class="library-recent-heading">${esc(state.libraryQuery.trim()
+      ? t("searchResults")
+      : t("recentReports"))}</div>`);
+    const list = el(`<div class="library-list"></div>`);
+    for (const report of state.recentReports) {
+      const title = report.title?.trim() || t("untitledVideo");
+      const item = el(`<div class="library-item"></div>`);
+      const openButton = el(
+        `<button class="library-open" aria-label="${esc(`${readerCopy.open}: ${title}`)}" title="${esc(readerCopy.open)}">
+          <span class="library-title">${esc(title)} ↗</span>
+          <span class="library-meta">${esc(modeLabel(report.mode))} · ${esc(formatSavedDate(report.updatedAt))} · ${esc(t("followUpCount", { count: report.qaCount }))}</span>
+        </button>`,
+      ) as HTMLButtonElement;
+      const deleteButton = el(
+        `<button class="library-delete" aria-label="${esc(`${t("deleteReport")}: ${title}`)}" title="${esc(t("deleteReport"))}">×</button>`,
+      ) as HTMLButtonElement;
+      openButton.addEventListener("click", () => void openFullReport(report.id));
+      const resumeButton = el(`<button class="library-resume" title="${esc(readerCopy.inline)}" aria-label="${esc(`${readerCopy.inline}: ${title}`)}">↩</button>`);
+      resumeButton.addEventListener("click", () => void openLocalReport(report.id));
+      deleteButton.addEventListener("click", () => void removeLocalReport(report.id));
+      item.append(openButton, resumeButton, deleteButton);
+      list.appendChild(item);
+    }
+    section.append(recentHeading, list);
+  } else if (state.libraryQuery.trim()) {
+    section.appendChild(el(`<p class="library-empty">${esc(t("noSearchResults"))}</p>`));
+  } else if (state.savedReportCount === 0) {
+    section.appendChild(el(`<div class="library-empty-state"><b>${esc(t("libraryEmptyTitle"))}</b><p>${esc(t("libraryEmptyBody"))}</p></div>`));
+  }
+
+  if (!state.libraryQuery.trim() && state.savedReportCount > 6) {
+    const toggle = el(
+      `<button class="library-toggle">${esc(state.libraryExpanded
+        ? t("showRecentReports")
+        : t("viewAllReports", { count: state.savedReportCount }))}</button>`,
+    ) as HTMLButtonElement;
+    toggle.addEventListener("click", async () => {
+      state.libraryExpanded = !state.libraryExpanded;
+      await refreshReportLibrary();
+      render();
+    });
+    section.appendChild(toggle);
+  }
+
+  section.appendChild(renderLibraryTools());
+  return section;
+}
+
+function renderLibraryTools(): HTMLElement {
+  const tools = el(
+    `<div class="library-tools"><div class="library-recent-heading">${esc(t("libraryTools"))}</div><div class="library-tool-row"></div></div>`,
+  );
+  const row = tools.querySelector<HTMLElement>(".library-tool-row")!;
+  const importButton = el(`<button class="btn btn-ghost btn-sm">${esc(t("importLibrary"))}</button>`) as HTMLButtonElement;
+  const importInput = el(`<input type="file" accept="application/json,.json" hidden>`) as HTMLInputElement;
+  importButton.addEventListener("click", () => importInput.click());
+  importInput.addEventListener("change", () => {
+    const file = importInput.files?.[0];
+    if (file) void importLocalLibraryFile(file);
+  });
+  row.append(importButton, importInput);
+
+  if (state.savedReportCount > 0) {
+    const exportButton = el(`<button class="btn btn-ghost btn-sm">${esc(t("exportLibrary"))}</button>`) as HTMLButtonElement;
+    exportButton.addEventListener("click", () => void exportLocalLibrary());
+    row.prepend(exportButton);
+  }
+
+  if (state.savedReportCount + state.libraryInvalidCount > 0) {
+    const clearButton = el(`<button class="btn btn-ghost btn-sm library-clear">${esc(t("clearLibrary"))}</button>`) as HTMLButtonElement;
+    clearButton.addEventListener("click", () => void clearLocalLibrary());
+    row.appendChild(clearButton);
+  }
+  return tools;
+}
+
+async function exportLocalLibrary(): Promise<void> {
+  try {
+    const exported = await exportReportLibrary();
+    download(
+      `videolens-library-${new Date().toISOString().slice(0, 10)}.json`,
+      exported.json,
+      "application/json",
+    );
+    state.libraryNotice = exported.excludedInvalid > 0
+      ? t("libraryExportExcluded", { count: exported.reportCount, invalid: exported.excludedInvalid })
+      : t("libraryExported", { count: exported.reportCount });
+    state.libraryError = null;
+  } catch {
+    state.libraryError = t("libraryExportFailed");
+  }
+  render();
+}
+
+async function importLocalLibraryFile(file: File): Promise<void> {
+  if (file.size > MAX_LIBRARY_IMPORT_BYTES) {
+    state.libraryError = t("libraryImportTooLarge");
+    state.libraryNotice = null;
+    render();
+    return;
+  }
+  try {
+    const result = await importReportLibrary(await file.text());
+    state.libraryQuery = "";
+    state.libraryExpanded = false;
+    state.libraryStorageFull = false;
+    state.libraryNotice = t("libraryImportComplete", {
+      imported: result.imported,
+      updated: result.updated,
+      skipped: result.skipped,
+      invalid: result.invalid,
+    });
+    state.libraryError = null;
+    await refreshReportLibrary();
+  } catch (error) {
+    state.libraryNotice = null;
+    state.libraryError = error instanceof ReportLibraryQuotaError
+      ? t("storageFullWarning")
+      : t("libraryImportFailed");
+    if (error instanceof ReportLibraryQuotaError) state.libraryStorageFull = true;
+  }
+  render();
+}
+
+async function clearLocalLibrary(): Promise<void> {
+  const entryCount = state.savedReportCount + state.libraryInvalidCount;
+  if (!window.confirm(t("clearLibraryConfirm", { count: entryCount }))) return;
+  try {
+    await clearReportLibrary();
+    if (state.savedReportId) {
+      state.analysis = null;
+      state.qa = [];
+      state.managedReportId = null;
+      state.savedReportId = null;
+    }
+    state.libraryQuery = "";
+    state.libraryExpanded = false;
+    state.libraryInvalidCount = 0;
+    state.libraryStorageFull = false;
+    state.libraryNotice = t("libraryCleared");
+    state.libraryError = null;
+    await refreshReportLibrary();
+  } catch {
+    state.libraryNotice = null;
+    state.libraryError = t("libraryClearFailed");
+  }
+  render();
+}
+
+async function refreshReportLibrary(): Promise<void> {
+  if (typeof indexedDB === "undefined") return;
+  const sequence = ++libraryRefreshSequence;
+  try {
+    const query = state.libraryQuery.trim();
+    const [library, storage] = await Promise.all([
+      listSavedReports({
+        query,
+        limit: query.length > 0 || state.libraryExpanded ? undefined : 6,
+      }),
+      getReportLibraryStorageStatus(),
+    ]);
+    if (sequence !== libraryRefreshSequence) return;
+    state.recentReports = library.reports;
+    state.savedReportCount = library.total;
+    state.libraryLatestReportId = library.latestReportId;
+    state.libraryInvalidCount = library.invalid;
+    state.libraryStorageRatio = storage?.ratio ?? null;
+    state.libraryError = null;
+  } catch {
+    if (sequence !== libraryRefreshSequence) return;
+    state.libraryError = t("libraryLoadFailed");
+  }
+}
+
+async function persistCurrentReport(): Promise<void> {
+  if (!hasExtensionStorage || !state.analysis) return;
+  try {
+    const saved = await saveReport({
+      id: state.savedReportId,
+      analysis: state.analysis,
+      qa: state.qa,
+      managedReportId: state.managedReportId,
+    });
+    state.savedReportId = saved.id;
+    state.libraryStorageFull = false;
+    await refreshReportLibrary();
+    if (state.proSession && await getCloudLibraryEnabled()) {
+      try { await uploadReportCopy(state.proSession.token, saved, true); }
+      catch { state.error = cloudCopy("failed"); }
+    }
+  } catch (error) {
+    const isQuotaError = error instanceof ReportLibraryQuotaError;
+    state.libraryStorageFull = isQuotaError;
+    const message = isQuotaError ? t("storageFullWarning") : t("librarySaveFailed");
+    state.error = state.error ? `${state.error} ${message}` : message;
+  }
+}
+
+async function openLocalReport(id: string): Promise<void> {
+  try {
+    const report = await getSavedReport(id);
+    if (!report) {
+      state.error = t("reportNotFound");
+      await refreshReportLibrary();
+      render();
+      return;
+    }
+    state.analysis = report.analysis;
+    state.qa = report.qa.map((entry) => ({ ...entry }));
+    state.savedReportId = report.id;
+    state.managedReportId = report.managedReportId;
+    state.error = null;
+    state.view = "results";
+  } catch {
+    state.libraryError = t("libraryLoadFailed");
+    state.view = "library";
+  }
+  render();
+}
+
+async function removeLocalReport(id: string): Promise<void> {
+  if (!window.confirm(t("deleteReportConfirm"))) return;
+  try {
+    await deleteSavedReport(id);
+    if (state.savedReportId === id) {
+      state.savedReportId = null;
+      state.managedReportId = null;
+      state.analysis = null;
+      state.qa = [];
+    }
+    await refreshReportLibrary();
+  } catch {
+    state.libraryError = t("libraryDeleteFailed");
+  }
+  render();
+}
+
+function formatSavedDate(timestamp: number): string {
+  return new Intl.DateTimeFormat(documentLanguage(), {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(timestamp));
 }
 
 async function chooseProvider(provider: AnalysisProvider, returnToMain = false): Promise<void> {
   if (provider === "pro" && !state.proSession) {
-    state.error = "Connect your VideoLens account to use managed mode.";
+    state.error = t("connectManagedError");
     state.view = "settings";
     render();
     return;
@@ -384,7 +1148,7 @@ async function chooseProvider(provider: AnalysisProvider, returnToMain = false):
   if (provider === "pro" && state.proSession) {
     state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => null);
   }
-  if (returnToMain) state.view = state.analysis ? "results" : "main";
+  if (returnToMain) state.view = state.analysis ? "results" : "home";
   render();
 }
 
@@ -400,7 +1164,7 @@ function renderProgress(steps: string[]): StepHandle {
     list.appendChild(li);
     return li;
   });
-  root.appendChild(el(`<div class="card"><h3>Analyzing</h3></div>`)).appendChild(list);
+  root.appendChild(el(`<div class="card"><h3>${esc(t("analyzing"))}</h3></div>`)).appendChild(list);
   return {
     set(index, status, labelOverride) {
       const li = items[index];
@@ -411,12 +1175,37 @@ function renderProgress(steps: string[]): StepHandle {
   };
 }
 
+async function openFullReport(id?: string): Promise<void> {
+  try {
+    if (!id && state.analysis) {
+      // Read the saved report by stable ID; only unsaved results need a local snapshot.
+      if (!state.savedReportId) {
+        const saved = await saveReport({ analysis: state.analysis, qa: state.qa, managedReportId: state.managedReportId });
+        state.savedReportId = saved.id;
+        await refreshReportLibrary();
+      }
+      id = state.savedReportId;
+    }
+    if (!id) throw new Error(t("reportNotFound"));
+    const path = `reader.html?id=${encodeURIComponent(id)}`;
+    if (typeof chrome !== "undefined" && chrome.runtime?.getURL) await chrome.tabs.create({ url: chrome.runtime.getURL(path) });
+    else window.open(new URL(path, location.href), "_blank", "noopener");
+  } catch (error) {
+    state.error = error instanceof Error ? error.message : t("reportNotFound");
+    render();
+  }
+}
+
 function renderResults(): void {
   const a = state.analysis!;
 
-  const back = el(`<button class="back-link">← New analysis</button>`);
+  const back = el(`<button class="back-link">${esc(t("newAnalysis"))}</button>`);
   back.addEventListener("click", () => {
-    state.view = "main";
+    state.analysis = null;
+    state.qa = [];
+    state.savedReportId = null;
+    state.managedReportId = null;
+    state.view = "home";
     state.error = null;
     render();
   });
@@ -424,51 +1213,65 @@ function renderResults(): void {
 
   root.appendChild(
     el(
-      `<div class="meta-line"><b>${esc(a.source.title ?? "Untitled video")}</b><br>` +
-        `${MODE_PROMPTS[a.mode].label} · ${a.source.durationSeconds ? fmtTs(a.source.durationSeconds) : "?"} · ` +
-        `overall confidence <span class="conf ${a.confidence}">${a.confidence}</span></div>`,
+      `<div class="meta-line"><b>${esc(a.source.title ?? t("untitledVideo"))}</b><br>` +
+        `${esc(modeLabel(a.mode))} · ${a.source.durationSeconds ? fmtTs(a.source.durationSeconds) : "?"} · ` +
+        `${esc(t("overallConfidence"))} <span class="conf ${a.confidence}">${esc(confidenceLabel(a.confidence))}</span></div>`,
     ),
   );
 
   const reportActions = el(`<div class="report-actions"></div>`);
-  const printBtn = el(`<button class="btn btn-primary report-primary">Print / Save PDF</button>`);
-  const htmlBtn = el(`<button class="btn btn-secondary report-primary">Download HTML</button>`);
+  const fullBtn = el(`<button class="btn btn-primary report-primary full-report">${esc(readerCopy.open)} ↗</button>`);
+  fullBtn.addEventListener("click", () => void openFullReport(state.savedReportId ?? undefined));
+  const printBtn = el(`<button class="btn btn-primary report-primary">${esc(t("printPdf"))}</button>`);
+  const htmlBtn = el(`<button class="btn btn-secondary report-primary">${esc(t("downloadHtml"))}</button>`);
   printBtn.addEventListener("click", () => {
     if (!printHtmlReport(a, state.qa)) {
       download(reportFilename(a, "html"), toHtmlReport(a, state.qa), "text/html");
-      state.error = "Chrome blocked the print window, so the complete HTML report was downloaded instead.";
+      state.error = t("printBlocked");
       render();
     }
   });
   htmlBtn.addEventListener("click", () =>
     download(reportFilename(a, "html"), toHtmlReport(a, state.qa), "text/html"),
   );
-  reportActions.append(printBtn, htmlBtn);
+  reportActions.append(fullBtn, printBtn, htmlBtn);
   root.appendChild(reportActions);
 
   const exportRow = el(`<div class="export-row secondary-exports"></div>`);
-  const mdBtn = el(`<button class="btn btn-ghost btn-sm">Markdown</button>`);
-  const jsonBtn = el(`<button class="btn btn-ghost btn-sm">JSON</button>`);
-  const copyBtn = el(`<button class="btn btn-ghost btn-sm">Copy text</button>`);
+  const mdBtn = el(`<button class="btn btn-ghost btn-sm">${esc(t("markdown"))}</button>`);
+  const jsonBtn = el(`<button class="btn btn-ghost btn-sm">${esc(t("json"))}</button>`);
+  const copyBtn = el(`<button class="btn btn-ghost btn-sm">${esc(t("copyText"))}</button>`);
   mdBtn.addEventListener("click", () => download(reportFilename(a, "md"), toMarkdown(a, state.qa), "text/markdown"));
   jsonBtn.addEventListener("click", () =>
     download(reportFilename(a, "json"), JSON.stringify({ ...a, qa: state.qa }, null, 2), "application/json"),
   );
-  copyBtn.addEventListener("click", () => void navigator.clipboard.writeText(toMarkdown(a, state.qa)));
+  copyBtn.addEventListener("click", () => void navigator.clipboard.writeText(toMarkdown(a, state.qa)).then(() => {
+    copyBtn.textContent = t("copied");
+  }));
   exportRow.append(mdBtn, jsonBtn, copyBtn);
   root.appendChild(exportRow);
 
-  const summary = el(`<div class="card summary-card"><h3>Executive summary</h3><p>${esc(a.summary) || "<i>(none)</i>"}</p></div>`);
+  const summary = el(
+    `<section class="card report-section summary-card"><h3>${esc(t("executiveSummary"))}</h3>` +
+      `<div class="summary-prose">${renderProse(a.summary, t("none"))}</div></section>`,
+  );
   root.appendChild(summary);
+  if (a.recipe) root.appendChild(el(recipeHtml(a.recipe, a.outputLanguage, a.source.url, a.source.durationSeconds)));
 
   if (a.findings.length > 0) {
-    const card = el(`<div class="card"><h3>Key findings</h3></div>`);
-    for (const f of a.findings) {
+    const card = el(`<section class="card report-section findings-card"><h3>${esc(t("keyFindings"))}</h3></section>`);
+    for (const [index, f] of a.findings.entries()) {
       const div = el(
-        `<div class="finding"><div class="f-text">${esc(f.finding)}<span class="conf ${f.confidence}">${f.confidence}</span></div></div>`,
+        `<article class="finding">` +
+          `<div class="finding-head"><span class="finding-index" aria-hidden="true">${index + 1}</span>` +
+          `<div class="f-text">${esc(f.finding)}<span class="conf ${f.confidence}">${esc(confidenceLabel(f.confidence))}</span></div></div>` +
+          `<div class="evidence-list"></div></article>`,
       );
+      const evidenceList = div.querySelector(".evidence-list")!;
       for (const e of f.evidence) {
-        div.appendChild(el(`<div class="evidence"><span class="ts">${fmtTs(e.timestamp)}</span>${esc(e.detail)}</div>`));
+        evidenceList.appendChild(
+          el(`<div class="evidence"><span class="ts">${fmtTs(e.timestamp)}</span><span class="evidence-text">${esc(e.detail)}</span></div>`),
+        );
       }
       card.appendChild(div);
     }
@@ -476,12 +1279,12 @@ function renderResults(): void {
   }
 
   if (a.recommendations.length > 0) {
-    const card = el(`<div class="card"><h3>Recommendations</h3><ol class="recs"></ol></div>`);
+    const card = el(`<section class="card report-section"><h3>${esc(t("recommendations"))}</h3><ol class="recs"></ol></section>`);
     const ol = card.querySelector("ol")!;
     for (const r of a.recommendations) {
       ol.appendChild(
         el(
-          `<li>${esc(r.recommendation)}<span class="conf ${r.confidence}">${r.confidence}</span>` +
+          `<li>${esc(r.recommendation)}<span class="conf ${r.confidence}">${esc(confidenceLabel(r.confidence))}</span>` +
             (r.rationale ? `<div class="rationale">${esc(r.rationale)}</div>` : "") +
             `</li>`,
         ),
@@ -491,7 +1294,7 @@ function renderResults(): void {
   }
 
   if (a.tasks.length > 0) {
-    const card = el(`<div class="card"><h3>Action items</h3><ul class="tasks"></ul></div>`);
+    const card = el(`<section class="card report-section"><h3>${esc(t("actionItems"))}</h3><ul class="tasks"></ul></section>`);
     const ul = card.querySelector("ul")!;
     for (const t of a.tasks) {
       ul.appendChild(el(`<li>${esc(t.title)}${t.detail ? `<div class="rationale">${esc(t.detail)}</div>` : ""}</li>`));
@@ -500,48 +1303,59 @@ function renderResults(): void {
   }
 
   if (a.limitations.length > 0) {
-    const card = el(`<div class="card"><h3>Limitations</h3><ul class="limits"></ul></div>`);
+    const card = el(`<section class="card report-section"><h3>${esc(t("limitations"))}</h3><ul class="limits"></ul></section>`);
     const ul = card.querySelector("ul")!;
     for (const lim of a.limitations) ul.appendChild(el(`<li>${esc(lim)}</li>`));
     root.appendChild(card);
   }
 
   // Q&A
-  const qaCard = el(`<div class="card"><h3>Ask a follow-up</h3></div>`);
+  const qaCard = el(`<section class="card report-section qa-card"><h3>${esc(t("askFollowUp"))}</h3></section>`);
   const history = el(`<div></div>`);
   for (const entry of state.qa) {
-    history.appendChild(el(`<div class="qa-q">Q: ${esc(entry.question)}</div>`));
+    history.appendChild(el(`<div class="qa-q">${esc(t("questionPrefix"))} ${esc(entry.question)}</div>`));
     history.appendChild(el(`<div class="qa-answer">${mdLite(entry.answer)}</div>`));
   }
   const qaRow = el(`<div class="row" style="margin-top:8px"></div>`);
-  const qaInput = el(`<input type="text" class="grow" placeholder="e.g. What error appears at 1:24?">`) as HTMLInputElement;
-  const qaBtn = el(`<button class="btn btn-secondary btn-sm">Ask</button>`) as HTMLButtonElement;
+  const qaInput = el(`<input type="text" class="grow" placeholder="${esc(t("followUpPlaceholder"))}">`) as HTMLInputElement;
+  const qaBtn = el(`<button class="btn btn-secondary btn-sm">${esc(t("ask"))}</button>`) as HTMLButtonElement;
+  const qaStatus = el(`<div class="qa-status" aria-live="polite"></div>`);
+  let asking = false;
   const ask = async () => {
     const q = qaInput.value.trim();
-    if (!q) return;
-    let access: AiAccess;
-    if (state.managedReportId && state.proSession) {
-      access = { kind: "pro", token: state.proSession.token, reportId: state.managedReportId };
-    } else {
-      const apiKey = await getApiKey();
-      if (!apiKey) {
-        state.error = "Add your OpenAI API key in Settings first.";
-        state.view = "settings";
-        render();
-        return;
-      }
-      access = { kind: "byok", apiKey };
-    }
+    if (!q || asking) return;
+    asking = true;
     qaBtn.disabled = true;
-    qaBtn.textContent = "…";
+    qaInput.disabled = true;
+    qaBtn.textContent = t("asking");
+    qaStatus.replaceChildren();
     try {
-      const answer = await askQuestion(access, q, a.timeline, a);
+      let access: AiAccess;
+      if (state.managedReportId && state.proSession) {
+        access = { kind: "pro", token: state.proSession.token, reportId: state.managedReportId };
+      } else {
+        const apiKey = await getApiKey();
+        if (!apiKey) {
+          state.error = t("apiKeySettingsFirst");
+          state.view = "settings";
+          render();
+          return;
+        }
+        access = { kind: "byok", apiKey };
+      }
+      const answer = await askQuestion(access, q, a.timeline, a, outputLanguageForAnalysis(a));
       state.qa.push({ question: q, answer });
+      await persistCurrentReport();
       render();
     } catch (e) {
-      state.error = (e as Error).message;
+      const message = e instanceof Error ? localizeKnownError(e.message) : t("followUpFailed");
+      qaStatus.replaceChildren(el(`<div class="banner error">${esc(message)}</div>`));
+      qaInput.disabled = false;
       qaBtn.disabled = false;
-      qaBtn.textContent = "Ask";
+      qaBtn.textContent = t("ask");
+      qaInput.focus();
+    } finally {
+      asking = false;
     }
   };
   qaBtn.addEventListener("click", () => void ask());
@@ -549,7 +1363,7 @@ function renderResults(): void {
     if (e.key === "Enter") void ask();
   });
   qaRow.append(qaInput, qaBtn);
-  qaCard.append(history, qaRow);
+  qaCard.append(history, qaRow, qaStatus);
   root.appendChild(qaCard);
 
   if (state.error) root.prepend(el(`<div class="banner error">${esc(state.error)}</div>`));
@@ -557,9 +1371,9 @@ function renderResults(): void {
 }
 
 function renderSettings(): void {
-  const back = el(`<button class="back-link">← Back</button>`);
+  const back = el(`<button class="back-link">${esc(t("back"))}</button>`);
   back.addEventListener("click", () => {
-    state.view = state.analysis ? "results" : "main";
+    state.view = state.analysis ? "results" : "home";
     render();
   });
   root.appendChild(back);
@@ -571,17 +1385,19 @@ function renderSettings(): void {
   const entitlement = state.proEntitlement;
   const accountCard = state.proSession
     ? el(
-        `<div class="card pro-account-card"><div class="account-heading"><div><h3>VideoLens account</h3><b>${esc(state.proSession.email)}</b></div><span class="plan-pill">${entitlement?.plan === "pro" ? "PRO" : "FREE"}</span></div>
-          <p class="hint">${entitlement ? `${entitlement.managedReportsRemaining} of ${entitlement.managedReportsLimit} managed reports remaining.` : "Checking managed-report allowance…"}</p>
-          <div class="settings-actions"><button class="btn btn-primary btn-sm" id="use-pro">Use managed mode</button><button class="btn btn-secondary btn-sm" id="manage-account">Account &amp; billing</button><button class="btn btn-ghost btn-sm" id="disconnect-pro">Disconnect</button></div>
-          <label class="cloud-toggle"><input type="checkbox" id="cloud-save" ${state.proCloudSave ? "checked" : ""}><span><b>Save completed reports to my cloud library</b><small>Off by default. Raw video, frames, and audio are never saved.</small></span></label>
+        `<div class="card pro-account-card"><div class="account-heading"><div><h3>${esc(t("account"))}</h3><b>${esc(state.proSession.email)}</b></div><span class="plan-pill">${entitlement?.plan === "pro" ? "PRO" : esc(t("free"))}</span></div>
+          <p class="hint">${entitlement ? esc(t("reportsRemaining", { remaining: entitlement.managedReportsRemaining, limit: entitlement.managedReportsLimit })) : esc(t("checkingAllowance"))}</p>
+          <div class="settings-actions"><button class="btn btn-primary btn-sm" id="use-pro">${esc(t("useManaged"))}</button><button class="btn btn-secondary btn-sm" id="manage-account">${esc(t("accountBilling"))}</button><button class="btn btn-ghost btn-sm" id="disconnect-pro">${esc(t("disconnect"))}</button></div>
+          <label class="cloud-toggle"><input type="checkbox" id="cloud-save" ${cloudLibraryEnabled ? "checked" : ""}><span><b>${esc(cloudCopy("title"))}</b><small>${esc(cloudCopy("help"))}</small></span></label>
+          <button class="btn btn-secondary btn-sm" id="upload-library" ${cloudUploadBusy ? "disabled" : ""}>${esc(cloudCopy("upload"))}</button>
+          <p class="hint" id="cloud-upload-status" role="status" aria-live="polite">${esc(cloudUploadNotice)}</p>
         </div>`,
       )
     : el(
-        `<div class="card pro-account-card"><div class="account-heading"><div><h3>VideoLens Pro</h3><b>No API key required</b></div><span class="plan-pill">PRO</span></div>
-          <p class="hint">Connect a free account for one managed starter report. Pro includes 20 managed reports per calendar month for $12/month or $99/year.</p>
-          <button class="btn btn-primary" id="connect-pro">Connect VideoLens account</button>
-          <p class="hint" style="margin-bottom:0">A browser tab opens for secure passwordless sign-in. Your website login and billing credentials are not stored in the extension.</p>
+        `<div class="card pro-account-card"><div class="account-heading"><div><h3>${esc(t("proTitle"))}</h3><b>${esc(t("noApiKey"))}</b></div><span class="plan-pill">PRO</span></div>
+          <p class="hint">${esc(t("proOffer"))}</p>
+          <button class="btn btn-primary" id="connect-pro">${esc(t("connectAccount"))}</button>
+          <p class="hint" style="margin-bottom:0">${esc(t("accountSecurity"))}</p>
         </div>`,
       );
   root.appendChild(accountCard);
@@ -590,6 +1406,9 @@ function renderSettings(): void {
     accountCard.querySelector("#use-pro")!.addEventListener("click", () => void chooseProvider("pro", true));
     accountCard.querySelector("#manage-account")!.addEventListener("click", openProAccount);
     accountCard.querySelector("#disconnect-pro")!.addEventListener("click", async () => {
+      cloudUploadCancelled = true;
+      cloudLibraryEnabled = false;
+      cloudUploadNotice = "";
       await disconnectPro();
       state.proSession = null;
       state.proEntitlement = null;
@@ -598,25 +1417,35 @@ function renderSettings(): void {
       render();
     });
     accountCard.querySelector<HTMLInputElement>("#cloud-save")!.addEventListener("change", async (event) => {
-      state.proCloudSave = (event.currentTarget as HTMLInputElement).checked;
-      await setProCloudSave(state.proCloudSave);
+      const input = event.currentTarget as HTMLInputElement;
+      input.disabled = true;
+      try {
+        await setCloudLibraryEnabled(input.checked);
+        cloudLibraryEnabled = input.checked;
+        state.proCloudSave = input.checked;
+        if (input.checked) await uploadExistingLibrary();
+        else cloudUploadCancelled = true;
+      } catch { cloudUploadNotice = cloudCopy("failed"); input.checked = cloudLibraryEnabled; }
+      finally { input.disabled = false; updateCloudUploadStatus(); }
     });
+    accountCard.querySelector("#upload-library")!.addEventListener("click", () => void uploadExistingLibrary());
   } else {
     const connectButton = accountCard.querySelector<HTMLButtonElement>("#connect-pro")!;
     connectButton.addEventListener("click", async () => {
       connectButton.disabled = true;
-      connectButton.textContent = "Waiting for browser approval…";
+      connectButton.textContent = t("waitingApproval");
       try {
         state.proSession = await startProConnection();
+    cloudLibraryEnabled = await getCloudLibraryEnabled();
         state.proEntitlement = await fetchProEntitlement(state.proSession.token);
         state.analysisProvider = "pro";
         await setAnalysisProvider("pro");
         state.error = null;
         render();
       } catch (error) {
-        state.error = (error as Error).message;
+        state.error = localizeKnownError((error as Error).message);
         connectButton.disabled = false;
-        connectButton.textContent = "Connect VideoLens account";
+        connectButton.textContent = t("connectAccount");
         render();
       }
     });
@@ -624,10 +1453,10 @@ function renderSettings(): void {
 
   // OpenAI key
   const keyCard = el(
-    `<div class="card"><h3>Private mode · OpenAI API key</h3>
+    `<div class="card"><h3>${esc(t("privateApiKey"))}</h3>
       <div class="row"><input type="password" class="grow" id="api-key" placeholder="sk-...">
-      <button class="btn btn-secondary btn-sm" id="save-key">Save</button></div>
-      <p class="hint">Stored only on this device (<code>chrome.storage.local</code>), sent only to api.openai.com. VideoLens never receives it. Analysis costs are billed to your OpenAI account. <a href="${LINKS.openaiKeys}" target="_blank">Get a key →</a></p>
+      <button class="btn btn-secondary btn-sm" id="save-key">${esc(t("save"))}</button></div>
+      <p class="hint">${esc(t("keyHelpBefore"))} <a href="${LINKS.openaiKeys}" target="_blank">${esc(t("getKey"))}</a></p>
       <div id="key-status"></div></div>`,
   );
   root.appendChild(keyCard);
@@ -637,7 +1466,7 @@ function renderSettings(): void {
     void getApiKey().then((k) => {
       if (k) {
         keyInput.value = k;
-        keyStatus.innerHTML = `<div class="banner ok" style="margin:8px 0 0">Key saved.</div>`;
+        keyStatus.replaceChildren(el(`<div class="banner ok" style="margin:8px 0 0">${esc(t("keySaved"))}</div>`));
       }
     });
   }
@@ -645,37 +1474,39 @@ function renderSettings(): void {
     const key = keyInput.value.trim();
     if (!key) {
       await setApiKey(null);
-      keyStatus.innerHTML = `<div class="banner trial" style="margin:8px 0 0">Key removed.</div>`;
+      state.privateAccessReady = false;
+      keyStatus.replaceChildren(el(`<div class="banner trial" style="margin:8px 0 0">${esc(t("keyRemoved"))}</div>`));
       return;
     }
-    keyStatus.innerHTML = `<div class="banner trial" style="margin:8px 0 0">Checking key…</div>`;
+    keyStatus.replaceChildren(el(`<div class="banner trial" style="margin:8px 0 0">${esc(t("checkingKey"))}</div>`));
     const ok = await verifyApiKey(key).catch(() => false);
     if (!ok) {
-      keyStatus.innerHTML = `<div class="banner error" style="margin:8px 0 0">That key was rejected by OpenAI. Double-check and try again.</div>`;
+      keyStatus.replaceChildren(el(`<div class="banner error" style="margin:8px 0 0">${esc(t("keyRejected"))}</div>`));
       return;
     }
     await setApiKey(key);
-    keyStatus.innerHTML = `<div class="banner ok" style="margin:8px 0 0">Key verified and saved.</div>`;
+    state.privateAccessReady = true;
+    keyStatus.replaceChildren(el(`<div class="banner ok" style="margin:8px 0 0">${esc(t("keyVerified"))}</div>`));
   });
 
   const privacyCard = el(
-    `<div class="card"><h3>Privacy &amp; data use</h3>
-      <p class="hint" style="margin:0 0 8px">Review the separate data paths for Private and Pro Managed modes.</p>
-      <button class="btn btn-secondary btn-sm" id="review-privacy">Review disclosure</button>
-      <a class="btn btn-ghost btn-sm" href="${LINKS.privacy}" target="_blank">Full privacy policy</a>
+    `<div class="card"><h3>${esc(t("privacyData"))}</h3>
+      <p class="hint" style="margin:0 0 8px">${esc(t("privacyReviewHelp"))}</p>
+      <button class="btn btn-secondary btn-sm" id="review-privacy">${esc(t("reviewDisclosure"))}</button>
+      <a class="btn btn-ghost btn-sm" href="${LINKS.privacy}" target="_blank">${esc(t("fullPrivacyPolicy"))}</a>
     </div>`,
   );
   root.appendChild(privacyCard);
   privacyCard.querySelector("#review-privacy")!.addEventListener("click", async () => {
     await resetPrivacyDisclosure();
     state.privacyDisclosureAccepted = false;
-    state.view = "main";
+    state.view = "home";
     render();
   });
 
   root.appendChild(
     el(
-      `<p class="hint" style="text-align:center">VideoLens is open source · <a href="${LINKS.github}" target="_blank">GitHub</a> · <a href="${LINKS.privacy}" target="_blank">Privacy</a> · <a href="${LINKS.site}" target="_blank">videolens.io</a></p>`,
+      `<p class="hint" style="text-align:center">${esc(t("openSource"))} · <a href="${LINKS.github}" target="_blank">GitHub</a> · <a href="${LINKS.privacy}" target="_blank">${esc(t("privacy"))}</a> · <a href="${LINKS.site}" target="_blank">videolens.io</a></p>`,
     ),
   );
 }
@@ -685,20 +1516,41 @@ function renderSettings(): void {
 async function runAnalysis(): Promise<void> {
   state.error = null;
 
-  if (state.sourceKind === "file" && !state.localVideo) {
-    state.error = "Choose a video file first.";
+  if (!isProviderReady(state.analysisProvider)) {
+    state.view = "accessSetup";
     render();
     return;
   }
 
-  const prompt = state.prompt.trim() || MODE_PROMPTS[state.mode].defaultPrompt;
+  if (state.sourceKind === "file" && !state.localVideo) {
+    state.error = t("chooseVideoFirst");
+    state.view = "home";
+    render();
+    return;
+  }
+
+  if (state.sourceKind === "tab") {
+    try {
+      // Keep this as the first asynchronous operation from the Analyze click:
+      // Browsers only allow optional permissions to be requested from a direct
+      // user gesture.
+      await ensureTabCapturePermission();
+    } catch (error) {
+      state.error = localizeKnownError((error as Error).message);
+      state.view = "reportSetup";
+      render();
+      return;
+    }
+  }
+
+  const prompt = state.prompt.trim() || modeDefaultPrompt(state.mode);
   let access: AiAccess;
   let managedReportId: string | null = null;
 
   if (state.analysisProvider === "pro") {
     if (!state.proSession) {
-      state.error = "Connect your VideoLens account first.";
-      state.view = "settings";
+      state.error = t("connectFirst");
+      state.view = "accessSetup";
       render();
       return;
     }
@@ -708,16 +1560,18 @@ async function runAnalysis(): Promise<void> {
       state.managedReportId = managedReportId;
       access = { kind: "pro", token: state.proSession.token, reportId: managedReportId };
     } catch (error) {
-      state.error = (error as Error).message;
+      state.error = localizeKnownError((error as Error).message);
       state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => state.proEntitlement);
+      state.view = "accessSetup";
       render();
       return;
     }
   } else {
     const apiKey = await getApiKey();
     if (!apiKey) {
-      state.error = "Add your OpenAI API key first (Settings → Private mode API key).";
-      state.view = "settings";
+      state.privateAccessReady = false;
+      state.error = t("addKeyFirst");
+      state.view = "accessSetup";
       render();
       return;
     }
@@ -726,15 +1580,20 @@ async function runAnalysis(): Promise<void> {
   }
 
   try {
+    state.savedReportId = null;
     state.analysis = null;
+    state.qa = [];
     state.view = "progress";
+    libraryButton.disabled = true;
+    settingsButton.disabled = true;
     if (state.sourceKind === "tab") {
       await runTabAnalysis(access, prompt);
     } else {
       await runFileAnalysis(access, prompt);
     }
     state.qa = [];
-    state.view = "results";
+    state.hasCompletedFirstReport = true;
+    if (hasExtensionStorage) void markFirstReportCompleted().catch((error) => console.error("first-report state:", error));
     if (managedReportId && state.proSession) {
       try {
         await completeManagedReport(
@@ -744,81 +1603,101 @@ async function runAnalysis(): Promise<void> {
           state.proCloudSave,
         );
       } catch (completionError) {
-        state.error = `Your report is ready, but VideoLens could not update the cloud library: ${(completionError as Error).message}`;
+        state.error = t("cloudUpdateFailed", { message: (completionError as Error).message });
       }
       state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => state.proEntitlement);
     }
+    await persistCurrentReport();
+    state.view = "results";
   } catch (e) {
     if (managedReportId && state.proSession) {
       await completeManagedReport(state.proSession.token, managedReportId, state.analysis, false, true).catch(() => undefined);
       state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => state.proEntitlement);
     }
-    state.error = (e as Error).message;
-    state.view = "main";
+    state.error = localizeKnownError((e as Error).message);
+    state.view = "reportSetup";
   }
   render();
 }
 
 async function runTabAnalysis(access: AiAccess, prompt: string): Promise<void> {
   const steps = renderProgress([
-    "Finding video on the page",
-    "Fetching captions",
-    "Capturing frames",
-    "Describing frames",
-    "Building timeline",
-    "Synthesizing analysis",
+    t("findingVideo"),
+    t("fetchingCaptions"),
+    t("capturingFrames"),
+    t("describingFrames"),
+    t("buildingTimeline"),
+    t("synthesizing"),
   ]);
 
   steps.set(0, "active");
   const tabId = await getActiveTabId();
   const probe = await probeTabVideo(tabId);
-  steps.set(0, "done", `Found video — ${fmtTs(probe.duration)}`);
+  if (state.mode === "recipe" && !probe.isYouTube) throw new Error("Recipe preview currently supports YouTube videos and local video files.");
+  steps.set(0, "done", t("foundVideo", { duration: fmtTs(probe.duration) }));
 
   steps.set(1, "active");
   let transcript: Transcript | null = null;
   if (probe.isYouTube) {
-    transcript = await fetchYouTubeCaptions(tabId);
-    steps.set(1, "done", transcript ? `Captions: ${transcript.segments.length} segments` : "No captions — frames only");
+    const captionLanguage = resolveReportLanguage(state.reportLanguage, browserLanguage);
+    transcript = await fetchYouTubeCaptions(tabId, captionLanguage === "source" ? null : captionLanguage);
+    steps.set(
+      1,
+      "done",
+      transcript
+        ? transcript.language
+          ? t("captionsCount", { count: transcript.segments.length, language: transcript.language })
+          : t("captionsCountNoLanguage", { count: transcript.segments.length })
+        : t("noCaptions"),
+    );
   } else {
-    steps.set(1, "done", "Captions: n/a for this site");
+    steps.set(1, "done", t("captionsUnavailable"));
   }
 
   steps.set(2, "active");
-  const maxFrames = state.analysisProvider === "pro" ? Math.min(state.maxFrames, 40) : state.maxFrames;
-  const timestamps = planFrameTimestamps(probe.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
+  const maxFrames = state.analysisProvider === "pro" ? Math.min(state.setupMaxFrames, 40) : state.setupMaxFrames;
+  const timestamps = state.mode === "recipe" ? recipeFrameTimestamps(probe.duration) : planFrameTimestamps(probe.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
   const frames = await captureTabFrames(tabId, timestamps, DEFAULTS.frameJpegQuality, DEFAULTS.maxFrameEdgePx);
-  steps.set(2, "done", `Captured ${frames.length} frames`);
+  steps.set(2, "done", t("capturedFrames", { count: frames.length }));
 
   const source = makeTabSource(probe, transcript !== null);
-  await describeAndSynthesize(access, steps, frames, transcript, probe.duration, source, prompt);
+  if (state.mode === "recipe" && frames.length !== timestamps.length) {
+    if (!frames.length) throw new Error("No cooking frames could be captured. Please retry with a YouTube video or local file.");
+    source.limitations.push(`Only ${frames.length} of ${timestamps.length} planned recipe frames were captured; some cooking details may be missing.`);
+  }
+  const creatorText = state.mode === "recipe" ? await fetchRecipeCreatorText(tabId).catch(() => "") : "";
+  const recipeContext: RecipeContext = { creatorText, sources: creatorText ? [{ id: "creator-description", title: "Creator description", url: probe.pageUrl, kind: "creator" }] : [], researchText: "", research: "not_requested" };
+  const outputLanguage = resolveReportLanguage(state.reportLanguage, browserLanguage, transcript?.language);
+  await describeAndSynthesize(access, steps, frames, transcript, probe.duration, source, prompt, outputLanguage, 3, recipeContext);
 }
 
 async function runFileAnalysis(access: AiAccess, prompt: string): Promise<void> {
   const local = state.localVideo!;
   const steps = renderProgress([
-    "Sampling frames",
-    "Transcribing audio",
-    "Describing frames",
-    "Building timeline",
-    "Synthesizing analysis",
+    t("samplingFrames"),
+    t("transcribingAudio"),
+    t("describingFrames"),
+    t("buildingTimeline"),
+    t("synthesizing"),
   ]);
 
   steps.set(0, "active");
-  const maxFrames = state.analysisProvider === "pro" ? Math.min(state.maxFrames, 40) : state.maxFrames;
-  const timestamps = planFrameTimestamps(local.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
+  const maxFrames = state.analysisProvider === "pro" ? Math.min(state.setupMaxFrames, 40) : state.setupMaxFrames;
+  const timestamps = state.mode === "recipe" ? recipeFrameTimestamps(local.duration) : planFrameTimestamps(local.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
   const frames = await captureLocalFrames(local, timestamps, (done, total) =>
-    steps.set(0, "active", `Sampling frames ${done}/${total}`),
+    steps.set(0, "active", t("samplingProgress", { done, total })),
   );
-  steps.set(0, "done", `Sampled ${frames.length} frames`);
+  steps.set(0, "done", t("sampledFrames", { count: frames.length }));
 
   steps.set(1, "active");
   const { transcript, limitation } = await transcribeLocalFile(access, local, (done, total) =>
-    steps.set(1, "active", `Transcribing audio ${done}/${total}`),
+    steps.set(1, "active", t("transcribingProgress", { done, total })),
   );
-  steps.set(1, "done", transcript ? `Transcribed ${transcript.segments.length} chunks` : "Audio skipped");
+  steps.set(1, "done", transcript ? t("transcribedChunks", { count: transcript.segments.length }) : t("audioSkipped"));
 
   const source = makeLocalSource(local, limitation ? [limitation] : []);
-  await describeAndSynthesize(access, steps, frames, transcript, local.duration, source, prompt, 2);
+  const outputLanguage = resolveReportLanguage(state.reportLanguage, browserLanguage, transcript?.language);
+  await describeAndSynthesize(access, steps, frames, transcript, local.duration, source, prompt, outputLanguage, 2);
 }
 
 async function describeAndSynthesize(
@@ -829,32 +1708,44 @@ async function describeAndSynthesize(
   duration: number,
   source: Parameters<typeof analyzeTimeline>[2],
   prompt: string,
+  outputLanguage: ConcreteReportLanguage | "source",
   stepOffset = 3,
+  recipeContext: RecipeContext = { creatorText: "", sources: [], researchText: "", research: "not_requested" },
 ): Promise<void> {
   steps.set(stepOffset, "active");
-  const summaries = await describeFrames(access, frames, (done, total) =>
-    steps.set(stepOffset, "active", `Describing frames ${done}/${total}`),
+  const summaries = await (state.mode === "recipe" ? describeRecipeFrames : describeFrames)(access, frames, (done, total) =>
+    steps.set(stepOffset, "active", t("describingProgress", { done, total })),
   );
-  steps.set(stepOffset, "done", `Described ${summaries.length} frames`);
+  if (state.mode === "recipe") {
+    if (summaries.length < Math.ceil(frames.length / 2)) throw new Error("Too few cooking frames could be analyzed. Please retry the recipe scan.");
+    if (summaries.length < frames.length) source.limitations.push(`${frames.length - summaries.length} of ${frames.length} sampled frames could not be analyzed; ingredients or steps may be missing.`);
+    if (duration > 60) source.limitations.push(`Recipe sampling was limited to ${frames.length} frames over ${duration.toFixed(1)} seconds; brief ingredients or text may be missed.`);
+  }
+  steps.set(stepOffset, "done", t("describedFrames", { count: summaries.length }));
 
   steps.set(stepOffset + 1, "active");
   const timeline = buildTimeline(summaries, transcript, duration);
   if (timeline.segments.length === 0) {
-    throw new Error("Nothing usable was extracted from this video (no frames, no transcript).");
+    throw new Error(t("nothingExtracted"));
   }
-  steps.set(stepOffset + 1, "done", `Timeline: ${timeline.segments.length} segments`);
+  steps.set(stepOffset + 1, "done", t("timelineSegments", { count: timeline.segments.length }));
 
   steps.set(stepOffset + 2, "active");
-  state.analysis = await analyzeTimeline(access, timeline, source, state.mode, prompt);
+  state.analysis = state.mode === "recipe"
+    ? await analyzeRecipeWithResearch(access, timeline, source, prompt, outputLanguage, recipeContext, state.recipeLookup,
+      () => steps.set(stepOffset + 2, "active", recipeCopy(documentLanguage()).researching))
+    : await analyzeTimeline(access, timeline, source, state.mode, prompt, outputLanguage);
   steps.set(stepOffset + 2, "done");
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
 function el(html: string): HTMLElement {
-  const tpl = document.createElement("template");
-  tpl.innerHTML = html.trim();
-  return tpl.content.firstElementChild as HTMLElement;
+  const parsed = new window.DOMParser().parseFromString(
+    `<!doctype html><html><body>${html.trim()}</body></html>`,
+    "text/html",
+  );
+  return document.importNode(parsed.body.firstElementChild as HTMLElement, true);
 }
 
 function esc(s: string): string {
@@ -863,6 +1754,66 @@ function esc(s: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function renderProse(value: string, emptyLabel: string): string {
+  const paragraphs = proseParagraphs(value);
+  if (paragraphs.length === 0) return `<p><i>${esc(emptyLabel)}</i></p>`;
+  return paragraphs.map((paragraph) => `<p>${esc(paragraph)}</p>`).join("");
+}
+
+function proseParagraphs(value: string, targetLength = 340): string[] {
+  const normalized = value.trim();
+  if (!normalized) return [];
+
+  const authoredParagraphs = normalized.split(/\n+/u).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (authoredParagraphs.length > 1) return authoredParagraphs;
+
+  const sentences = normalized.match(/[^.!?。！？]+(?:[.!?。！？]+[”’"')\]]*|$)/gu)
+    ?.map((sentence) => sentence.trim())
+    .filter(Boolean) ?? [normalized];
+  if (sentences.length < 2 || normalized.length <= targetLength) return [normalized];
+
+  const paragraphs: string[] = [];
+  let current = "";
+  for (const sentence of sentences) {
+    const candidate = current ? `${current} ${sentence}` : sentence;
+    if (current && candidate.length > targetLength) {
+      paragraphs.push(current);
+      current = sentence;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) paragraphs.push(current);
+  return paragraphs;
+}
+
+function confidenceLabel(confidence: Analysis["confidence"]): string {
+  return reportCopy(documentLanguage()).confidenceLabels[confidence];
+}
+
+function outputLanguageForAnalysis(analysis: Analysis): ConcreteReportLanguage | "source" {
+  if (analysis.outputLanguage === "source") return "source";
+  return normalizeLanguageTag(analysis.outputLanguage)
+    ?? resolveReportLanguage(state.reportLanguage, browserLanguage);
+}
+
+function localizeKnownError(message: string): string {
+  const translations: Record<string, UiKey> = {
+    "No active tab found.": "noActiveTab",
+    "This browser page can't be analyzed. Open a YouTube video and try again.": "chromePageCannotAnalyze",
+    "VideoLens needs access to YouTube to analyze this video. Choose Allow when your browser asks, then try again.": "youtubeAccessRequired",
+    "VideoLens still can't access this tab. Make sure the YouTube video tab is selected, then try again.": "tabStillUnavailable",
+    "No video found on this page. Make sure the video has started loading, then try again.": "noVideoFound",
+    "The video on this page has no seekable duration (live streams aren't supported).": "noSeekableDuration",
+    "Frame capture failed.": "frameCaptureFailed",
+    "This file has no readable duration.": "noReadableDuration",
+    "Canvas unavailable.": "canvasUnavailable",
+    "Could not open this file as a video (unsupported codec or corrupt file).": "fileOpenFailed",
+  };
+  const key = translations[message];
+  return key ? t(key) : message;
 }
 
 // Tiny markdown renderer for Q&A answers: paragraphs, bullets, bold, inline

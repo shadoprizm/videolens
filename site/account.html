@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://rsms.me/">
   <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
   <link rel="stylesheet" href="/account.css">
+  <link rel="stylesheet" href="/cloud-report.css">
 </head>
 <body>
   <header class="account-header">
@@ -96,11 +97,13 @@
             <div class="meter"><span id="usage-meter"></span></div>
             <p id="usage-note" class="fine-print"></p>
           </div>
+          <p id="complimentary-note" class="fine-print" hidden></p>
           <div id="upgrade-actions" class="upgrade-actions">
             <button class="button button-primary checkout-button" data-billing="annual" type="button">Choose annual · $99/year</button>
             <button class="button button-secondary checkout-button" data-billing="monthly" type="button">Choose monthly · $12/month</button>
           </div>
           <button id="manage-billing" class="button button-secondary" type="button" hidden>Manage billing</button>
+          <a id="admin-link" class="button button-secondary" href="/admin" hidden>Open admin dashboard</a>
           <button id="sign-out" class="text-button" type="button">Sign out</button>
         </section>
 
@@ -115,17 +118,28 @@
       <section class="panel library-panel">
         <div class="library-head">
           <div><div class="panel-kicker">Cloud library</div><h2>Saved reports</h2></div>
-          <input id="report-search" type="search" placeholder="Search reports" aria-label="Search saved reports">
+          <input id="report-search" type="search" placeholder="Search reports and answers" aria-label="Search saved reports and answers">
         </div>
+        <p class="library-description">Open a report to read the full analysis, check timestamped evidence, and export a copy.</p>
+        <p id="library-count" class="library-count" aria-live="polite"></p>
         <div id="report-list" class="report-list"></div>
         <div id="empty-library" class="empty-state">
           <div class="empty-icon">▤</div>
           <h3>No cloud reports yet.</h3>
-          <p>Enable “Save completed report to my cloud library” in the extension before running a managed report.</p>
+          <p>In extension Settings, connect this account and choose “Upload existing reports to my cloud library.” Requires extension 0.4.5 or newer. Local copies stay in your browser.</p>
         </div>
       </section>
     </section>
   </main>
+
+  <dialog id="report-reader" class="report-reader" aria-labelledby="reader-title">
+    <div class="reader-toolbar">
+      <button id="close-report" type="button" class="button button-secondary" autofocus>← Library</button>
+      <h2 id="reader-title"></h2>
+      <div id="reader-actions"></div>
+    </div>
+    <div id="reader-content" class="reader-content"></div>
+  </dialog>
 
   <footer>VideoLens · <a href="/privacy">Privacy</a> · Support: <a href="mailto:astrawebdevservices@gmail.com">astrawebdevservices@gmail.com</a></footer>
   <script type="module" src="/account.js"></script>

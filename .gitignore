@@ -17,6 +17,8 @@ wheels/
 .vercel
 node_modules/
 .playwright-cli/
+.firecrawl/
+.agents/memory/
 .env
 .env.*
 !.env.example
@@ -25,3 +27,5 @@ node_modules/
 # Generated reports and visual-verification renders
 output/
 tmp/
+extension/dist-firefox/
+extension/releases/**/*.zip

@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "VideoLens — YouTube 视频总结",
+    "description": "浏览器和扩展商店中显示的扩展名称。"
+  },
+  "extensionDescription": {
+    "message": "将 YouTube 视频和本地文件转化为您所选语言的时间戳报告。支持隐私自备密钥模式和可选 Pro。",
+    "description": "扩展的简短说明。"
+  },
+  "actionTitle": {
+    "message": "打开 VideoLens",
+    "description": "扩展工具栏按钮的提示文字。"
+  }
+}

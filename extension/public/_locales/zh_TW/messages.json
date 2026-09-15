@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "VideoLens — YouTube 影片摘要",
+    "description": "瀏覽器和擴充功能商店中顯示的擴充功能名稱。"
+  },
+  "extensionDescription": {
+    "message": "將 YouTube 影片和本機檔案轉化為您所選語言的時間戳記報告。支援隱私自備金鑰模式和選用 Pro。",
+    "description": "擴充功能的簡短說明。"
+  },
+  "actionTitle": {
+    "message": "開啟 VideoLens",
+    "description": "擴充功能工具列按鈕的提示文字。"
+  }
+}

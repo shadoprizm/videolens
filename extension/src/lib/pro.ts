@@ -8,6 +8,7 @@ import {
   type StoredProSession,
 } from "./storage";
 import type { Analysis } from "./types";
+import type { SavedReport } from "./reportLibrary";
 
 export interface ProEntitlement {
   plan: "free" | "pro";
@@ -28,11 +29,14 @@ export interface ManagedReservation {
 }
 
 const PRO_ORIGIN = `${LINKS.site}/*`;
+const FIREFOX_PRO_DATA_PERMISSION = "personallyIdentifyingInfo";
+export const PRO_REQUEST_TIMEOUT_MS = 15_000;
 
 export async function ensureProHostPermission(): Promise<boolean> {
   if (!chrome.permissions) return false;
-  if (await chrome.permissions.contains({ origins: [PRO_ORIGIN] })) return true;
-  return chrome.permissions.request({ origins: [PRO_ORIGIN] });
+  const permissions = proPermissions();
+  if (await chrome.permissions.contains(permissions)) return true;
+  return chrome.permissions.request(permissions);
 }
 
 export async function startProConnection(): Promise<StoredProSession> {
@@ -49,11 +53,13 @@ export async function startProConnection(): Promise<StoredProSession> {
 }
 
 export async function resumeProConnection(timeoutMs = 5_000): Promise<StoredProSession | null> {
-  const nonce = await getProPairingNonce();
-  if (!nonce) return null;
-  if (!(await ensureProHostPermission())) return null;
-  const deviceId = await getOrCreateProDeviceId();
   try {
+    const nonce = await getProPairingNonce();
+    if (!nonce || !chrome.permissions) return null;
+    // Startup recovery is not a user gesture, so it may inspect an existing
+    // permission but must never trigger the browser's permission prompt.
+    if (!(await chrome.permissions.contains(proPermissions()))) return null;
+    const deviceId = await getOrCreateProDeviceId();
     return await pollForProConnection(nonce, deviceId, timeoutMs);
   } catch {
     return null;
@@ -66,7 +72,7 @@ async function pollForProConnection(nonce: string, deviceId: string, timeoutMs: 
     const url = new URL(`${LINKS.api}/api/extension-token`);
     url.searchParams.set("nonce", nonce);
     url.searchParams.set("device_id", deviceId);
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url, {}, Math.min(PRO_REQUEST_TIMEOUT_MS, Math.max(1, deadline - Date.now())));
     if (response.status === 202) {
       await delay(1_500);
       continue;
@@ -127,11 +133,18 @@ export function openProAccount(): void {
   void chrome.tabs.create({ url: LINKS.account, active: true });
 }
 
+export async function uploadSavedReport(token: string, report: SavedReport): Promise<void> {
+  await proJson("/api/reports", token, {
+    method: "POST",
+    body: JSON.stringify({ action: "upload", report }),
+  });
+}
+
 async function proJson<T = Record<string, unknown>>(path: string, token: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${token}`);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-  const response = await fetch(`${LINKS.api}${path}`, { ...init, headers });
+  const response = await fetchWithTimeout(`${LINKS.api}${path}`, { ...init, headers });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     if (response.status === 401) await setProSession(null);
@@ -140,10 +153,39 @@ async function proJson<T = Record<string, unknown>>(path: string, token: string,
   return data as T;
 }
 
+async function fetchWithTimeout(
+  input: string | URL,
+  init: RequestInit = {},
+  timeoutMs = PRO_REQUEST_TIMEOUT_MS,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error("The VideoLens server did not respond in time.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 function base64Url(bytes: Uint8Array): string {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function proPermissions(): chrome.permissions.Permissions {
+  const permissions: chrome.permissions.Permissions & { data_collection?: string[] } = {
+    origins: [PRO_ORIGIN],
+  };
+  if (chrome.runtime?.getURL?.("").startsWith("moz-extension://")) {
+    permissions.data_collection = [FIREFOX_PRO_DATA_PERMISSION];
+  }
+  return permissions;
 }
 
 function delay(ms: number): Promise<void> {

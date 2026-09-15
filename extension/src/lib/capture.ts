@@ -7,6 +7,8 @@ import type { CapturedFrame, SourceInfo, Transcript, TranscriptSegment } from ".
 
 export class CaptureError extends Error {}
 
+const YOUTUBE_HOST_PERMISSION = "https://*.youtube.com/*";
+
 export interface TabProbe {
   duration: number;
   title: string;
@@ -16,28 +18,63 @@ export interface TabProbe {
   height: number;
 }
 
+// The sidebar can be opened from the browser's sidebar picker, which does not
+// grant activeTab. YouTube is the extension's primary source, so request a
+// narrow, optional YouTube permission when the browser has not exposed the
+// current tab to us. This happens directly from the Analyze click and is
+// remembered after the user approves it once.
+export async function ensureTabCapturePermission(): Promise<void> {
+  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  if (!tab?.id) throw new CaptureError("No active tab found.");
+
+  if (tab.url) {
+    if (/^https?:/.test(tab.url)) return;
+    throw new CaptureError("This browser page can't be analyzed. Open a YouTube video and try again.");
+  }
+
+  let granted = false;
+  try {
+    granted = await chrome.permissions.request({ origins: [YOUTUBE_HOST_PERMISSION] });
+  } catch {
+    // A rejected permissions request is handled by the same user-facing error.
+  }
+  if (!granted) {
+    throw new CaptureError("VideoLens needs access to YouTube to analyze this video. Choose Allow when your browser asks, then try again.");
+  }
+
+  const [refreshedTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  if (!refreshedTab?.url || !/^https?:/.test(refreshedTab.url)) {
+    throw new CaptureError("VideoLens still can't access this tab. Make sure the YouTube video tab is selected, then try again.");
+  }
+}
+
 export async function getActiveTabId(): Promise<number> {
   const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   if (!tab?.id) throw new CaptureError("No active tab found.");
-  if (!tab.url || !/^https?:/.test(tab.url)) {
-    throw new CaptureError("This page can't be captured. Open a page with a video and click the VideoLens toolbar icon there.");
-  }
   return tab.id;
 }
 
 export async function probeTabVideo(tabId: number): Promise<TabProbe> {
   const result = await exec(tabId, () => {
-    const videos = Array.from(document.querySelectorAll("video"));
+    const activeShorts = Array.from(document.querySelectorAll<HTMLVideoElement>('ytd-reel-video-renderer[is-active]:not([is-active="false"]) video'));
+    const videos = activeShorts.length ? activeShorts : Array.from(document.querySelectorAll("video"));
     const playable = videos
       .filter((v) => v.readyState >= 1 && (v.duration > 0 || v.videoWidth > 0))
       .sort((a, b) => b.videoWidth * b.videoHeight - a.videoWidth * a.videoHeight);
     const v = playable[0];
     if (!v) return null;
+    const isYouTube = /(^|\.)youtube\.com$/.test(location.hostname) || /(^|\.)youtu\.be$/.test(location.hostname);
+    // YouTube puts notification counts in document.title. Prefer the visible
+    // video heading, including after client-side navigation to another video.
+    const heading = isYouTube ? document.querySelector("ytd-watch-metadata h1 yt-formatted-string, h1.ytd-watch-metadata, #title h1 yt-formatted-string")?.textContent?.trim() : null;
+    const title = heading || (isYouTube
+      ? document.title.replace(/\s[-–—]\sYouTube\s*$/i, "").replace(/^\(\d[\d,.]*\)\s+/, "").trim()
+      : document.title);
     return {
       duration: Number.isFinite(v.duration) ? v.duration : 0,
-      title: document.title,
+      title,
       pageUrl: location.href,
-      isYouTube: /(^|\.)youtube\.com$/.test(location.hostname) || /(^|\.)youtu\.be$/.test(location.hostname),
+      isYouTube,
       width: v.videoWidth,
       height: v.videoHeight,
     };
@@ -72,7 +109,8 @@ export async function captureTabFrames(
   const result = await exec(
     tabId,
     async (stamps: number[], quality: number, maxEdge: number) => {
-      const videos = Array.from(document.querySelectorAll("video"))
+      const activeShorts = Array.from(document.querySelectorAll<HTMLVideoElement>('ytd-reel-video-renderer[is-active]:not([is-active="false"]) video'));
+      const videos = (activeShorts.length ? activeShorts : Array.from(document.querySelectorAll("video")))
         .filter((v) => v.readyState >= 1 && v.videoWidth > 0)
         .sort((a, b) => b.videoWidth * b.videoHeight - a.videoWidth * a.videoHeight);
       const v = videos[0];
@@ -89,14 +127,19 @@ export async function captureTabFrames(
       if (!ctx) return { error: "canvas unavailable" };
 
       const seekTo = (t: number) =>
-        new Promise<void>((resolve) => {
+        new Promise<boolean>((resolve) => {
+          const ready = () => !v.seeking && v.readyState >= 2 && Math.abs(v.currentTime - t) < 0.1;
+          if (ready()) { resolve(true); return; }
           const done = () => {
             v.removeEventListener("seeked", done);
             clearTimeout(timer);
             // Give the frame one paint tick to land on the element.
-            requestAnimationFrame(() => setTimeout(resolve, 50));
+            requestAnimationFrame(() => setTimeout(() => resolve(ready()), 50));
           };
-          const timer = setTimeout(done, 3000);
+          const timer = setTimeout(() => {
+            v.removeEventListener("seeked", done);
+            resolve(false);
+          }, 3000);
           v.addEventListener("seeked", done);
           v.currentTime = t;
         });
@@ -104,7 +147,7 @@ export async function captureTabFrames(
       const frames: { timestamp: number; dataUrl: string }[] = [];
       let taintError: string | null = null;
       for (const t of stamps) {
-        await seekTo(t);
+        if (!await seekTo(t)) continue;
         try {
           ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
           frames.push({ timestamp: t, dataUrl: canvas.toDataURL("image/jpeg", quality) });
@@ -145,34 +188,47 @@ interface CaptionResult {
   error?: string;
 }
 
-export async function fetchYouTubeCaptions(tabId: number): Promise<Transcript | null> {
+export async function fetchYouTubeCaptions(
+  tabId: number,
+  preferredLanguage?: string | null,
+): Promise<Transcript | null> {
   let result: CaptionResult | null = null;
   try {
     result = await exec(
       tabId,
-      async () => {
+      async (requestedLanguage: string | null) => {
         const w = window as unknown as Record<string, any>;
-        let tracks: any[] | undefined =
-          w.ytInitialPlayerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-
-        if (!tracks?.length) {
-          // SPA navigation can leave ytInitialPlayerResponse stale; fall back
-          // to scraping the latest player response from the document.
-          const html = document.documentElement.innerHTML;
-          const m = html.match(/"captionTracks":(\[.*?\])(?=,")/);
-          if (m) {
-            try {
-              tracks = JSON.parse(m[1]);
-            } catch {
-              /* ignore */
-            }
-          }
-        }
+        const page = new URL(location.href);
+        const videoId = page.searchParams.get("v") || page.pathname.match(/^\/shorts\/([^/]+)/)?.[1];
+        const activeShort = document.querySelector('ytd-reel-video-renderer[is-active]:not([is-active="false"])');
+        const player = activeShort?.querySelector("#movie_player") ?? document.querySelector("#movie_player");
+        const response = (player as any)?.getPlayerResponse?.() ?? w.ytInitialPlayerResponse;
+        // Never use stale captions from another item in a Shorts feed or an SPA navigation.
+        if (!videoId || response?.videoDetails?.videoId !== videoId) return { language: null, segments: [], error: "stale_player" };
+        const tracks: any[] | undefined = response.captions?.playerCaptionsTracklistRenderer?.captionTracks;
         if (!tracks?.length) return { language: null, segments: [], error: "no_tracks" };
 
+        const normalize = (value: unknown) => String(value ?? "").replace(/_/g, "-").toLowerCase();
+        const requested = normalize(requestedLanguage);
+        const matchesRequested = (track: any) => {
+          const trackLanguage = normalize(track.languageCode);
+          if (!requested || !trackLanguage) return false;
+          if (requested.startsWith("zh")) {
+            const wantsTraditional = /(?:^|-)(?:tw|hk|mo|hant)(?:-|$)/.test(requested);
+            const trackTraditional = /(?:^|-)(?:tw|hk|mo|hant)(?:-|$)/.test(trackLanguage);
+            return trackLanguage.startsWith("zh") && wantsTraditional === trackTraditional;
+          }
+          return trackLanguage === requested || trackLanguage.startsWith(`${requested.split("-")[0]}-`);
+        };
+
+        // Match the user's requested report language when possible. Otherwise
+        // prefer a human-authored track in the video's own language. This
+        // replaces the old English-first behavior that disadvantaged Chinese
+        // and other non-English videos.
         const preferred =
-          tracks.find((t: any) => !t.kind && (t.languageCode ?? "").startsWith("en")) ??
-          tracks.find((t: any) => (t.languageCode ?? "").startsWith("en")) ??
+          tracks.find((track: any) => !track.kind && matchesRequested(track)) ??
+          tracks.find((track: any) => matchesRequested(track)) ??
+          tracks.find((track: any) => !track.kind) ??
           tracks[0];
 
         const url = `${preferred.baseUrl}&fmt=json3`;
@@ -195,7 +251,7 @@ export async function fetchYouTubeCaptions(tabId: number): Promise<Transcript | 
         }
         return { language: preferred.languageCode ?? null, segments };
       },
-      [],
+      [preferredLanguage ?? null],
       "MAIN",
     );
   } catch {
@@ -224,6 +280,22 @@ export function makeTabSource(probe: TabProbe, hasTranscript: boolean): SourceIn
   };
 }
 
+// Read creator metadata only when it belongs to the current video. Shorts feeds
+// keep other videos in the DOM, so a page-wide description lookup can be stale.
+export async function fetchRecipeCreatorText(tabId: number): Promise<string> {
+  return exec(tabId, () => {
+    if (!/(^|\.)youtube\.com$/.test(location.hostname)) return "";
+    const url = new URL(location.href);
+    const videoId = url.searchParams.get("v") || url.pathname.match(/^\/shorts\/([^/]+)/)?.[1];
+    const w = window as any;
+    const activeShort = document.querySelector('ytd-reel-video-renderer[is-active]:not([is-active="false"])');
+    const player = activeShort?.querySelector("#movie_player") ?? document.querySelector("#movie_player");
+    const response = (player as any)?.getPlayerResponse?.() ?? w.ytInitialPlayerResponse;
+    if (!videoId || response?.videoDetails?.videoId !== videoId) return "";
+    return typeof response.videoDetails.shortDescription === "string" ? response.videoDetails.shortDescription.slice(0, 12_000) : "";
+  }, [], "MAIN");
+}
+
 // chrome.scripting.executeScript wrapper. Injected functions must be
 // self-contained (they are serialized into the page).
 async function exec<T>(
@@ -242,7 +314,7 @@ async function exec<T>(
     });
   } catch (e) {
     throw new CaptureError(
-      "Can't access this tab. Click the VideoLens toolbar icon on the tab with the video, then retry. " +
+      "VideoLens can't access this tab. Select the video tab, reopen VideoLens from your browser's Extensions menu, then retry. " +
         `(${(e as Error).message})`,
     );
   }

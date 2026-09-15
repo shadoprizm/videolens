@@ -71,12 +71,12 @@
 
   <main class="max-w-3xl mx-auto px-6 py-14 prose-slate">
     <h1 class="text-4xl font-extrabold tracking-tight mb-2">Privacy Policy</h1>
-    <p class="text-sm text-slate-500 mb-10">Last updated: August 18, 2026 · Applies to videolens.io, VideoLens accounts and Pro, the hosted app, and the VideoLens Chrome extension.</p>
+    <p class="text-sm text-slate-500 mb-10">Last updated: September 14, 2026 · Applies to videolens.io, VideoLens accounts and Pro, the hosted app, and the VideoLens Chrome and Firefox extensions.</p>
 
     <div class="space-y-10 text-slate-700 leading-relaxed">
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">The short version</h2>
-        <p>VideoLens gives you two explicit extension modes. In <strong>Private / BYOK mode</strong>, analysis goes directly from your browser to OpenAI with your key; VideoLens does not receive the video content, prompt, key, or report. In <strong>Pro / Managed mode</strong>, the content required for the analysis passes through VideoLens and Vercel AI Gateway to the configured AI provider (currently OpenAI) so you do not need a key. VideoLens does not retain raw frames or audio in its database, and a completed report is stored only when you enable cloud saving. The extension contains no analytics.</p>
+        <p>VideoLens gives you two explicit extension modes. In <strong>Private / BYOK mode</strong>, analysis goes directly from your browser to OpenAI with your key; VideoLens does not receive that analysis content unless you separately choose to upload completed reports to your cloud library. Your API key is never uploaded to VideoLens. In <strong>Pro / Managed mode</strong>, the content required for the analysis passes through VideoLens and Vercel AI Gateway to the configured AI provider (currently OpenAI) so you do not need a key. VideoLens does not retain raw frames or audio in its database. Completed reports and follow-up Q&amp;A are saved automatically in Chrome on your device; cloud storage remains optional and off by default. The extension contains no analytics.</p>
       </section>
 
       <section>
@@ -85,9 +85,9 @@
           <li><strong>Private / BYOK analysis.</strong> The selected video's frames, audio or captions, page title, and your prompt go directly from the extension to OpenAI's API (api.openai.com) using your own API key. They are not sent to VideoLens.</li>
           <li><strong>Pro / Managed analysis.</strong> If you deliberately select Managed mode, the same analysis content is sent over HTTPS to videolens.io, which authenticates your subscription or starter allowance and sends it through Vercel AI Gateway to the configured AI provider (currently OpenAI). VideoLens does not write raw frames, audio chunks, captions, or prompts to its database or intentionally include them in application logs.</li>
           <li><strong>Your OpenAI API key.</strong> Stored in <code>chrome.storage.local</code> on your device only. It is not synced between browsers and is transmitted only to api.openai.com. Remove it any time in Settings.</li>
-          <li><strong>Analysis results.</strong> In Private mode, reports, timelines, and Q&amp;A history exist only in your browser. In Managed mode, the completed report is also stored in your account only if you enable “Save completed reports to my cloud library.” That option is off by default.</li>
+          <li><strong>Analysis results and local library.</strong> Completed reports, timelines, and Q&amp;A history are saved automatically in local IndexedDB so you can continue or reopen them. This library stays in your browser profile, has no VideoLens-imposed report-count limit, and can be deleted report by report. You may explicitly upload existing reports and follow-up answers to your connected account, including reports made with your own API key. You may also enable cloud saving for new reports and follow-up answers. Cloud saving is off by default; local copies are retained. Turning cloud saving off stops future uploads and does not delete existing cloud copies.</li>
           <li><strong>Account connection.</strong> The extension stores a VideoLens session token and account email in <code>chrome.storage.local</code>. The token expires after 30 days and can be removed with Disconnect. Website login and billing credentials are never copied into the extension.</li>
-          <li><strong>Browsing data.</strong> The extension reads a page only when you invoke it on that page (Chrome's activeTab permission), solely to find the video element, captions, and page title. It does not track your browsing, run in the background, or inject anything into pages you haven't invoked it on.</li>
+          <li><strong>Browsing data.</strong> For YouTube, the extension asks once for optional access to youtube.com so capture works from either Chrome entry point; it reads the page only after you start an analysis, solely to find the selected video, captions, and page title. Other supported sites use Chrome's temporary activeTab permission. VideoLens does not track your browsing or analyze pages in the background.</li>
           <li><strong>Analytics.</strong> The extension contains no analytics, telemetry, or error reporting of any kind.</li>
         </ul>
         <p class="mt-4"><strong>Chrome Web Store Limited Use.</strong> VideoLens's use and transfer of information received through Chrome extension APIs adheres to the Chrome Web Store User Data Policy, including its Limited Use requirements. The extension uses this information only to provide the video-analysis features the user requests.</p>
@@ -96,12 +96,18 @@
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">Accounts, Pro, and cloud reports</h2>
         <ul class="list-disc pl-5 space-y-2">
-          <li><strong>Account data.</strong> We store your email address, account ID, subscription status, managed-report usage, and the technical identifiers needed to connect your extension and Stripe customer. Passwordless sign-in is provided by Supabase Auth.</li>
+          <li><strong>Account data.</strong> We store your email address, account ID, subscription status, sign-in timestamps, managed-report usage, and the technical identifiers needed to connect your extension and Stripe customer. Passwordless sign-in is provided by Supabase Auth.</li>
+          <li><strong>Service administration.</strong> Authorized administrators can review membership, billing status, sign-in timestamps, and managed-report activity to operate and support VideoLens. Managed-report records include the title, source type, analysis mode, timestamps, and completion status supplied by the client, even when cloud report saving is off. We also retain operational AI diagnostics such as model names, HTTP status, duration, fallback use, and fixed error categories to diagnose failures. These diagnostics contain no prompts, media, raw error text, or AI response contents. The admin dashboard does not expose report contents, source videos, images, or audio. Private / BYOK scans stay on your device unless you choose to upload their reports to your cloud library; uploaded report titles and metadata are then included in administrative activity records.</li>
           <li><strong>Pairing data.</strong> Extension pairing challenges are random, single-use, and expire after 10 minutes. They contain no video content.</li>
-          <li><strong>Cloud reports.</strong> When cloud saving is enabled, we store the completed structured report, including its title, summary, findings, timeline text, mode, and timestamped evidence. We do not store the source video, sampled image files, or audio files.</li>
+          <li><strong>Cloud reports.</strong> When cloud saving is enabled, we store the completed structured report, including its title, source details, prompt, summary, findings, timeline text, mode, timestamped evidence, and follow-up questions and answers. Uploads do not consume managed AI report credits. We do not store the source video, sampled image files, or audio files.</li>
           <li><strong>Payments.</strong> Stripe processes payment-card and billing details. VideoLens stores Stripe customer, subscription, product, and price identifiers plus subscription status; it does not receive or store full card numbers.</li>
           <li><strong>Deletion.</strong> You can delete individual cloud reports from the account page. To delete your account and its stored VideoLens data, contact us at the address below. Stripe may retain transaction records as required for legal, tax, fraud-prevention, and accounting obligations.</li>
         </ul>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Optional recipe lookup</h2>
+        <p>Recipe mode can read the current YouTube video's creator description alongside its frames and captions. If you choose <strong>Look online for missing details</strong>, the video title, URL, creator description, and extracted recipe details are sent to OpenAI web search through your selected Private or Managed AI connection. Search queries may be shared with search providers. This option is off by default and does not send raw frames or audio to search. Recipe details, evidence labels, and cited source links are included in your saved report; cloud saving remains optional. Using your own OpenAI key may incur additional search charges.</p>
       </section>
 
       <section>
@@ -138,8 +144,8 @@
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">Your choices</h2>
         <ul class="list-disc pl-5 space-y-2">
-          <li>Remove your API key or uninstall the extension at any time — all locally stored data (key and settings) is deleted with it.</li>
-          <li>Use Private / BYOK mode without an account, disable cloud saving while using Pro, delete saved reports from the account page, disconnect the extension, or cancel Pro from the Stripe customer portal.</li>
+          <li>Remove your API key or uninstall the extension at any time — all locally stored data, including settings and saved reports, is deleted with it.</li>
+          <li>Use Private / BYOK mode without an account, delete local reports inside the extension, disable cloud saving while using Pro, delete cloud reports from the account page, disconnect the extension, or cancel Pro from the Stripe customer portal.</li>
           <li>For privacy questions or an account-deletion request, email <a class="text-cyan-700 font-semibold hover:underline" href="mailto:astrawebdevservices@gmail.com">astrawebdevservices@gmail.com</a>.</li>
         </ul>
       </section>

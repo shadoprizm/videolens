@@ -1,6 +1,8 @@
 // Minimal OpenAI client over fetch — the user's key never leaves the browser
 // except to api.openai.com.
 
+import { parseRecipeResearch, recipeResearchPayload, type RecipeResearch } from "./recipeResearch";
+
 const BASE = "https://api.openai.com/v1";
 const PRO_BASE = "https://videolens.io/api/ai";
 
@@ -66,6 +68,17 @@ export async function transcribeChunk(
   }
   const data = await res.json();
   return (data?.text ?? "").trim();
+}
+
+export async function researchRecipe(access: AiAccess, input: string): Promise<RecipeResearch> {
+  const res = await fetch(access.kind === "byok" ? `${BASE}/responses` : PRO_BASE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${access.kind === "byok" ? access.apiKey : access.token}` },
+    body: JSON.stringify(access.kind === "byok" ? recipeResearchPayload(input) : { kind: "recipe_research", reportId: access.reportId, input }),
+    signal: AbortSignal.timeout(90_000),
+  });
+  if (!res.ok) throw new OpenAIError("Online recipe lookup is unavailable.");
+  return parseRecipeResearch(await res.json());
 }
 
 export async function verifyApiKey(apiKey: string): Promise<boolean> {
