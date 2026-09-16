@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · VideoLens</title><meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#142a28"><link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+  <header><a class="brand" href="/">▶ VideoLens <span>ADMIN</span></a><nav><a href="/account">My account</a><button id="sign-out" hidden>Sign out</button></nav></header>
+  <main>
+    <div class="heading"><div><p class="eyebrow">WORKSPACE OVERVIEW</p><h1>Members & activity</h1><p class="subtitle">Understand who’s here and how they use VideoLens.</p></div><button id="refresh" hidden>↻ Refresh data</button></div>
+    <p id="message" role="status" aria-live="polite">Checking administrator access…</p>
+    <section id="access" class="panel" hidden><h2>Administrator sign-in required</h2><p>Sign in with your administrator account, then open the admin dashboard from your account page.</p><a class="primary" href="/account">Go to sign in →</a></section>
+    <div id="dashboard" hidden>
+      <p class="updated" id="updated"></p>
+      <section id="metrics" class="metrics" aria-label="Membership overview"></section>
+      <section class="insights">
+        <article class="panel"><div class="section-heading"><h2>Managed scans</h2><span>Last 14 days · UTC</span></div><div id="chart" class="chart" role="img"></div><p id="scan-summary" class="muted"></p></article>
+        <article class="panel"><h2>What’s being scanned</h2><h3>Source types · includes library uploads</h3><div id="sources"></div><h3>Analysis modes</h3><div id="modes"></div></article>
+      </section>
+      <section class="panel members">
+        <div class="section-heading"><div><p class="eyebrow">DIRECTORY</p><h2>Membership</h2></div><span id="member-count"></span></div>
+        <form id="filters" class="filters"><label>Search members<input id="search" type="search" placeholder="Email address" maxlength="200"></label><label>Membership<select id="membership"><option value="all">All memberships</option><option value="paid">Paid Pro</option><option value="free">Free</option><option value="trial">Trial</option><option value="complimentary">Complimentary Pro</option></select></label><button class="primary" type="submit">Apply filters</button></form>
+        <div class="table-scroll"><table><caption class="sr-only">Registered members, membership and sign-in activity</caption><thead><tr><th>Member</th><th>Membership</th><th>Billing status</th><th>Joined</th><th>Last login</th><th>Reports</th><th>Last scan</th></tr></thead><tbody id="members"></tbody></table></div>
+        <div class="pagination"><button id="members-prev">← Previous</button><span id="members-page"></span><button id="members-next">Next →</button></div>
+      </section>
+      <section class="panel" id="activity-panel">
+        <div class="section-heading"><div><p class="eyebrow">MANAGED SCANS & LIBRARY UPLOADS</p><h2 id="activity-title">Scan activity</h2></div><button id="clear-member" hidden>Show all members</button></div>
+        <p class="muted">Select a member’s scan count to see their activity. Pending means reserved but no completion was recorded; it may be abandoned.</p>
+        <div class="table-scroll"><table><caption class="sr-only">Managed report activity</caption><thead><tr><th>Video / report</th><th>Member</th><th>Type</th><th>Source</th><th>Mode</th><th>Status</th><th>Diagnostics</th><th>Started</th><th>Finished</th><th>Cloud saved</th></tr></thead><tbody id="activity"></tbody></table></div>
+        <div class="pagination"><button id="activity-prev">← Previous</button><span id="activity-page"></span><button id="activity-next">Next →</button></div>
+      </section>
+      <aside class="coverage"><strong>Data coverage</strong><p>This dashboard covers registered accounts and retained managed-report and cloud-library records. Private / BYOK scans stay on the device unless the user uploads a report to their cloud library. Anonymous installs and hosted-app activity are not linked to these accounts. Titles and modes appear only when reported by the client; older or interrupted scans may have no details. Deleted reports are excluded. Paid Pro means an active Stripe-linked subscription, not confirmed payment revenue. Complimentary Pro is counted separately.</p></aside>
+    </div>
+  </main><script type="module" src="/admin.js"></script>
+</body></html>

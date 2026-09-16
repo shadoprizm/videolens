@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "VideoLens — Resúmenes de videos de YouTube",
+    "description": "Nombre de la extensión que se muestra en el navegador y la tienda de extensiones."
+  },
+  "extensionDescription": {
+    "message": "Convierte videos de YouTube y archivos locales en informes con tiempos en tu idioma. Modo privado con clave propia y Pro opcional.",
+    "description": "Descripción breve de la extensión."
+  },
+  "actionTitle": {
+    "message": "Abrir VideoLens",
+    "description": "Texto del botón de VideoLens en la barra de herramientas."
+  }
+}

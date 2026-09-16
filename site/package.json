@@ -4,6 +4,22 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node build.mjs && node seo-audit.mjs"
+    "typecheck": "tsc --noEmit",
+    "test": "npm run typecheck && node build.mjs && node seo-audit.mjs && vitest run",
+    "stripe:setup": "node scripts/setup-stripe.mjs"
+  },
+  "dependencies": {
+    "@ai-sdk/gateway": "^4.0.52",
+    "@supabase/supabase-js": "2.112.3",
+    "@vercel/oidc": "^3.8.4",
+    "ai": "^7.0.66",
+    "jose": "6.2.9",
+    "stripe": "22.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "esbuild": "0.28.2",
+    "typescript": "6.0.2",
+    "vitest": "4.1.10"
   }
 }

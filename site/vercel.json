@@ -5,11 +5,19 @@
   "trailingSlash": false,
   "redirects": [
     { "source": "/index.html", "destination": "/", "permanent": true },
-    { "source": "/privacy.html", "destination": "/privacy", "permanent": true }
+    { "source": "/privacy.html", "destination": "/privacy", "permanent": true },
+    { "source": "/chrome.html", "destination": "/chrome", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/privacy", "destination": "/privacy.html" }
+    { "source": "/recipe-preview", "destination": "/recipe-preview.html" },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/account", "destination": "/account.html" },
+    { "source": "/chrome", "destination": "/chrome.html" }
   ],
+  "functions": {
+    "api/ai.ts": { "maxDuration": 300 }
+  },
   "headers": [
     {
       "source": "/(.*)",

@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "VideoLens — YouTube वीडियो सारांश",
+    "description": "ब्राउज़र और एक्सटेंशन स्टोर में दिखाया जाने वाला एक्सटेंशन का नाम।"
+  },
+  "extensionDescription": {
+    "message": "YouTube वीडियो और स्थानीय फ़ाइलों को अपनी भाषा में समय-चिह्न वाली रिपोर्ट में बदलें। अपनी कुंजी वाला निजी मोड और वैकल्पिक Pro।",
+    "description": "एक्सटेंशन का संक्षिप्त विवरण।"
+  },
+  "actionTitle": {
+    "message": "VideoLens खोलें",
+    "description": "टूलबार में VideoLens बटन का टेक्स्ट।"
+  }
+}

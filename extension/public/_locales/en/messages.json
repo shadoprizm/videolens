@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "VideoLens — YouTube Video Summaries",
+    "description": "Extension name shown in the browser and extension store."
+  },
+  "extensionDescription": {
+    "message": "Turn YouTube videos and local files into timestamped reports in your language. Private BYOK mode plus optional Pro.",
+    "description": "Short extension description."
+  },
+  "actionTitle": {
+    "message": "Open VideoLens",
+    "description": "Tooltip for the extension toolbar action."
+  }
+}

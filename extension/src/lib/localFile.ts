@@ -2,7 +2,7 @@
 // offscreen <video>, and audio decode → 16 kHz mono WAV chunks → OpenAI
 // transcription. Replaces ffmpeg/yt-dlp from the Python pipeline.
 import { DEFAULTS, MODELS } from "./config";
-import { transcribeChunk } from "./openai";
+import { transcribeChunk, type AiAccess } from "./openai";
 import type { CapturedFrame, SourceInfo, Transcript, TranscriptSegment } from "./types";
 
 // decodeAudioData materialises the whole audio track in memory; beyond about
@@ -70,20 +70,25 @@ export async function captureLocalFrames(
 }
 
 function seek(v: HTMLVideoElement, t: number): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    const ready = () => !v.seeking && v.readyState >= 2 && Math.abs(v.currentTime - t) < 0.1;
+    if (ready()) { resolve(); return; }
     const done = () => {
       v.removeEventListener("seeked", done);
       clearTimeout(timer);
-      requestAnimationFrame(() => setTimeout(resolve, 30));
+      requestAnimationFrame(() => setTimeout(() => ready() ? resolve() : reject(new Error("The video could not be read at the requested time. Please retry.")), 30));
     };
-    const timer = setTimeout(done, 3000);
+    const timer = setTimeout(() => {
+      v.removeEventListener("seeked", done);
+      reject(new Error("The video took too long to seek. Please retry."));
+    }, 3000);
     v.addEventListener("seeked", done);
     v.currentTime = t;
   });
 }
 
 export async function transcribeLocalFile(
-  apiKey: string,
+  access: AiAccess,
   local: LocalVideo,
   onProgress: (done: number, total: number) => void,
 ): Promise<{ transcript: Transcript | null; limitation: string | null }> {
@@ -133,7 +138,7 @@ export async function transcribeLocalFile(
       const chunk = chunks[idx];
       try {
         const text = await transcribeChunk(
-          apiKey,
+          access,
           MODELS.transcribe,
           encodeWav(chunk.samples, DEFAULTS.transcriptionSampleRate),
           `chunk-${idx}.wav`,

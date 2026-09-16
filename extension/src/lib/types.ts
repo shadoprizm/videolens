@@ -8,6 +8,7 @@ export type AnalysisMode =
   | "ux"
   | "tutorial"
   | "interview"
+  | "recipe"
   | "product_demo"
   | "content"
   | "privacy";
@@ -84,8 +85,10 @@ export interface AnalysisTask {
 }
 
 export interface Analysis {
+  recipe?: import("./recipe").Recipe;
   source: SourceInfo;
   mode: AnalysisMode;
+  outputLanguage?: string;
   prompt: string;
   summary: string;
   timeline: Timeline;

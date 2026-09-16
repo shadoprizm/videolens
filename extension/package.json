@@ -1,19 +1,34 @@
 {
   "name": "videolens-extension",
-  "version": "0.2.0",
+  "version": "0.5.0",
   "private": true,
-  "description": "Turn videos into useful written reports with AI (Chrome extension, BYOK)",
+  "description": "Turn videos into useful written reports with private BYOK and optional managed Pro modes",
   "type": "module",
   "scripts": {
-    "build": "node build.mjs",
+    "build": "npm run build:chrome && npm run build:firefox",
+    "build:chrome": "node build.mjs --target=chrome",
+    "build:firefox": "node build.mjs --target=firefox",
+    "build:all": "npm run build",
     "icons": "node gen-icons.mjs",
+    "test": "node --test test/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "package": "node build.mjs && rm -f videolens-extension.zip && cd dist && zip -qr ../videolens-extension.zip ."
+    "verify:browser-parity": "node scripts/verify-browser-parity.mjs",
+    "package": "npm run verify:browser-parity && npm run package:chrome && npm run package:firefox && npm run package:firefox:source",
+    "package:all": "npm run package",
+    "package:chrome": "npm run build:chrome && node scripts/package-release.mjs chrome",
+    "package:firefox": "npm run build:firefox && node scripts/package-release.mjs firefox",
+    "package:firefox:source": "node scripts/package-release.mjs firefox-source",
+    "lint:firefox": "web-ext lint --source-dir dist-firefox",
+    "release:check": "npm run typecheck && npm test && npm run package && npm run lint:firefox",
+    "start:firefox": "npm run build:firefox && web-ext run --source-dir dist-firefox --firefox=/Applications/Firefox.app/Contents/MacOS/firefox"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.270",
     "esbuild": "^0.28.1",
+    "fake-indexeddb": "^6.2.5",
+    "linkedom": "^0.18.13",
     "pngjs": "^7.0.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "web-ext": "^10.6.0"
   }
 }

@@ -1,0 +1,41 @@
+name: Extension browser parity
+
+on:
+  push:
+    paths:
+      - "extension/**"
+      - "site/shared/**"
+      - "site/cloud-report.ts"
+      - "site/cloud-report.css"
+      - ".github/workflows/extension-browser-parity.yml"
+  pull_request:
+    paths:
+      - "extension/**"
+      - "site/shared/**"
+      - "site/cloud-report.ts"
+      - "site/cloud-report.css"
+      - ".github/workflows/extension-browser-parity.yml"
+
+jobs:
+  verify-both-browsers:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: extension/package-lock.json
+      - run: npm ci
+      - run: npm run release:check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: videolens-browser-extensions
+          path: |
+            extension/releases/chrome/*.zip
+            extension/releases/firefox/*.zip
+            extension/releases/firefox/source/*.zip
+          if-no-files-found: error

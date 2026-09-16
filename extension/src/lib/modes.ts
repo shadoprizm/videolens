@@ -12,6 +12,15 @@ export interface ModePrompts {
 }
 
 export const MODE_PROMPTS: Record<AnalysisMode, ModePrompts> = {
+  recipe: {
+    label: "Recipe (preview)",
+    instructions: "Reconstruct a cooking recipe with separate evidence for ingredients, quantities, and steps. Mark estimates and unknowns explicitly.",
+    summary: "Briefly describe the dish and how completely it can be reconstructed.",
+    findings: "Extract all ingredients, measurements, equipment and preparation actions with timestamps. Preserve missing information and conflicts.",
+    recommendations: "Explain missing details without inventing certainty.",
+    tasks: "Cooking steps in preparation order.",
+    defaultPrompt: "Turn this cooking video into a recipe, with ingredients, quantities, and steps. Clearly label estimates and missing details.",
+  },
   general: {
     label: "Detailed report",
     instructions: `You are reviewing a video by reading a structured timeline (frames + transcript).
@@ -275,6 +284,7 @@ export const MODE_ORDER: AnalysisMode[] = [
   "key_insights",
   "tutorial",
   "interview",
+  "recipe",
   "bug",
   "meeting",
   "ux",

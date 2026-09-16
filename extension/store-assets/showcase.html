@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>VideoLens Store Showcase</title>
-  <link rel="stylesheet" href="showcase.css">
+  <link rel="stylesheet" href="showcase.css?v=0.4.2">
 </head>
 <body>
   <div class="browser-bar">
@@ -48,24 +48,44 @@
   </div>
 
   <script>
-    const screen = new URLSearchParams(location.search).get("screen") || "setup";
+    const params = new URLSearchParams(location.search);
+    const screen = params.get("screen") || "setup";
+    const language = params.get("lang") || "en";
+    const chinese = language.toLowerCase().startsWith("zh");
+    if (params.get("capture") === "1") document.body.classList.add("capture");
+    if (chinese) document.documentElement.lang = language;
     const panel = document.getElementById("panel");
-    const content = {
+    const englishContent = {
       setup: ["VIDEO REPORT WORKFLOW", "Choose exactly what you want to learn.", "Detailed reports, key insights, tutorial guides, interviews, and specialized analysis.", "Build a repeatable<br>value loop.", "02:34 / 14:02", "setup"],
       results: ["TIMESTAMPED EVIDENCE", "Read the important parts. Jump to the proof.", "Every finding is grounded in the video's captions and visual timeline.", "Activation → Value<br>→ Return", "02:34 / 14:02", "results"],
       actions: ["FROM INSIGHT TO ACTION", "Leave with decisions and next steps.", "Recommendations, action items, limitations, and follow-up questions stay attached to the evidence.", "Useful → Repeated<br>→ Paid", "11:56 / 14:02", "results"],
       privacy: ["PRIVATE BY DESIGN", "Your analysis goes directly to OpenAI.", "Your key stays in Chrome. VideoLens has no analysis server and no extension analytics.", "Your video.<br>Your API key.", "00:00 / 14:02", "privacy"],
-    }[screen] || null;
+    };
+    const chineseContent = {
+      setup: ["多语言视频报告", "用您自己的语言理解每一段视频。", "详细报告、核心洞察、教程、访谈和专项分析，全部支持中文输出。", "建立可重复的<br>价值循环。", "02:34 / 14:02", "setup"],
+      results: ["带时间戳的证据", "阅读重点，并直接跳转到证据。", "每项发现都以视频字幕和画面时间线为依据。", "激活 → 价值<br>→ 再次使用", "02:34 / 14:02", "results"],
+      actions: ["从洞察到行动", "带着明确决策和下一步离开。", "建议、行动项、局限和后续问题始终与证据关联。", "有用 → 重复使用<br>→ 付费", "11:56 / 14:02", "results"],
+      privacy: ["隐私优先设计", "您的分析直接发送给 OpenAI。", "您的密钥留在 Chrome 中。VideoLens 没有分析服务器，扩展也不含分析追踪。", "您的视频。<br>您的 API 密钥。", "00:00 / 14:02", "privacy"],
+    };
+    const content = (chinese ? chineseContent : englishContent)[screen] || null;
     if (content) {
       document.getElementById("screen-label").textContent = content[0];
       document.getElementById("screen-title").textContent = content[1];
       document.getElementById("screen-copy").textContent = content[2];
       document.getElementById("slide-heading").innerHTML = content[3];
       document.getElementById("time").textContent = content[4];
-      panel.src = `../dist/sidepanel.html?preview=${content[5]}`;
+      if (chinese) {
+        document.querySelector(".slide-kicker").textContent = "产品策略";
+        [...document.querySelectorAll(".loop strong")].forEach((item, index) => {
+          item.textContent = ["激活", "提供价值", "再次使用"][index];
+        });
+        document.querySelector(".video-meta h2").textContent = "如何打造用户真正会使用的产品";
+        document.querySelector(".video-meta p").textContent = "一个用于发现重复问题、观察真实行为并衡量再次使用的实用框架。";
+      }
+      panel.src = `../dist/sidepanel.html?preview=${content[5]}&lang=${encodeURIComponent(language)}`;
       if (screen === "actions") {
         panel.addEventListener("load", () => {
-          const heading = [...panel.contentDocument.querySelectorAll("h3")].find((item) => item.textContent === "Recommendations");
+          const heading = [...panel.contentDocument.querySelectorAll("h3")].find((item) => ["Recommendations", "建议", "建議"].includes(item.textContent));
           heading?.scrollIntoView({ block: "start" });
           panel.contentWindow.scrollBy(0, -70);
         });

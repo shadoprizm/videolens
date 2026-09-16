@@ -1,6 +1,7 @@
 :root { color-scheme: light; font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 * { box-sizing: border-box; }
 html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #eef2f7; color: #0f172a; }
+body.capture { width: 1280px; height: 800px; }
 .browser-bar { height: 50px; display: flex; align-items: center; gap: 18px; padding: 0 18px; border-bottom: 1px solid #dce4ec; background: #f8fafc; color: #64748b; font-size: 12px; }
 .traffic { display: flex; gap: 7px; }
 .traffic span { width: 10px; height: 10px; border-radius: 99px; background: #cbd5e1; }

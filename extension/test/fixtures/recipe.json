@@ -1,0 +1,21 @@
+{
+  "source": {"sourceType":"youtube","title":"Cookie test clip","url":"https://www.youtube.com/shorts/recipe-test","durationSeconds":30,"limitations":[]},
+  "mode":"recipe","outputLanguage":"en","prompt":"Make a recipe","summary":"Cookies with an unknown flour quantity and oven setting.",
+  "timeline":{"segments":[{"start":0,"end":10,"sceneType":"cooking","transcript":"Two eggs","ocr":[],"visualSummary":"Two eggs go into a bowl.","confidence":"high"}]},
+  "findings":[],"recommendations":[],"tasks":[],"limitations":[],"confidence":"medium",
+  "recipe":{
+    "title":"Cookies from a Short",
+    "servings":{"value":null,"basis":"unknown","timestamps":[],"sourceIds":[],"note":""},
+    "prepTime":{"value":null,"basis":"unknown","timestamps":[],"sourceIds":[],"note":""},
+    "cookTime":{"value":null,"basis":"unknown","timestamps":[],"sourceIds":[],"note":""},
+    "ingredients":[
+      {"ingredient":{"value":"Eggs","basis":"video","timestamps":[0],"sourceIds":[],"note":""},"amount":{"value":"2","basis":"video","timestamps":[0],"sourceIds":[],"note":"Spoken in the video."}},
+      {"ingredient":{"value":"Flour","basis":"creator","timestamps":[],"sourceIds":["creator-description"],"note":""},"amount":{"value":null,"basis":"unknown","timestamps":[],"sourceIds":[],"note":"No measurement is shown."}}
+    ],
+    "equipment":[{"value":"Mixing bowl","basis":"video","timestamps":[0],"sourceIds":[],"note":""}],
+    "steps":[{"instruction":{"value":"Mix the eggs and flour.","basis":"video","timestamps":[0],"sourceIds":[],"note":""},"duration":{"value":null,"basis":"unknown","timestamps":[],"sourceIds":[],"note":""},"temperature":{"value":null,"basis":"unknown","timestamps":[],"sourceIds":[],"note":""}}],
+    "gaps":["Flour quantity is missing.","Oven temperature and baking time are not shown."],
+    "sources":[{"id":"creator-description","title":"Creator description","url":"https://www.youtube.com/shorts/recipe-test","kind":"creator"}],
+    "research":"not_requested"
+  }
+}
