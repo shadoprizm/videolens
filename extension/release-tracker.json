@@ -5,21 +5,27 @@
   "chrome": {
     "artifact": "releases/chrome/videolens-chrome-v0.5.0.zip",
     "packageVersion": "0.5.0",
-    "status": "ready_to_submit",
+    "status": "blocked_by_publisher_dashboard_access",
     "publishedVersion": "0.4.1.1",
-    "blockedReason": null,
+    "blockedReason": "2026-09-16: opening the Chrome Web Store publisher dashboard through the browser tool was rejected with Not allowed and no additional reason. No publisher API credentials or GitHub publishing secrets are configured. The validated 0.5.0 Chrome package has not been submitted.",
     "sha256": "5137976a3701cf96eb5000833305c989f67f84143b64ca00466ee179fdc5649a",
-    "checkedAt": "2026-09-16"
+    "checkedAt": "2026-09-16",
+    "publishedVersionCheckedAt": "2026-09-12"
   },
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.5.0.zip",
     "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.5.0.zip",
     "packageVersion": "0.5.0",
-    "status": "ready_to_submit",
+    "status": "awaiting_review",
     "publishedVersion": "0.4.4",
     "blockedReason": null,
     "sha256": "a5547a728851390a452ae63410693aedf102a31e5fa3735c326b5d7e6b647fb1",
-    "checkedAt": "2026-09-16"
+    "checkedAt": "2026-09-16",
+    "submittedAt": "2026-09-16",
+    "versionId": 6491649,
+    "fileId": 5035809,
+    "sourceSubmitted": true,
+    "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6491649"
   },
   "previousRelease": {
     "targetVersion": "0.4.6",
@@ -101,14 +107,17 @@
       "note": "720px local frame extraction, audio withheld; not a browser capture or kitchen trial."
     },
     "browser": "Cookie report visually checked at desktop and narrow width with no horizontal overflow. Full sidebar analysis and optional-research failure covered by the bundle test. Chrome extension reload was blocked by browser URL policy; user reload required.",
-    "live": "Website pages and recipe reader bundle return HTTP 200; anonymous AI/report requests return 401. Authenticated production round trip not run because sensitive production environment values are unavailable locally. Real gateway Responses search and route authentication/storage unit tests passed."
+    "live": "Production homepage, recipe preview, account, privacy and recipe reader bundle return HTTP 200. AI GET returns 405; unauthenticated AI POST and report GET return 401. Full authenticated recipe round trip was not run in this release session; recipe and managed authentication/storage tests pass.",
+    "ci": "https://github.com/shadoprizm/videolens/actions/runs/35160682312"
   },
   "website": {
     "status": "deployed",
     "url": "https://videolens.io",
-    "deployment": "dpl_5cMBx3ZYHZsuUKBkYD4YofykuGEN",
-    "deploymentUrl": "https://videolens-site-p8qrrfpzk-shadoprizms-projects.vercel.app",
-    "deploymentNote": "Recipe API, shared reader/storage and mobile-accessible public recipe example verified. Later deployments may refresh the same source.",
-    "previewUrl": "https://videolens.io/recipe-preview"
+    "deployment": "dpl_GCXwVpzbcLU7xa29EwCbW6mqPsnr",
+    "deploymentUrl": "https://videolens-site-60lc1flww-shadoprizms-projects.vercel.app",
+    "deploymentNote": "Merged recipe release and existing production model/downloader updates into main, then deployed the linked videolens-site project to production. Ready; aliases videolens.io and www.videolens.io verified.",
+    "previewUrl": "https://videolens.io/recipe-preview",
+    "sourceCommit": "1e1cfa52ee82bb642a09d36bcee29b14d25d6c8a",
+    "deployedAt": "2026-09-16"
   }
 }
