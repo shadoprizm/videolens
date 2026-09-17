@@ -1,3 +1,4 @@
+import { recordActivation } from "./activation.js";
 import Stripe from "stripe";
 import { optionalEnv, requireEnv } from "./env.js";
 import { supabaseAdmin } from "./supabase.js";
@@ -74,6 +75,9 @@ export async function syncSubscription(subscription: Stripe.Subscription): Promi
     { onConflict: "user_id" },
   );
   if (error) throw error;
+  if (isProProduct && subscription.status === "active") {
+    await recordActivation(userId, "subscription_active", subscription.id);
+  }
 
   await supabaseAdmin()
     .from("profiles")

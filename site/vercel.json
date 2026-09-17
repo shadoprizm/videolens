@@ -4,28 +4,78 @@
   "outputDirectory": "dist",
   "trailingSlash": false,
   "redirects": [
-    { "source": "/index.html", "destination": "/", "permanent": true },
-    { "source": "/privacy.html", "destination": "/privacy", "permanent": true },
-    { "source": "/chrome.html", "destination": "/chrome", "permanent": true }
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/privacy.html",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/chrome.html",
+      "destination": "/chrome",
+      "permanent": true
+    },
+    {
+      "source": "/firefox.html",
+      "destination": "/firefox",
+      "permanent": true
+    }
   ],
   "rewrites": [
-    { "source": "/recipe-preview", "destination": "/recipe-preview.html" },
-    { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/privacy", "destination": "/privacy.html" },
-    { "source": "/account", "destination": "/account.html" },
-    { "source": "/chrome", "destination": "/chrome.html" }
+    {
+      "source": "/recipe-preview",
+      "destination": "/recipe-preview.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/account",
+      "destination": "/account.html"
+    },
+    {
+      "source": "/chrome",
+      "destination": "/chrome.html"
+    },
+    {
+      "source": "/firefox",
+      "destination": "/firefox.html"
+    }
   ],
   "functions": {
-    "api/ai.ts": { "maxDuration": 300 }
+    "api/ai.ts": {
+      "maxDuration": 300
+    }
   },
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "interest-cohort=()" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "interest-cohort=()"
+        }
       ]
     }
   ]

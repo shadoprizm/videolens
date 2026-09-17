@@ -97,7 +97,13 @@ export async function handler(request: Request): Promise<Response> {
         .select("id")
         .maybeSingle<{ id: string }>();
       if (error) throw error;
-      if (!data) throw new ApiError(409, "report_already_completed", "This report was already completed.");
+      if (!data) {
+        const { data: existing, error: existingError } = await admin.from("reports")
+          .select("id,status,cloud_saved").eq("id", body.reportId).eq("user_id", user.id).maybeSingle();
+        if (existingError) throw existingError;
+        if (existing?.status === body.status) return json(request, { reportId: existing.id, saved: existing.cloud_saved, entitlement: await getEntitlement(user.id) });
+        throw new ApiError(409, "report_already_completed", "This report was already completed.");
+      }
       return json(request, { reportId: data.id, saved: cloudSave, entitlement: await getEntitlement(user.id) });
     }
 

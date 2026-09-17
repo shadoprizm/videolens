@@ -1,3 +1,4 @@
+import { checkoutReady } from "./checkout-return.js";
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { reportBody, reportDate, reportFilename, reportHtml, reportJson, reportMarkdown, reportMode, reportSearchText, reportTitle, type CloudReport } from "./cloud-report.js";
 
@@ -21,6 +22,9 @@ const message = byId("page-message");
 let supabase: SupabaseClient | null = null;
 let session: Session | null = null;
 let config: PublicConfig | null = null;
+let currentEntitlement: Entitlement | null = null;
+let checkoutPolling = false;
+let renderSequence = 0;
 let reports: CloudReport[] = [];
 let reportSearch = new Map<string, string>();
 let activeReport: CloudReport | null = null;
@@ -54,6 +58,7 @@ function bindEvents(): void {
   byId<HTMLFormElement>("sign-in-form").addEventListener("submit", (event) => void sendMagicLink(event));
   byId("sign-out").addEventListener("click", () => void signOut());
   byId("authorize-extension").addEventListener("click", () => void authorizeExtension());
+  byId("refresh-access").addEventListener("click", () => void renderSession());
   byId("manage-billing").addEventListener("click", () => void openPortal());
   document.querySelectorAll<HTMLButtonElement>(".checkout-button").forEach((button) => {
     button.addEventListener("click", () => void startCheckout(button.dataset.billing as "monthly" | "annual", button));
@@ -71,7 +76,9 @@ function bindEvents(): void {
 }
 
 async function renderSession(): Promise<void> {
+  const sequence = ++renderSequence;
   if (!session) {
+    currentEntitlement = null;
     if (reader.open) reader.close();
     reports = [];
     reportSearch.clear();
@@ -82,9 +89,13 @@ async function renderSession(): Promise<void> {
   }
   showOnly(signedInView);
   byId("account-email").textContent = session.user.email || "Signed in";
-  await Promise.all([loadEntitlement(), loadReports()]);
-  renderExtensionConnect();
-  showCheckoutMessage();
+  try {
+    await Promise.all([loadEntitlement(), loadReports()]);
+    if (sequence !== renderSequence) return;
+    renderExtensionConnect();
+    showCheckoutMessage();
+    void confirmCheckout();
+  } catch (error) { if (sequence === renderSequence) setMessage(asMessage(error), "error"); }
 }
 
 function showOnly(view: HTMLElement): void {
@@ -128,8 +139,11 @@ async function signOut(): Promise<void> {
 }
 
 async function loadEntitlement(): Promise<void> {
+  const accountId = session?.user.id;
   const response = await apiFetch<{ entitlement: Entitlement; user: { isAdministrator: boolean } }>("/api/entitlement");
+  if (!session || session.user.id !== accountId) return;
   const entitlement = response.entitlement;
+  currentEntitlement = entitlement;
   const isPro = entitlement.plan === "pro";
   byId("plan-name").textContent = isPro ? "VideoLens Pro" : "Free";
   byId("plan-status").textContent = isPro ? entitlement.subscriptionStatus : "Active";
@@ -197,6 +211,7 @@ async function startCheckout(billing: "monthly" | "annual", button: HTMLButtonEl
       method: "POST",
       body: JSON.stringify({ billing }),
     });
+    try { if (activeReport) sessionStorage.setItem("videolens.checkoutReport", JSON.stringify({ userId: session?.user.id, reportId: activeReport.id })); } catch { /* Cloud library remains available. */ }
     location.href = result.url;
   } catch (error) {
     button.disabled = false;
@@ -209,6 +224,7 @@ async function openPortal(): Promise<void> {
   button.disabled = true;
   try {
     const result = await apiFetch<{ url: string }>("/api/portal", { method: "POST" });
+    try { if (activeReport) sessionStorage.setItem("videolens.checkoutReport", JSON.stringify({ userId: session?.user.id, reportId: activeReport.id })); } catch { /* Cloud library remains available. */ }
     location.href = result.url;
   } catch (error) {
     button.disabled = false;
@@ -229,6 +245,14 @@ async function loadReports(): Promise<void> {
   reports = [...new Map(loaded.map(report => [report.id, report])).values()];
   reportSearch = new Map(reports.map(report => [report.id, reportSearchText(report)]));
   renderReports();
+  if (new URL(location.href).searchParams.has("checkout")) {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem("videolens.checkoutReport") || "null");
+      const report = saved?.userId === session.user.id && reports.find(report => report.id === saved.reportId);
+      if (report) openReport(report);
+      sessionStorage.removeItem("videolens.checkoutReport");
+    } catch { /* Storage may be disabled; cloud reports are still in Library. */ }
+  }
   openLinkedReport();
 }
 
@@ -382,8 +406,31 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 
 function showCheckoutMessage(): void {
   const checkout = new URL(location.href).searchParams.get("checkout");
-  if (checkout === "success") setMessage("Payment received. Your Pro access will appear as soon as Stripe confirms the subscription.", "success");
-  if (checkout === "cancelled") setMessage("Checkout was cancelled. Nothing was charged.");
+  if (checkout === "success") setMessage("Checking your subscription. Your report is still in the extension’s Library.");
+  if (checkout === "cancelled") setMessage("Checkout was cancelled. Your saved report is still available; you can continue with your own key.");
+}
+
+async function confirmCheckout(): Promise<void> {
+  if (checkoutPolling || !session || new URL(location.href).searchParams.get("checkout") !== "success") return;
+  checkoutPolling = true;
+  const accountId = session.user.id;
+  try {
+    for (let attempt = 0; attempt < 12; attempt++) {
+      if (session?.user.id !== accountId) return;
+      await loadEntitlement();
+      if (session?.user.id !== accountId) return;
+      if (checkoutReady(currentEntitlement)) {
+        setMessage("Pro access is ready. Return to the VideoLens extension to continue. Your saved report is in Library.", "success");
+        const url = new URL(location.href); url.searchParams.delete("checkout");
+        history.replaceState(null, "", url.pathname + url.search + url.hash);
+        return;
+      }
+      if (attempt < 11) await new Promise(resolve => setTimeout(resolve, 2500));
+    }
+    setMessage("Your subscription is still being confirmed. Use Refresh account access in a moment. Your saved reports remain available.");
+  } catch {
+    setMessage("We could not confirm your subscription yet. Use Refresh account access to try again.", "error");
+  } finally { checkoutPolling = false; }
 }
 
 function setMessage(text: string, kind: "success" | "error" | "info" = "info"): void {
