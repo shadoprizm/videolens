@@ -63,7 +63,9 @@ export async function resetPrivacyDisclosure(): Promise<void> {
 }
 
 export async function getAnalysisProvider(): Promise<AnalysisProvider> {
-  return (await getLocal()).analysisProvider ?? "byok";
+  const state = await getLocal();
+  // Preserve explicit choices and legacy key-only installs; new users start with an account.
+  return state.analysisProvider ?? (state.openaiApiKey ? "byok" : "pro");
 }
 
 export async function setAnalysisProvider(value: AnalysisProvider): Promise<void> {

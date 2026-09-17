@@ -20,16 +20,16 @@ it.each(["Mozilla Firefox/142.0", "Mozilla Chrome/140.0", "Safari/605.1", "iPhon
     document: { querySelectorAll: () => choices, addEventListener: (_: string, handler: typeof click) => { click = handler; } },
   });
   expect(choices).toEqual(original);
-  expect(choices).toHaveLength(4);
+  expect(choices).toHaveLength(2);
   for (const choice of choices) {
     click({ target: { closest: () => choice } });
     expect(track).toHaveBeenLastCalledWith("event", { name: choice.dataset.track, data: { destination: choice.dataset.destination, page: "/" } });
   }
 });
 
-it("offers equal-weight Chrome and Firefox buttons in both static install groups", () => {
+it("offers equal-weight Chrome and Firefox buttons in the static install group", () => {
   const groups = [...html.matchAll(/<div class="browser-choices[^>]*>([\s\S]*?)<\/div>/g)];
-  expect(groups).toHaveLength(2);
+  expect(groups).toHaveLength(1);
   for (const [, group] of groups) {
     const buttons = [...group.matchAll(/<a ([^>]+)>([^<]+)<\/a>/g)];
     expect(buttons.map((button) => button[2])).toEqual(["Add to Chrome — Free", "Add to Firefox — Free"]);

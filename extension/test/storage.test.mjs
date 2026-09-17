@@ -34,3 +34,20 @@ test("first-report completion is false by default and persists once marked", asy
     globalThis.chrome = originalChrome;
   }
 });
+
+
+test("account-first defaults preserve explicit choices and legacy key-only installations", async () => {
+  const originalChrome = globalThis.chrome;
+  try {
+    for (const [saved, expected] of [
+      [{}, "pro"],
+      [{ openaiApiKey: "sk-existing" }, "byok"],
+      [{ analysisProvider: "byok" }, "byok"],
+      [{ analysisProvider: "pro", openaiApiKey: "sk-existing" }, "pro"],
+      [{ proToken: "session", proEmail: "member@example.invalid" }, "pro"],
+    ]) {
+      globalThis.chrome = { storage: { local: { get: async () => ({ ...saved }) } } };
+      assert.equal(await storage.getAnalysisProvider(), expected);
+    }
+  } finally { globalThis.chrome = originalChrome; }
+});

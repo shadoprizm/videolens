@@ -27,8 +27,8 @@
   <main class="account-shell">
     <section class="account-hero">
       <div class="eyebrow">VideoLens account</div>
-      <h1>Your reports, allowance, and subscription.</h1>
-      <p>Use VideoLens privately with your own OpenAI key forever, or connect Pro for managed AI and an optional cloud report library.</p>
+      <h1 id="account-title">Your first report is on us.</h1>
+      <p id="account-intro">Turn videos into reports, lessons, and step-by-step guides. Create a free account—no API key or credit card required.</p>
     </section>
 
     <div id="page-message" class="message" hidden role="status"></div>
@@ -47,32 +47,42 @@
 
     <section id="signed-out-view" class="account-grid" hidden>
       <div class="panel auth-panel">
-        <div class="panel-kicker">Sign in</div>
-        <h2>No password to remember.</h2>
+        <div class="panel-kicker">Start free</div>
+        <h2>Create your account or sign in.</h2>
         <p>Enter your email and we’ll send a secure one-time sign-in link.</p>
         <form id="sign-in-form">
           <label for="email">Email address</label>
           <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
-          <button class="button button-primary" type="submit">Email me a sign-in link</button>
+          <button class="button button-primary" type="submit">Continue with email</button>
         </form>
         <p class="fine-print">By continuing, you agree to the VideoLens <a href="/privacy">privacy policy</a>. We use your email for account access and billing, not marketing.</p>
       </div>
 
       <aside class="panel plan-preview">
-        <div class="plan-badge">PRO</div>
-        <h2>Skip the API key.</h2>
-        <div class="price"><strong>$12</strong><span>/ month</span></div>
-        <p>Or $99/year. Cancel anytime.</p>
+        <div class="plan-badge">FIRST REPORT FREE</div>
+        <h2>See what your video can become.</h2>
+        <p>Start with a report, lesson, or guide. Read the result before deciding whether to subscribe.</p>
         <ul>
-          <li>20 managed reports every calendar month</li>
-          <li>One free managed starter report</li>
+          <li>One free report, no card required</li>
+          <li>Works in Chrome and Firefox on desktop</li>
           <li>Optional searchable cloud report library</li>
-          <li>Private BYOK mode stays free forever</li>
+          <li>Export your report as HTML or PDF</li>
         </ul>
+        <p>Want more? Pro includes 20 reports per calendar month for $12/month or $99/year. Cancel anytime.</p>
       </aside>
     </section>
 
     <section id="signed-in-view" hidden>
+      <section id="first-report-next" class="panel first-report-next" hidden>
+        <div class="panel-kicker">Your free report is ready to create</div>
+        <h2>Open a video. Make something useful.</h2>
+        <p>On a desktop computer, add VideoLens to your browser. Open the extension’s Settings and connect this account, then choose your video and create a report, lesson, or guide.</p>
+        <div class="install-actions">
+          <a class="button button-primary" href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl" target="_blank" rel="noopener">Add to Chrome</a>
+          <a class="button button-primary" href="https://addons.mozilla.org/firefox/addon/videolens-video-reports/" target="_blank" rel="noopener">Add to Firefox</a>
+        </div>
+        <p class="fine-print">Already installed? Return to extension Settings and connect your VideoLens account. No API key needed.</p>
+      </section>
       <button class="button button-secondary" id="refresh-access" type="button">Refresh account access</button>
       <div id="extension-connect" class="connect-banner" hidden>
         <div>
@@ -94,25 +104,29 @@
           </div>
           <p id="account-email" class="account-email"></p>
           <div class="usage-block">
-            <div class="usage-row"><span>Managed reports</span><strong id="usage-label">0 of 1 used</strong></div>
+            <div class="usage-row"><span>Reports</span><strong id="usage-label">0 of 1 used</strong></div>
             <div class="meter"><span id="usage-meter"></span></div>
             <p id="usage-note" class="fine-print"></p>
           </div>
           <p id="complimentary-note" class="fine-print" hidden></p>
+          <details id="upgrade-options">
+            <summary id="upgrade-summary">Explore Pro after your free report</summary>
+            <p>Pro includes 20 reports per calendar month. Cancel anytime. Your saved reports remain available.</p>
           <div id="upgrade-actions" class="upgrade-actions">
-            <button class="button button-primary checkout-button" data-billing="annual" type="button">Choose annual · $99/year</button>
-            <button class="button button-secondary checkout-button" data-billing="monthly" type="button">Choose monthly · $12/month</button>
+            <button class="button button-primary checkout-button" data-billing="annual" type="button">Get Pro annually · $99/year</button>
+            <button class="button button-secondary checkout-button" data-billing="monthly" type="button">Get Pro monthly · $12/month</button>
           </div>
+          </details>
           <button id="manage-billing" class="button button-secondary" type="button" hidden>Manage billing</button>
           <a id="admin-link" class="button button-secondary" href="/admin" hidden>Open admin dashboard</a>
           <button id="sign-out" class="text-button" type="button">Sign out</button>
         </section>
 
         <aside class="panel privacy-card">
-          <div class="panel-kicker">Two clear modes</div>
-          <h2>You choose the privacy boundary.</h2>
-          <div class="mode-row"><span class="mode-icon private">✓</span><div><strong>Private / BYOK</strong><p>No VideoLens account or server. Content goes directly from your browser to OpenAI with your key.</p></div></div>
-          <div class="mode-row"><span class="mode-icon pro">P</span><div><strong>Pro / Managed</strong><p>No API key required. Content passes through VideoLens to OpenAI; completed reports are saved only when you enable cloud saving.</p></div></div>
+          <div class="panel-kicker">Your videos, made useful</div>
+          <h2>From watching to doing.</h2>
+          <div class="mode-row"><span class="mode-icon private">✓</span><div><strong>Reports, lessons, and guides</strong><p>Find the important ideas, learn a topic, or follow a procedure—with timestamps to check the source.</p></div></div>
+          <div class="mode-row"><span class="mode-icon pro">P</span><div><strong>No API key required</strong><p>No API key required. Content passes through VideoLens to OpenAI; completed reports are saved only when you enable cloud saving.</p></div></div>
         </aside>
       </div>
 

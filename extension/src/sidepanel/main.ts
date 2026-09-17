@@ -160,7 +160,7 @@ const state: State = {
   qa: [],
   error: null,
   privacyDisclosureAccepted: false,
-  analysisProvider: "byok",
+  analysisProvider: "pro",
   proSession: null,
   proEntitlement: null,
   proCloudSave: false,
@@ -495,7 +495,7 @@ function renderPrivacyDisclosure(): void {
 function renderBadge(): void {
   if (!state.privacyDisclosureAccepted) return;
   const ready = isProviderReady(state.analysisProvider);
-  badge.textContent = ready ? (state.analysisProvider === "pro" ? "PRO" : t("privateBadge")) : "";
+  badge.textContent = ready ? (state.analysisProvider === "pro" ? (state.proEntitlement?.plan === "pro" ? "PRO" : t("free")) : t("privateBadge")) : "";
   badge.className = `brand-badge ${ready && state.analysisProvider === "pro" ? "pro" : ""}`;
 }
 
@@ -512,6 +512,17 @@ function renderHome(): void {
         </section>`,
       );
   root.appendChild(introduction);
+
+  if (!state.proSession && !state.privateAccessReady) {
+    const signup = el(`<section class="access-card managed-access account-start"><h2>${esc(t("managedAccessTitle"))}</h2><p>${esc(t("managedAccessBody"))}</p><button class="btn btn-primary" id="home-create-account">${esc(t("connectAccount"))}</button><button class="btn btn-ghost btn-sm" id="home-use-key">${esc(t("privateAccessTitle"))}</button></section>`);
+    signup.querySelector<HTMLButtonElement>("#home-create-account")!.addEventListener("click", (event) => void connectManagedAccess(event.currentTarget as HTMLButtonElement));
+    signup.querySelector("#home-use-key")!.addEventListener("click", () => {
+      state.view = "settings";
+      render();
+      document.querySelector("#private-key-settings")?.setAttribute("open", "");
+    });
+    root.appendChild(signup);
+  }
 
   const sourceSection = el(
     `<section class="source-start" aria-labelledby="source-title">
@@ -776,17 +787,17 @@ function renderAccessSetup(): void {
   root.appendChild(back);
   appendCurrentError();
   root.appendChild(
-    el(`<section class="setup-heading access-heading"><div class="product-kicker">${esc(t("aiAccessKicker"))}</div><h1>${esc(t("chooseAiAccess"))}</h1><p>${esc(t("chooseAiAccessBody"))}</p></section>`),
+    el(`<section class="setup-heading access-heading"><div class="product-kicker">${esc(t("aiAccessKicker"))}</div><h1>${esc(state.proSession ? t("account") : t("chooseAiAccess"))}</h1><p>${esc(state.proSession ? t("noApiKey") : t("chooseAiAccessBody"))}</p></section>`),
   );
 
   const managedReady = isProviderReady("pro");
   const managedUnavailable = Boolean(state.proSession && state.proEntitlement && !managedReady);
   const managed = el(
     `<section class="access-card managed-access">
-      <div class="access-card-heading"><span class="plan-pill">${state.proSession && state.proEntitlement?.plan === "pro" ? "PRO" : esc(t("starter"))}</span><h2>${esc(t("managedAccessTitle"))}</h2></div>
-      <p>${esc(managedUnavailable ? "Your managed allowance is used up. Choose Pro for 20 managed reports per calendar month, or use Private mode with your own key. Your saved reports stay available." : t("managedAccessBody"))}</p>
+      <div class="access-card-heading"><span class="plan-pill">${state.proSession && state.proEntitlement?.plan === "pro" ? "PRO" : esc(t("starter"))}</span><h2>${esc(state.proSession ? t("account") : t("managedAccessTitle"))}</h2></div>
+      <p>${esc(managedUnavailable ? "Your report allowance is used up. Open your account to view your plan and options for continuing. Your saved reports stay available." : state.proSession ? t("noApiKey") : t("managedAccessBody"))}</p>
       ${state.proSession ? `<small>${esc(state.proSession.email)}${state.proEntitlement ? ` · ${esc(t("reportsRemaining", { remaining: state.proEntitlement.managedReportsRemaining, limit: state.proEntitlement.managedReportsLimit }))}` : ""}</small>` : ""}
-      <button class="btn btn-primary" id="managed-access-action">${esc(managedReady ? t("useManaged") : managedUnavailable ? t("accountBilling") : t("connectAccount"))}</button>
+      <button class="btn btn-primary" id="managed-access-action">${esc(managedReady ? t("createReport") : managedUnavailable ? t("accountBilling") : t("connectAccount"))}</button>
     </section>`,
   );
   const managedButton = managed.querySelector<HTMLButtonElement>("#managed-access-action")!;
@@ -805,11 +816,11 @@ function renderAccessSetup(): void {
   root.appendChild(managed);
 
   const privateCard = el(
-    `<section class="access-card private-access">
-      <div class="access-card-heading"><h2>${esc(t("privateAccessTitle"))}</h2></div>
+    `<details class="access-card private-access" ${state.analysisProvider === "byok" ? "open" : ""}>
+      <summary>${esc(t("privateAccessTitle"))}</summary>
       <p>${esc(t("privateAccessBody"))}</p>
       <div class="private-access-controls"></div>
-    </section>`,
+    </details>`,
   );
   const privateControls = privateCard.querySelector(".private-access-controls")!;
   if (state.privateAccessReady) {
@@ -1198,6 +1209,13 @@ function formatSavedDate(timestamp: number): string {
 }
 
 async function chooseProvider(provider: AnalysisProvider, returnToMain = false): Promise<void> {
+  if (provider === "byok" && !state.privateAccessReady) {
+    state.error = t("addKeyFirst");
+    state.view = "settings";
+    render();
+    document.querySelector("#private-key-settings")?.setAttribute("open", "");
+    return;
+  }
   if (provider === "pro" && !state.proSession) {
     state.error = t("connectManagedError");
     state.view = "settings";
@@ -1297,12 +1315,6 @@ function renderResults(): void {
   );
   reportActions.append(fullBtn, printBtn, htmlBtn);
   root.appendChild(reportActions);
-  if (needsManagedContinuation(state.proEntitlement, state.managedReportId)) {
-    const continuation = el(`<section class="card managed-continuation"><h3>Your starter report is ready</h3><p>Keep using managed reports with Pro: 20 per calendar month, no API key setup. Private mode stays free with your own key.</p><p class="hint">Your report stays in this browser’s Library while you visit checkout.</p><button class="btn btn-primary" id="continue-managed">Keep using managed reports</button><button class="btn btn-ghost" id="continue-private">Use my own key</button></section>`);
-    continuation.querySelector("#continue-managed")!.addEventListener("click", () => void continueWithManaged());
-    continuation.querySelector("#continue-private")!.addEventListener("click", () => { state.view = "settings"; render(); });
-    root.appendChild(continuation);
-  }
 
   const exportRow = el(`<div class="export-row secondary-exports"></div>`);
   const mdBtn = el(`<button class="btn btn-ghost btn-sm">${esc(t("markdown"))}</button>`);
@@ -1392,6 +1404,13 @@ function renderResults(): void {
     root.appendChild(card);
   }
 
+  if (needsManagedContinuation(state.proEntitlement, state.managedReportId)) {
+    const continuation = el(`<section class="card managed-continuation"><h3>Your starter report is ready</h3><p>Create more reports, lessons, and guides with Pro. Get 20 reports per calendar month for $12/month or $99/year. No API key required. Cancel anytime.</p><p class="hint">Your report stays in this browser’s Library while you visit checkout.</p><button class="btn btn-primary" id="continue-managed">Continue with Pro</button><button class="btn btn-ghost" id="continue-private">Use my own key</button></section>`);
+    continuation.querySelector("#continue-managed")!.addEventListener("click", () => void continueWithManaged());
+    continuation.querySelector("#continue-private")!.addEventListener("click", () => { state.view = "settings"; render(); document.querySelector("#private-key-settings")?.setAttribute("open", ""); });
+    root.appendChild(continuation);
+  }
+
   // Q&A
   const qaCard = el(`<section class="card report-section qa-card"><h3>${esc(t("askFollowUp"))}</h3></section>`);
   const history = el(`<div></div>`);
@@ -1477,7 +1496,7 @@ function renderSettings(): void {
         </div>`,
       )
     : el(
-        `<div class="card pro-account-card"><div class="account-heading"><div><h3>${esc(t("proTitle"))}</h3><b>${esc(t("noApiKey"))}</b></div><span class="plan-pill">PRO</span></div>
+        `<div class="card pro-account-card"><div class="account-heading"><div><h3>${esc(t("account"))}</h3><b>${esc(t("noApiKey"))}</b></div><span class="plan-pill">${esc(t("free"))}</span></div>
           <p class="hint">${esc(t("proOffer"))}</p>
           <button class="btn btn-primary" id="connect-pro">${esc(t("connectAccount"))}</button>
           <p class="hint" style="margin-bottom:0">${esc(t("accountSecurity"))}</p>
@@ -1536,13 +1555,14 @@ function renderSettings(): void {
 
   // OpenAI key
   const keyCard = el(
-    `<div class="card"><h3>${esc(t("privateApiKey"))}</h3>
+    `<details class="card private-access" id="private-key-settings" ${state.analysisProvider === "byok" ? "open" : ""}><summary>${esc(t("privateApiKey"))}</summary>
       <div class="row"><input type="password" class="grow" id="api-key" placeholder="sk-...">
       <button class="btn btn-secondary btn-sm" id="save-key">${esc(t("save"))}</button></div>
       <p class="hint">${esc(t("keyHelpBefore"))} <a href="${LINKS.openaiKeys}" target="_blank">${esc(t("getKey"))}</a></p>
-      <div id="key-status"></div></div>`,
+      <div id="key-status"></div><button class="btn btn-secondary btn-sm" id="use-private-key">${esc(t("usePrivateAccess"))}</button></details>`,
   );
   root.appendChild(keyCard);
+  keyCard.querySelector("#use-private-key")!.addEventListener("click", () => void chooseProvider("byok", true));
   const keyInput = keyCard.querySelector<HTMLInputElement>("#api-key")!;
   const keyStatus = keyCard.querySelector<HTMLElement>("#key-status")!;
   if (hasExtensionStorage) {
@@ -1568,6 +1588,8 @@ function renderSettings(): void {
       return;
     }
     await setApiKey(key);
+    await setAnalysisProvider("byok");
+    state.analysisProvider = "byok";
     state.privateAccessReady = true;
     keyStatus.replaceChildren(el(`<div class="banner ok" style="margin:8px 0 0">${esc(t("keyVerified"))}</div>`));
   });

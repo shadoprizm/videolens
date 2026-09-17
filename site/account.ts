@@ -100,6 +100,10 @@ async function renderSession(): Promise<void> {
 }
 
 function showOnly(view: HTMLElement): void {
+  byId("account-title").textContent = view === signedInView ? "Your VideoLens account." : "Your first report is on us.";
+  byId("account-intro").textContent = view === signedInView
+    ? "Create reports, lessons, and guides. Manage your allowance, subscription, and saved reports here."
+    : "Turn videos into reports, lessons, and step-by-step guides. Create a free account—no API key or credit card required.";
   [loadingView, unavailableView, signedOutView, signedInView].forEach((candidate) => {
     candidate.hidden = candidate !== view;
   });
@@ -154,8 +158,14 @@ async function loadEntitlement(): Promise<void> {
   byId("usage-note").textContent = isPro
     ? `${entitlement.managedReportsRemaining} remaining${entitlement.periodEndsAt ? ` until ${formatDate(entitlement.periodEndsAt)}` : " this calendar month"}.`
     : entitlement.managedReportsRemaining > 0
-      ? "Your account includes one managed starter report. BYOK reports remain unlimited."
-      : "Starter report used. Add Pro for 20 managed reports per calendar month, or keep using BYOK free.";
+      ? "Your first report is free. Connect the browser extension to create it—no API key required."
+      : "Your free report is used. Continue with Pro for 20 reports per calendar month. Your saved reports remain available.";
+  const hasStarter = !isPro && entitlement.canUseManagedAi && entitlement.managedReportsRemaining > 0;
+  const pairing = new URL(location.href).searchParams;
+  byId("first-report-next").hidden = !hasStarter || Boolean(pairing.get("connect") && pairing.get("device"));
+  byId("upgrade-options").hidden = !entitlement.canUpgrade;
+  byId<HTMLDetailsElement>("upgrade-options").open = entitlement.canUpgrade && !hasStarter;
+  byId("upgrade-summary").textContent = hasStarter ? "Explore Pro after your free report" : "Keep creating with VideoLens Pro";
   byId("upgrade-actions").hidden = !entitlement.canUpgrade;
   byId("manage-billing").hidden = !entitlement.hasBillingSubscription || response.user.isAdministrator;
   const offer = entitlement.complimentary;

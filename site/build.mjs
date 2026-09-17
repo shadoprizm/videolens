@@ -72,7 +72,7 @@ const renderPage = (page) => {
         description: "Open-source software that turns long videos into professional written reports with transcription, frame vision, OCR, and timestamped evidence.",
         license: "https://github.com/shadoprizm/videolens/blob/main/LICENSE",
         offers: [
-          { "@type": "Offer", name: "VideoLens Free", price: "0", priceCurrency: "USD", description: "Private BYOK browser-extension and open-source workflows." },
+          { "@type": "Offer", name: "VideoLens Free", price: "0", priceCurrency: "USD", description: "One free report with an account. No API key or credit card required." },
           { "@type": "Offer", name: "VideoLens Pro monthly", price: "12", priceCurrency: "USD", description: "20 managed reports per calendar month with no API key required." },
           { "@type": "Offer", name: "VideoLens Pro annual", price: "99", priceCurrency: "USD", description: "Annual Pro subscription with 20 managed reports per calendar month." }
         ]
@@ -141,7 +141,7 @@ const renderPage = (page) => {
         <a href="/video-analysis-mcp">For AI agents</a>
         <a href="/#pricing">Pricing</a>
         <a href="/account">Account</a>
-        <a class="button button-primary" data-track="Start ${escapeHtml(workflow)} workflow" data-destination="hosted-app-${escapeHtml(workflow)}" href="${appHref}" target="_blank" rel="noopener">Start this workflow →</a>
+        <a class="button button-primary" data-track="Try VideoLens free" data-destination="account" href="/account">Try VideoLens free →</a>
       </div>
     </nav>
   </header>
@@ -154,11 +154,11 @@ const renderPage = (page) => {
         <h1>${escapeHtml(page.h1)}</h1>
         <p class="lead">${escapeHtml(page.lead)}</p>
         <div class="actions">
-          <a class="button button-primary" data-track="Start ${escapeHtml(workflow)} workflow" data-destination="hosted-app-${escapeHtml(workflow)}" href="${appHref}" target="_blank" rel="noopener">Analyze with this workflow →</a>
-          <a class="button button-dark" data-track="View GitHub" data-destination="github" href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener">View open-source code</a>
+          <a class="button button-primary" data-track="Try VideoLens free" data-destination="account" href="/account">Try VideoLens free →</a>
+          <a class="button button-secondary" data-track="Start ${escapeHtml(workflow)} workflow" data-destination="hosted-app-${escapeHtml(workflow)}" href="${appHref}" target="_blank" rel="noopener">Use the BYOK web app</a>
           <a class="button button-secondary" href="#how-it-works">How it works</a>
         </div>
-        <div class="meta-line">Updated ${lastmod} · Free Private mode · Optional Pro · MIT-licensed core</div>
+        <div class="meta-line">Updated ${lastmod} · First report free · No API key or credit card · Optional Pro</div>
       </div>
     </section>
 
@@ -215,7 +215,7 @@ const renderPage = (page) => {
     <section class="section">
       <div class="wrap cta">
         <div><h2>Turn the next video into evidence.</h2><p>Try the hosted app, self-host the MIT-licensed core, or connect VideoLens to an MCP client.</p></div>
-        <div class="actions"><a class="button button-primary" data-track="Start ${escapeHtml(workflow)} workflow" data-destination="hosted-app-${escapeHtml(workflow)}" href="${appHref}" target="_blank" rel="noopener">Start this VideoLens workflow →</a></div>
+        <div class="actions"><a class="button button-primary" data-track="Try VideoLens free" data-destination="account" href="/account">Create your free account →</a></div>
       </div>
     </section>
   </main>
