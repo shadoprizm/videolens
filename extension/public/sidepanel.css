@@ -879,3 +879,10 @@ ol.recs li:last-child, ul.tasks li:last-child, ul.limits li:last-child { margin-
   .private-access .row { display: grid; }
   .private-access .row .btn { width: 100%; }
 }
+
+/* Account-first onboarding; the advanced key path remains available. */
+.account-start { margin: 0 0 24px; }
+.account-start .btn-primary { width: 100%; }
+.account-start .btn-ghost { display: block; margin: 10px auto 0; }
+.private-access summary { cursor: pointer; font-weight: 600; color: var(--muted, #64748b); }
+.private-access[open] summary { margin-bottom: 12px; }

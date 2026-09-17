@@ -145,3 +145,9 @@ footer a { color: #64748b; }
   .library-head input { max-width: none; }
   .report-card { grid-template-columns: 1fr; }
 }
+
+.first-report-next { margin-bottom: 24px; border-color: #67e8f9; }
+.install-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+#upgrade-options { margin-top: 20px; }
+#upgrade-options summary { cursor: pointer; color: var(--brand-dark); font-weight: 700; }
+#upgrade-options > p { color: var(--muted); font-size: 14px; line-height: 1.6; }

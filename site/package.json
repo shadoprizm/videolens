@@ -19,6 +19,7 @@
   "devDependencies": {
     "@types/node": "24.13.3",
     "esbuild": "0.28.2",
+    "linkedom": "^0.18.13",
     "typescript": "6.0.2",
     "vitest": "4.1.10"
   }

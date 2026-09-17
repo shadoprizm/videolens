@@ -74,13 +74,16 @@ test("the actual side-panel bundle renders every new interface locale", async ()
   }
 });
 
-test("the new-user home asks only for a source before report setup", async () => {
+test("new users see account creation first with a secondary key path and progressive report setup", async () => {
   const restore = installBrowserEnvironment({ privacyDisclosureVersion: 3 });
   try {
     await importBundle(sidePanelSource, "progressive-home");
     await waitFor(() => document.querySelector(".source-start"));
 
     assert.ok(document.querySelector(".product-intro"));
+    assert.ok(document.querySelector("#home-create-account"));
+    assert.match(document.querySelector(".account-start").textContent, /No API key or credit card/);
+    assert.ok(document.querySelector(".account-start + .source-start"));
     assert.equal(document.querySelectorAll(".source-choice").length, 2);
     assert.ok(document.querySelector("#btn-library"));
     assert.equal(document.querySelector(".report-library"), null);
@@ -105,9 +108,46 @@ test("the new-user home asks only for a source before report setup", async () =>
     await waitFor(() => document.querySelector(".managed-access"));
     assert.equal(restore.permissionRequests(), 0, "unconfigured access should be resolved before capture permission");
     assert.ok(document.querySelector(".managed-access + .private-access"));
+    assert.equal(document.querySelector(".private-access").hasAttribute("open"), false);
   } finally {
     restore();
   }
+});
+
+test("the home account CTA connects the free account without asking for a key or capturing media", async () => {
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 3 });
+  const originalFetch = globalThis.fetch;
+  let opened;
+  chrome.tabs.create = async (options) => { opened = new URL(options.url); };
+  globalThis.fetch = async (input) => String(input).includes("/api/extension-token")
+    ? jsonResponse({ token: "new-free-token", email: "new@example.invalid" })
+    : jsonResponse({ entitlement: managedEntitlement() });
+  try {
+    await importBundle(sidePanelSource, "home-account-first");
+    await waitFor(() => document.querySelector("#home-create-account"));
+    document.querySelector("#home-create-account").click();
+    await waitFor(() => restore.localState.analysisProvider === "pro");
+    await waitFor(() => !document.querySelector("#home-create-account"));
+    assert.equal(opened.pathname, "/account");
+    assert.ok(opened.searchParams.get("connect"));
+    assert.ok(opened.searchParams.get("device"));
+    assert.equal(restore.localState.openaiApiKey, undefined);
+    assert.equal(restore.localState.proEmail, "new@example.invalid");
+    assert.equal(document.querySelector("#entitlement-badge").textContent, "FREE");
+    assert.ok(document.querySelector("#choose-page-video"));
+  } finally { globalThis.fetch = originalFetch; restore(); }
+});
+
+test("the secondary home key link opens the existing private settings", async () => {
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 3 });
+  try {
+    await importBundle(sidePanelSource, "home-private-secondary");
+    await waitFor(() => document.querySelector("#home-use-key"));
+    document.querySelector("#home-use-key").click();
+    assert.ok(document.querySelector("#private-key-settings").hasAttribute("open"));
+    assert.ok(document.querySelector("#api-key"));
+    assert.equal(restore.localState.analysisProvider, undefined, "viewing key settings does not switch the provider");
+  } finally { restore(); }
 });
 
 test("local-file cancellation stays home and a valid file reaches confirmation", async () => {
@@ -161,6 +201,7 @@ test("returning users get a compact home and configured access starts from the f
     await importBundle(sidePanelSource, "returning-home");
     await waitFor(() => document.querySelector(".compact-home"));
     assert.equal(document.querySelector(".product-intro"), null);
+    assert.equal(document.querySelector("#home-create-account"), null);
     assert.match(document.querySelector(".compact-home").textContent, /New report/);
 
     document.querySelector("#choose-page-video").click();
@@ -194,7 +235,7 @@ test("configured Managed access is reused and disclosed on report setup", async 
   try {
     await importBundle(sidePanelSource, "configured-managed-access");
     await waitFor(() => entitlementRequests === 1);
-    await waitFor(() => document.querySelector("#entitlement-badge").textContent === "PRO");
+    await waitFor(() => document.querySelector("#entitlement-badge").textContent === "FREE");
     document.querySelector("#choose-page-video").click();
     await waitFor(() => document.querySelector(".setup-cost"));
     assert.match(document.querySelector(".setup-cost").textContent, /Included in your managed-report allowance/);
