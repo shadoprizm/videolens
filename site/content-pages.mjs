@@ -27,7 +27,7 @@ export const pages = [
     limitation: "VideoLens samples frames rather than interpreting every frame of a video. Results depend on source accessibility, audio and image quality, sampling settings, and the clarity of the question. DRM-protected players and live streams are not supported.",
     faqs: [
       ["Can AI actually understand what is visible in the video?", "VideoLens sends sampled frames to a vision-capable model, records visual descriptions and on-screen text, and merges that evidence with the transcript. It can therefore reason about more than spoken words, while still being limited by frame sampling."],
-      ["Does VideoLens work with local video files?", "Yes. Local files are supported by the CLI, web UI, and Chrome extension workflow. Remote sources are supported when the video can be accessed by the resolver or browser capture pipeline."],
+      ["Does VideoLens work with local video files?", "Yes. Local files are supported by the CLI, web UI, and Chrome and Firefox extensions. Remote sources are supported when the video can be accessed by the resolver or browser capture pipeline."],
       ["Can I ask more questions after the first report?", "Yes. Follow-up questions reuse the cached timeline, making repeated analysis faster and typically much cheaper than extracting the video again."]
     ],
     related: ["screen-recording-analyzer", "video-analysis-mcp", "youtube-video-analyzer"]
@@ -49,7 +49,7 @@ export const pages = [
       ["Ticket-ready handoff", "Produces a summary, severity hint, evidence citations, recommendations, and concrete follow-up tasks."]
     ],
     workflow: [
-      "Upload the screen recording or open the page video in the Chrome side panel.",
+      "Upload the screen recording or open the page video in the Chrome side panel or Firefox sidebar.",
       "Choose Bug or UX mode and state the expected outcome.",
       "VideoLens builds a synchronized transcript-and-visual timeline.",
       "Validate each cited moment and export the result into your issue or product workflow."

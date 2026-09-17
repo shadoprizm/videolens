@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chrome &amp; Firefox Extensions for AI Video Summaries | VideoLens</title>
+  <title>AI Video Reports in Your Browser | VideoLens</title>
   <meta name="description" content="Turn the YouTube video you are watching into a polished written report beside the tab. VideoLens for Chrome and Firefox includes free Private mode and optional Pro.">
   <meta name="theme-color" content="#0891B2">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -14,20 +14,20 @@
   <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
 
   <!-- Open Graph / Twitter -->
-  <meta property="og:title" content="Chrome &amp; Firefox Extensions for AI Video Summaries | VideoLens">
+  <meta property="og:title" content="AI Video Reports in Your Browser | VideoLens">
   <meta property="og:description" content="Turn the video you are watching into a useful written report without leaving your browser.">
   <meta property="og:url" content="https://videolens.io/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="VideoLens">
   <meta property="og:locale" content="en_US">
-  <meta property="og:image" content="https://videolens.io/og-extension-launch.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:image" content="https://videolens.io/og-browser-extensions.png">
+  <meta property="og:image:width" content="1731">
+  <meta property="og:image:height" content="909">
   <meta property="og:image:alt" content="VideoLens — turn any video into a timestamped, evidence-grounded report">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Chrome &amp; Firefox Extensions for AI Video Summaries | VideoLens">
+  <meta name="twitter:title" content="AI Video Reports in Your Browser | VideoLens">
   <meta name="twitter:description" content="Turn the video you are watching into a useful written report without leaving your browser.">
-  <meta name="twitter:image" content="https://videolens.io/og-extension-launch.png">
+  <meta name="twitter:image" content="https://videolens.io/og-browser-extensions.png">
 
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="any">
@@ -118,7 +118,7 @@
         "applicationSubCategory": "Video summarization and written reports",
         "operatingSystem": "Web, macOS, Linux, Windows, Chrome, Firefox",
         "description": "VideoLens turns long videos into detailed written reports. It combines transcription, frame-level vision, and OCR into a cached timeline, then explains the important information with citations to specific moments. The web experience starts with YouTube; local files and other supported video URLs work too.",
-        "downloadUrl": "https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl",
+        "downloadUrl": ["https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl", "https://addons.mozilla.org/firefox/addon/videolens-video-reports/"],
         "license": "https://github.com/shadoprizm/videolens/blob/main/LICENSE",
         "publisher": { "@id": "https://videolens.io/#organization" },
         "featureList": [
@@ -238,9 +238,7 @@
         <a href="#how" class="hidden xl:inline text-slate-600 hover:text-slate-900">How it works</a>
         <a href="#pricing" class="hidden md:inline text-slate-600 hover:text-slate-900">Pricing</a>
         <a href="/account" class="hidden xl:inline text-slate-600 hover:text-slate-900">Account</a>
-        <a href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl?utm_source=item-share-cb" target="_blank" rel="noopener" data-extension-cta data-track="Add to Chrome" data-destination="chrome-web-store" class="inline-flex items-center gap-1 px-3.5 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition whitespace-nowrap">
-          Add to Chrome — Free
-        </a>
+        <a href="#extension" data-track="Choose browser" data-destination="browser-choices" class="inline-flex items-center gap-1 px-3.5 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition whitespace-nowrap">Get VideoLens</a>
       </nav>
     </div>
   </header>
@@ -267,20 +265,12 @@
           VideoLens sits beside YouTube in Chrome or Firefox, finds the important ideas and visual details, and builds a polished written report with links to the exact moments that matter.
         </p>
 
-        <div class="flex flex-wrap items-center gap-3">
-          <a href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl?utm_source=item-share-cb" target="_blank" rel="noopener" data-extension-cta data-track="Add to Chrome" data-destination="chrome-web-store"
-             class="inline-flex items-center gap-2 px-6 py-3.5 bg-brand-600 text-white text-base font-bold rounded-xl hover:bg-brand-700 transition hover-lift shadow-lg shadow-cyan-600/15">
-            Add to Chrome — Free
-          </a>
-          <a href="https://app.videolens.io/?demo=report" target="_blank" rel="noopener" data-track="View sample report" data-destination="hosted-app-demo"
-             class="inline-flex items-center gap-2 px-6 py-3.5 bg-white border border-slate-300 text-slate-900 font-semibold rounded-xl hover:bg-slate-50 transition hover-lift">
-            View sample report
-          </a>
+        <div class="browser-choices grid grid-cols-1 sm:grid-cols-2 gap-3" role="group" aria-label="Choose your browser">
+          <a href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl" target="_blank" rel="noopener" data-track="Add to Chrome" data-destination="chrome-web-store" class="inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-brand-600 text-white text-base font-bold rounded-xl hover:bg-brand-700 transition hover-lift shadow-lg shadow-cyan-600/15">Add to Chrome — Free</a>
+          <a href="https://addons.mozilla.org/firefox/addon/videolens-video-reports/" target="_blank" rel="noopener" data-track="Add to Firefox" data-destination="firefox-add-ons" class="inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-brand-600 text-white text-base font-bold rounded-xl hover:bg-brand-700 transition hover-lift shadow-lg shadow-cyan-600/15">Add to Firefox — Free</a>
         </div>
-        <p class="browser-choices mt-4 text-sm text-slate-600">Choose your browser: <a class="font-semibold underline" href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl" data-track="Add to Chrome" data-destination="chrome-web-store" target="_blank" rel="noopener">Chrome</a> · <a class="font-semibold underline" href="https://addons.mozilla.org/firefox/addon/videolens-video-reports/" data-track="Add to Firefox" data-destination="firefox-add-ons" target="_blank" rel="noopener">Firefox</a></p>
-          <p class="mt-4 text-sm text-slate-500" data-browser-message>
-          Chrome will ask you to confirm the free installation.
-        </p>
+        <p class="mt-4 text-sm text-slate-500">Choose your desktop browser. Both editions include free Private mode and optional Pro.</p>
+        <a href="https://app.videolens.io/?demo=report" target="_blank" rel="noopener" data-track="View sample report" data-destination="hosted-app-demo" class="inline-flex mt-4 text-sm font-semibold text-brand-700 hover:underline">View sample report →</a>
 
         <div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-600">
           <span class="flex items-center gap-1.5"><span class="text-emerald-500">✓</span> Free private mode forever</span>
@@ -294,10 +284,10 @@
           <figure class="extension-window relative overflow-hidden bg-white border border-slate-200 rounded-2xl">
             <div class="flex items-center justify-between gap-4 px-4 py-3 bg-slate-50 border-b border-slate-200 text-xs text-slate-500">
               <div class="flex items-center gap-1.5" aria-hidden="true"><span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span></div>
-              <span class="font-semibold text-slate-700">VideoLens · Chrome side panel</span>
+              <span class="font-semibold text-slate-700">VideoLens · Beside your video</span>
               <span class="px-2 py-1 rounded bg-emerald-50 text-emerald-700 font-bold">FREE</span>
             </div>
-            <img src="/extension-report-setup.png" width="1280" height="800" alt="VideoLens Chrome extension beside a YouTube video, ready to create a detailed written report" fetchpriority="high">
+            <img src="/extension-report-setup.png" width="1280" height="800" alt="VideoLens beside a YouTube video, ready to create a written report (Chrome shown)" fetchpriority="high">
           </figure>
           <div class="relative -mt-5 mx-5 rounded-xl bg-slate-950 text-white px-5 py-4 shadow-xl flex items-center justify-between gap-4">
             <div><div class="text-xs text-cyan-300 font-bold uppercase tracking-wider">Built for the video tab</div><div class="text-sm font-semibold mt-1">Watch on the left. Read the report on the right.</div></div>
@@ -309,17 +299,18 @@
   </section>
 
   <!-- Extension conversion path -->
-  <section id="extension" class="border-t border-slate-100 bg-slate-950 text-white">
+  <section id="extension" class="scroll-mt-24 border-t border-slate-100 bg-slate-950 text-white">
     <div class="max-w-6xl mx-auto px-6 py-14 md:py-16">
       <div class="grid lg:grid-cols-[1fr_auto] gap-8 items-center">
         <div>
           <div class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-emerald-300 mb-3"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span data-extension-status>Available for Chrome and Firefox</span></div>
-          <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-3" data-extension-heading>Install in two clicks. Start with a free report.</h2>
+          <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-3" data-extension-heading>Your browser. Your first free report.</h2>
           <p class="text-slate-300 text-lg max-w-3xl leading-relaxed" data-extension-description>Add VideoLens to Chrome or Firefox, open a YouTube video, and create your first report. Free private mode stays free forever, and a free account includes one managed starter report.</p>
         </div>
-        <a href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl?utm_source=item-share-cb" target="_blank" rel="noopener" data-extension-cta data-track="Add to Chrome" data-destination="chrome-web-store" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-slate-950 font-bold rounded-xl hover:bg-cyan-50 transition whitespace-nowrap">
-          Add to Chrome — Free
-        </a>
+        <div class="browser-choices grid grid-cols-1 sm:grid-cols-2 gap-3" role="group" aria-label="Choose your browser">
+          <a href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl" target="_blank" rel="noopener" data-track="Add to Chrome" data-destination="chrome-web-store" class="inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-white text-slate-950 font-bold rounded-xl hover:bg-cyan-50 transition whitespace-nowrap">Add to Chrome — Free</a>
+          <a href="https://addons.mozilla.org/firefox/addon/videolens-video-reports/" target="_blank" rel="noopener" data-track="Add to Firefox" data-destination="firefox-add-ons" class="inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-white text-slate-950 font-bold rounded-xl hover:bg-cyan-50 transition whitespace-nowrap">Add to Firefox — Free</a>
+        </div>
       </div>
       <p class="mt-5 text-sm text-slate-400">Sharing VideoLens? Use <a href="/chrome" data-track="Open branded Chrome share link" data-destination="chrome-share-link" class="font-semibold text-cyan-300 hover:text-cyan-200">videolens.io/chrome</a> or <a href="/firefox" class="font-semibold text-cyan-300 hover:text-cyan-200">videolens.io/firefox</a> for a browser-specific install page.</p>
       <div class="grid md:grid-cols-3 gap-4 mt-10">
@@ -528,7 +519,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
         <h3 class="text-xl font-bold mb-3">Create a Lesson</h3>
         <p class="text-slate-600 mb-5">Turn an educational video into objectives, guided modules, questions, and a final exercise. Write responses, reveal explanations, and resume your study progress in the same browser.</p>
         <a href="/lesson-preview" class="font-semibold text-brand-700 underline">Try the interactive lesson example →</a>
-        <p class="mt-3 text-sm text-slate-600">Lesson creation is included in extension 0.7.0, pending store publication. Saved lessons open in your website library.</p>
+        <p class="mt-3 text-sm text-slate-600">Lesson creation is pending publication in the extension stores. Saved lessons open in your website library.</p>
       </article>
       <p class="mt-6 text-sm text-slate-600">Create recipes and procedures from YouTube videos or local files with your OpenAI key in the hosted app. Review the cited evidence, check off steps, and export HTML, PDF, Markdown, or JSON. Hosted recipes use video evidence without online recipe research.</p>
     </div>
@@ -593,7 +584,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
     </div>
   </section>
 
-  <!-- Chrome extension -->
+  <!-- Browser extensions -->
   <section id="extension-details" class="border-t border-slate-100">
     <div class="max-w-6xl mx-auto px-6 py-20 md:py-24">
       <div class="grid md:grid-cols-2 gap-12 items-center">
@@ -631,9 +622,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
             <li class="flex items-center gap-2.5"><span class="text-emerald-500">✓</span> Upgrade only if managed mode saves you time</li>
           </ul>
 
-          <a href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl?utm_source=item-share-cb" target="_blank" rel="noopener" data-extension-cta data-track="Add to Chrome" data-destination="chrome-web-store" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition">
-            Add to Chrome — Free
-          </a>
+          <a href="#extension" data-track="Choose browser" data-destination="browser-choices" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition">Choose your browser</a>
           <p class="text-xs text-slate-500 mt-4 leading-relaxed" data-extension-description>Add VideoLens to Chrome or Firefox, open a YouTube video, and create your first report. Free private mode stays free forever, and a free account includes one managed starter report.</p>
         </div>
       </div>
@@ -656,7 +645,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
           <ul class="space-y-3 text-sm text-slate-700 mb-8">
             <li>✓ Unlimited BYOK reports</li><li>✓ Professional HTML and PDF</li><li>✓ Timestamped evidence and follow-up Q&amp;A</li><li>✓ Your reports stay on your device</li>
           </ul>
-          <a href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl?utm_source=item-share-cb" target="_blank" rel="noopener" data-extension-cta data-track="Add to Chrome" data-destination="chrome-web-store" class="w-full inline-flex items-center justify-center px-5 py-3 border border-slate-300 rounded-lg font-semibold hover:bg-slate-50">Add to Chrome — Free</a>
+          <a href="#extension" data-track="Choose browser" data-destination="browser-choices" class="w-full inline-flex items-center justify-center px-5 py-3 border border-slate-300 rounded-lg font-semibold hover:bg-slate-50">Choose your browser</a>
         </article>
         <article class="relative overflow-hidden text-white border border-cyan-900 rounded-2xl p-8 bg-gradient-to-br from-slate-950 via-indigo-950 to-cyan-950 shadow-xl">
           <div class="absolute -right-16 -bottom-24 w-64 h-64 rounded-full bg-cyan-400/10"></div>
@@ -812,8 +801,8 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
   </footer>
 
   <div class="sm:hidden fixed inset-x-3 bottom-3 z-50 rounded-xl bg-slate-950/95 backdrop-blur border border-white/10 shadow-2xl p-2.5 flex items-center gap-3">
-    <div class="min-w-0 pl-1"><div class="text-white text-sm font-bold truncate">VideoLens for Chrome &amp; Firefox</div><div class="text-slate-400 text-[11px] truncate" data-extension-status>Available for Chrome and Firefox</div></div>
-    <a href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl?utm_source=item-share-cb" target="_blank" rel="noopener" data-extension-cta data-track="Add to Chrome" data-destination="chrome-web-store" class="ml-auto shrink-0 px-3.5 py-2 rounded-lg bg-cyan-500 text-slate-950 text-xs font-extrabold">Add free</a>
+    <div class="min-w-0 pl-1"><div class="text-white text-sm font-bold truncate">VideoLens extensions</div><div class="text-slate-400 text-[11px] truncate">Chrome &amp; Firefox · Free</div></div>
+    <a href="#extension" data-track="Choose browser" data-destination="browser-choices" class="ml-auto shrink-0 px-3.5 py-2 rounded-lg bg-cyan-500 text-slate-950 text-xs font-extrabold">Get VideoLens</a>
   </div>
 
   <script defer src="/analytics.js"></script>
