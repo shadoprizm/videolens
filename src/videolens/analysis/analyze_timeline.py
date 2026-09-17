@@ -5,6 +5,7 @@ import json
 from openai import OpenAI
 
 from videolens.analysis.modes import get_mode_prompts
+from videolens.analysis.structured import PROMPTS, normalize_report
 from videolens.config import Models
 from videolens.types import (
     Analysis,
@@ -69,6 +70,14 @@ def analyze_timeline(
         tasks_guidance=prompts["tasks"],
     )
 
+    if mode == AnalysisMode.RECIPE:
+        system_prompt = PROMPTS["RECIPE_INSTRUCTIONS"] + "\n" + PROMPTS["RECIPE_SCHEMA"]
+        system_prompt += (
+            "\nVideo evidence only. No creator sources or online research are supplied."
+        )
+    elif mode == AnalysisMode.TUTORIAL:
+        system_prompt = PROMPTS["PROCEDURE_INSTRUCTIONS"]
+
     user_message = _build_user_message(timeline, source, mode, user_prompt, prompts["findings"])
 
     try:
@@ -90,6 +99,27 @@ def analyze_timeline(
     except json.JSONDecodeError as exc:
         raise AnalysisError(f"synthesis returned non-JSON: {exc}\n{content[:400]}") from exc
 
+    if not isinstance(data, dict):
+        raise AnalysisError("Synthesis did not return a report object. Please retry.")
+    if mode in (AnalysisMode.RECIPE, AnalysisMode.TUTORIAL):
+        kind = "recipe" if mode == AnalysisMode.RECIPE else "procedure"
+        structured = normalize_report(data.get(kind), kind, source.duration_seconds, timeline)
+        if structured is None:
+            raise AnalysisError(
+                f"No usable {kind} is supported by this video. Try a video showing concrete steps."
+            )
+        return Analysis(
+            source=source,
+            mode=mode,
+            prompt=user_prompt,
+            timeline=timeline,
+            summary=str(data.get("summary", "")).strip(),
+            confidence=_coerce_conf(data.get("confidence")),
+            limitations=[str(x) for x in data.get("limitations", [])]
+            if isinstance(data.get("limitations"), list)
+            else [],
+            **{kind: structured},
+        )
     return _to_analysis(data, source, mode, user_prompt, timeline)
 
 

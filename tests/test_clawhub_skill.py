@@ -26,8 +26,9 @@ def skill() -> ModuleType:
     return _load_skill()
 
 
-def test_skill_modes_match_the_product_enum(skill: ModuleType) -> None:
-    assert skill.VALID_MODES == {mode.value for mode in AnalysisMode}
+def test_pinned_skill_modes_remain_supported_by_the_product(skill: ModuleType) -> None:
+    # The published skill pins an older runtime; new hosted modes are not a skill release.
+    assert skill.VALID_MODES <= {mode.value for mode in AnalysisMode}
 
 
 def test_parse_task_spec_accepts_json_and_fenced_json(skill: ModuleType) -> None:

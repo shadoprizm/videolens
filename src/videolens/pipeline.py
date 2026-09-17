@@ -9,6 +9,7 @@ from openai import OpenAI
 from rich.console import Console
 
 from videolens.analysis import analyze_timeline
+from videolens.analysis.structured import CONTRACT_VERSION
 from videolens.cache import Cache, compute_cache_key
 from videolens.config import Config
 from videolens.outputs import render_html, render_markdown, write_html, write_json, write_markdown
@@ -19,6 +20,7 @@ from videolens.processors.extract_audio import chunk_audio, extract_audio
 from videolens.processors.extract_frames import FRAME_PROCESSING_VERSION, extract_frames
 from videolens.processors.extract_metadata import probe_metadata
 from videolens.processors.transcribe_audio import transcribe
+from videolens.processors.structured_frames import extract_structured_frames
 from videolens.resolvers import resolve_source
 from videolens.types import (
     AccessLevel,
@@ -78,6 +80,14 @@ def run_extraction(
         why = "; ".join(resolved.limitations) or f"Source ({platform_label}) is not supported."
         raise RuntimeError(why)
 
+    if mode in (AnalysisMode.RECIPE, AnalysisMode.TUTORIAL):
+        if resolved.source_type.value not in ("youtube", "local_file"):
+            raise RuntimeError(
+                "Recipe and Procedure currently support YouTube and local video files."
+            )
+        frame_interval = 0.5
+        max_frames = 120
+
     cache_key = compute_cache_key(
         resolved.source_url,
         {
@@ -89,6 +99,7 @@ def run_extraction(
             "frame_reasoning_effort": config.models.frame_reasoning_effort,
             "frame_image_detail": config.models.frame_image_detail,
             "frame_processing": FRAME_PROCESSING_VERSION,
+            "evidence_contract": CONTRACT_VERSION,
         },
     )
     cache = Cache(config.cache_root, cache_key)
@@ -99,9 +110,8 @@ def run_extraction(
 
     video_path = _ensure_video(resolved, cache, force, console)
     metadata = _ensure_metadata(video_path, cache, force, console)
-    frames = _ensure_frames(
-        video_path, cache, force, metadata.duration_seconds, frame_interval, max_frames, console
-    )
+    resolved.duration_seconds = metadata.duration_seconds
+    resolved.title = resolved.title or metadata.title
 
     transcript: Transcript | None = None
     if metadata.has_audio:
@@ -111,6 +121,19 @@ def run_extraction(
     else:
         console.print("[yellow]no audio track — skipping transcription[/yellow]")
 
+    if mode in (AnalysisMode.RECIPE, AnalysisMode.TUTORIAL):
+        console.print("[cyan]extracting evidence frames…[/cyan]")
+        frames = extract_structured_frames(
+            video_path,
+            cache,
+            metadata.duration_seconds or 0,
+            transcript if mode == AnalysisMode.TUTORIAL else None,
+            force,
+        )
+    else:
+        frames = _ensure_frames(
+            video_path, cache, force, metadata.duration_seconds, frame_interval, max_frames, console
+        )
     frame_summaries = _ensure_frame_summaries(frames, cache, force, client, config, console)
     timeline = _ensure_timeline(
         frame_summaries, transcript, metadata.duration_seconds, cache, force, console
@@ -300,6 +323,7 @@ def _ensure_analysis(
 ) -> Analysis:
     cache_key_inputs = {
         "prompt": prompt,
+        "evidence_contract": CONTRACT_VERSION,
         "mode": mode.value,
         "model": config.models.synthesize,
         "reasoning_effort": config.models.synthesize_reasoning_effort,
