@@ -1761,9 +1761,10 @@ async function runTabAnalysis(access: AiAccess, prompt: string): Promise<void> {
 
 async function runFileAnalysis(access: AiAccess, prompt: string): Promise<void> {
   const local = state.localVideo!;
+  const frameStep = state.mode === "tutorial" ? 1 : 0;
+  const transcriptStep = state.mode === "tutorial" ? 0 : 1;
   const steps = renderProgress([
-    t("samplingFrames"),
-    t("transcribingAudio"),
+    ...(state.mode === "tutorial" ? [t("transcribingAudio"), t("samplingFrames")] : [t("samplingFrames"), t("transcribingAudio")]),
     t("describingFrames"),
     t("buildingTimeline"),
     t("synthesizing"),
@@ -1771,23 +1772,23 @@ async function runFileAnalysis(access: AiAccess, prompt: string): Promise<void> 
 
   let earlyTranscript: Awaited<ReturnType<typeof transcribeLocalFile>> | null = null;
   if (state.mode === "tutorial") {
-    steps.set(1, "active");
-    earlyTranscript = await transcribeLocalFile(access, local, (done, total) => steps.set(1, "active", t("transcribingProgress", { done, total })));
-    steps.set(1, "done", earlyTranscript.transcript ? t("transcribedChunks", { count: earlyTranscript.transcript.segments.length }) : t("audioSkipped"));
+    steps.set(transcriptStep, "active");
+    earlyTranscript = await transcribeLocalFile(access, local, (done, total) => steps.set(transcriptStep, "active", t("transcribingProgress", { done, total })));
+    steps.set(transcriptStep, "done", earlyTranscript.transcript ? t("transcribedChunks", { count: earlyTranscript.transcript.segments.length }) : t("audioSkipped"));
   }
-  steps.set(0, "active");
+  steps.set(frameStep, "active");
   const maxFrames = state.analysisProvider === "pro" ? Math.min(state.setupMaxFrames, 40) : state.setupMaxFrames;
   const timestamps = state.mode === "recipe" ? recipeFrameTimestamps(local.duration) : state.mode === "tutorial" ? procedureFrameTimestamps(local.duration, earlyTranscript?.transcript) : planFrameTimestamps(local.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
   const frames = await captureLocalFrames(local, timestamps, (done, total) =>
-    steps.set(0, "active", t("samplingProgress", { done, total })),
+    steps.set(frameStep, "active", t("samplingProgress", { done, total })),
   );
-  steps.set(0, "done", t("sampledFrames", { count: frames.length }));
+  steps.set(frameStep, "done", t("sampledFrames", { count: frames.length }));
 
-  steps.set(1, "active");
+  if (!earlyTranscript) steps.set(transcriptStep, "active");
   const { transcript, limitation } = earlyTranscript ?? await transcribeLocalFile(access, local, (done, total) =>
-    steps.set(1, "active", t("transcribingProgress", { done, total })),
+    steps.set(transcriptStep, "active", t("transcribingProgress", { done, total })),
   );
-  steps.set(1, "done", transcript ? t("transcribedChunks", { count: transcript.segments.length }) : t("audioSkipped"));
+  steps.set(transcriptStep, "done", transcript ? t("transcribedChunks", { count: transcript.segments.length }) : t("audioSkipped"));
 
   const source = makeLocalSource(local, limitation ? [limitation] : []);
   const outputLanguage = resolveReportLanguage(state.reportLanguage, browserLanguage, transcript?.language);
