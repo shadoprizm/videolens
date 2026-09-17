@@ -237,7 +237,7 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
 const staticFiles = [
-  "index.html", "privacy.html", "account.html", "admin.html", "admin.css", "chrome.html", "recipe-preview.html", "robots.txt", "llms.txt",
+  "index.html", "privacy.html", "account.html", "admin.html", "admin.css", "chrome.html", "recipe-preview.html", "procedure-preview.html", "robots.txt", "llms.txt",
   "content.css", "account.css", "cloud-report.css", "analytics.js", "favicon.svg", "favicon.ico", "favicon-16x16.png",
   "favicon-32x32.png", "apple-touch-icon.png", "android-chrome-192x192.png",
   "android-chrome-512x512.png", "site.webmanifest", "og.png", "og-extension-launch.png", "googlecc8e26327b14309f.html"
@@ -276,6 +276,8 @@ await build({
   entryPoints: [join(root, "admin.ts")], bundle: true, format: "esm",
   platform: "browser", target: ["es2022"], minify: true, outfile: join(out, "admin.js"),
 });
+
+await build({entryPoints: [join(root, "procedure-preview.ts")], bundle: true, format: "esm", platform: "browser", target: ["es2022"], minify: true, outfile: join(out, "procedure-preview.js")});
 
 for (const page of pages) {
   const directory = join(out, page.slug);

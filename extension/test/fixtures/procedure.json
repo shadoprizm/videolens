@@ -1,0 +1,150 @@
+{
+  "source": {
+    "sourceType": "youtube",
+    "title": "Make a dropdown in a spreadsheet",
+    "url": "https://www.youtube.com/shorts/procedure-test",
+    "durationSeconds": 30,
+    "limitations": [
+      "Sampling may miss brief settings."
+    ]
+  },
+  "mode": "tutorial",
+  "outputLanguage": "en",
+  "prompt": "Make a Procedure",
+  "summary": "Create a Status dropdown. The sheet sharing permission is not shown.",
+  "confidence": "medium",
+  "limitations": [],
+  "findings": [],
+  "recommendations": [],
+  "tasks": [],
+  "timeline": {
+    "segments": [
+      {
+        "start": 0,
+        "end": 10,
+        "visualSummary": "Select cells B2:B10 and open Data validation.",
+        "ocr": [
+          "B2:B10",
+          "Data validation"
+        ],
+        "transcript": "Select these cells.",
+        "sceneType": "software walkthrough",
+        "confidence": "high"
+      },
+      {
+        "start": 10,
+        "end": 30,
+        "visualSummary": "Dropdown values and the Save button are visible.",
+        "ocr": [
+          "Todo",
+          "Done",
+          "Save"
+        ],
+        "transcript": null,
+        "sceneType": "software walkthrough",
+        "confidence": "high"
+      }
+    ]
+  },
+  "procedure": {
+    "title": "Create a Status dropdown",
+    "outcome": {
+      "value": "A dropdown in B2:B10",
+      "basis": "video",
+      "timestamps": [
+        10
+      ],
+      "note": ""
+    },
+    "environment": [
+      {
+        "value": "Spreadsheet application",
+        "basis": "video",
+        "timestamps": [
+          0
+        ],
+        "note": ""
+      }
+    ],
+    "prerequisites": [
+      {
+        "value": "Permission to edit the sheet",
+        "basis": "inferred",
+        "timestamps": [],
+        "note": "Changing validation rules requires editing the sheet."
+      }
+    ],
+    "steps": [
+      {
+        "action": {
+          "value": "Select B2:B10 and open Data validation.",
+          "basis": "video",
+          "timestamps": [
+            0
+          ],
+          "note": ""
+        },
+        "details": [
+          {
+            "label": "Cell range",
+            "value": {
+              "value": "B2:B10",
+              "basis": "video",
+              "timestamps": [
+                0
+              ],
+              "note": ""
+            }
+          },
+          {
+            "label": "Sharing permission",
+            "value": {
+              "value": null,
+              "basis": "unknown",
+              "timestamps": [],
+              "note": "Not shown in the video."
+            }
+          }
+        ],
+        "check": {
+          "value": "Confirm that B2:B10 is highlighted.",
+          "basis": "inferred",
+          "timestamps": [],
+          "note": "Suggested check of the selected range; not demonstrated."
+        }
+      },
+      {
+        "action": {
+          "value": "Enter the choices and save.",
+          "basis": "video",
+          "timestamps": [
+            10
+          ],
+          "note": ""
+        },
+        "details": [
+          {
+            "label": "Choices",
+            "value": {
+              "value": "Todo\nDone",
+              "basis": "video",
+              "timestamps": [
+                10
+              ],
+              "note": ""
+            }
+          }
+        ],
+        "check": {
+          "value": "Open the dropdown and confirm both choices.",
+          "basis": "inferred",
+          "timestamps": [],
+          "note": "Suggested verification; the video stops before this test."
+        }
+      }
+    ],
+    "gaps": [
+      "Sharing permission is not shown."
+    ]
+  }
+}

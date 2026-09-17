@@ -140,7 +140,7 @@ from what is inferred about the user's state.`,
     defaultPrompt: "Identify user friction and recommend UX improvements.",
   },
   tutorial: {
-    label: "Tutorial",
+    label: "Make a Procedure",
     instructions: `You are reviewing a tutorial or how-to video. Extract the implementation
 steps shown, the tools and commands used, and any prerequisites or
 assumptions the tutorial makes. Be precise about the order of operations
@@ -165,7 +165,7 @@ developer or AI agent could follow without re-watching the video.`,
       "An implementation checklist: numbered, agent-ready, one action per item. " +
       "Each task is something you can do without re-watching. Include exact " +
       "commands and file paths from the timeline's OCR data.",
-    defaultPrompt: "Extract an agent-ready step-by-step checklist from this tutorial.",
+    defaultPrompt: "Turn this software walkthrough into a reusable procedure with prerequisites, exact settings, ordered steps, success checks, and clearly marked missing details.",
   },
   interview: {
     label: "Interview / podcast",

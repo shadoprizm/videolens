@@ -85,6 +85,7 @@ export interface AnalysisTask {
 }
 
 export interface Analysis {
+  procedure?: import("./procedure").Procedure;
   recipe?: import("./recipe").Recipe;
   source: SourceInfo;
   mode: AnalysisMode;

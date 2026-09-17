@@ -9,6 +9,7 @@
     { "source": "/chrome.html", "destination": "/chrome", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/procedure-preview", "destination": "/procedure-preview.html" },
     { "source": "/recipe-preview", "destination": "/recipe-preview.html" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/privacy", "destination": "/privacy.html" },

@@ -1,3 +1,4 @@
+import { procedureCopy } from "./procedureCopy";
 import { recipeCopy } from "./recipeCopy";
 import type { AnalysisMode } from "./types";
 import {
@@ -498,11 +499,11 @@ export function t(key: UiKey, replacements: Record<string, string | number> = {}
 }
 
 export function modeLabel(mode: AnalysisMode): string {
-  return MODE_DEFAULTS[uiLocale][mode].label;
+  return mode === "tutorial" ? procedureCopy(documentLanguage()).label : MODE_DEFAULTS[uiLocale][mode].label;
 }
 
 export function modeDefaultPrompt(mode: AnalysisMode): string {
-  return MODE_DEFAULTS[uiLocale][mode].prompt;
+  return mode === "tutorial" ? procedureCopy(documentLanguage()).prompt : MODE_DEFAULTS[uiLocale][mode].prompt;
 }
 
 export function documentLanguage(): string {

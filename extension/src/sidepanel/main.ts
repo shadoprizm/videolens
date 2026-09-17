@@ -1,3 +1,7 @@
+import { procedureFrameTimestamps } from "../lib/procedure";
+import { procedureCopy } from "../lib/procedureCopy";
+import { procedureHtml, procedureChecklist, PROCEDURE_CSS } from "../lib/procedureReport";
+import { describeProcedureFrames } from "../lib/describeProcedureFrames";
 import { analyzeTimeline, askQuestion, estimateCost, fmtTs } from "../lib/analyze";
 import {
   captureTabFrames,
@@ -178,7 +182,7 @@ const state: State = {
 
 const PRIMARY_REPORT_MODES: AnalysisMode[] = ["general", "key_insights", "tutorial", "interview"];
 const recipeStyle = document.createElement("style");
-recipeStyle.textContent = RECIPE_CSS;
+recipeStyle.textContent = RECIPE_CSS + PROCEDURE_CSS;
 document.head.appendChild(recipeStyle);
 let librarySearchTimer: number | null = null;
 let libraryRefreshSequence = 0;
@@ -579,6 +583,7 @@ function renderReportSetup(): void {
   if (state.modePickerExpanded) modeCard.appendChild(createModeSelect());
   root.appendChild(modeCard);
 
+  if (state.mode === "tutorial") root.append(el(`<section class="card"><p class="hint">${esc(procedureCopy(documentLanguage()).sampling)}</p></section>`));
   if (state.mode === "recipe") {
     const copy = recipeCopy(documentLanguage());
     const options = el(`<section class="card"><p class="hint">${esc(copy.sampling)}</p><label class="recipe-lookup-label"><input type="checkbox" id="recipe-lookup" ${state.recipeLookup ? "checked" : ""}> ${esc(copy.lookup)}</label><p class="hint">${esc(copy.lookupHelp)}</p></section>`);
@@ -671,11 +676,13 @@ function renderAdvancedOptions(container: Element): void {
   });
   framesSection.appendChild(slider);
   container.append(languageSection, promptSection);
-  if (state.mode !== "recipe") container.append(framesSection);
+  if (state.mode !== "recipe" && state.mode !== "tutorial") container.append(framesSection);
 }
 
 function updateCostDisclosure(cost: HTMLElement): void {
-  if (state.mode === "recipe") {
+  if (state.mode === "tutorial") {
+    cost.textContent = procedureCopy(documentLanguage()).cost;
+  } else if (state.mode === "recipe") {
     cost.textContent = recipeCopy(documentLanguage()).cost + (state.analysisProvider === "pro" && isProviderReady("pro") ? ` ${t("includedAllowance")}.` : "");
     return;
   }
@@ -1249,6 +1256,16 @@ function renderResults(): void {
     copyBtn.textContent = t("copied");
   }));
   exportRow.append(mdBtn, jsonBtn, copyBtn);
+  if (a.procedure) {
+    const checklistBtn = el(`<button class="btn btn-ghost btn-sm">${esc(t("copyText"))} · ${esc(procedureCopy(documentLanguage()).checklist)}</button>`);
+    checklistBtn.addEventListener("click", () => {
+      const text = procedureChecklist(a.procedure, a.outputLanguage);
+      void navigator.clipboard.writeText(text).then(() => {
+        checklistBtn.textContent = t("copied");
+      }).catch(() => download(reportFilename(a, "checklist.md"), text, "text/markdown"));
+    });
+    exportRow.append(checklistBtn);
+  }
   root.appendChild(exportRow);
 
   const summary = el(
@@ -1256,6 +1273,7 @@ function renderResults(): void {
       `<div class="summary-prose">${renderProse(a.summary, t("none"))}</div></section>`,
   );
   root.appendChild(summary);
+  if (a.procedure) root.appendChild(el(procedureHtml(a.procedure, a.outputLanguage, a.source.url, a.source.durationSeconds)));
   if (a.recipe) root.appendChild(el(recipeHtml(a.recipe, a.outputLanguage, a.source.url, a.source.durationSeconds)));
 
   if (a.findings.length > 0) {
@@ -1633,6 +1651,7 @@ async function runTabAnalysis(access: AiAccess, prompt: string): Promise<void> {
   steps.set(0, "active");
   const tabId = await getActiveTabId();
   const probe = await probeTabVideo(tabId);
+  if (state.mode === "tutorial" && !probe.isYouTube) throw new Error(procedureCopy(documentLanguage()).unsupported);
   if (state.mode === "recipe" && !probe.isYouTube) throw new Error("Recipe preview currently supports YouTube videos and local video files.");
   steps.set(0, "done", t("foundVideo", { duration: fmtTs(probe.duration) }));
 
@@ -1656,7 +1675,7 @@ async function runTabAnalysis(access: AiAccess, prompt: string): Promise<void> {
 
   steps.set(2, "active");
   const maxFrames = state.analysisProvider === "pro" ? Math.min(state.setupMaxFrames, 40) : state.setupMaxFrames;
-  const timestamps = state.mode === "recipe" ? recipeFrameTimestamps(probe.duration) : planFrameTimestamps(probe.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
+  const timestamps = state.mode === "recipe" ? recipeFrameTimestamps(probe.duration) : state.mode === "tutorial" ? procedureFrameTimestamps(probe.duration, transcript) : planFrameTimestamps(probe.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
   const frames = await captureTabFrames(tabId, timestamps, DEFAULTS.frameJpegQuality, DEFAULTS.maxFrameEdgePx);
   steps.set(2, "done", t("capturedFrames", { count: frames.length }));
 
@@ -1665,6 +1684,7 @@ async function runTabAnalysis(access: AiAccess, prompt: string): Promise<void> {
     if (!frames.length) throw new Error("No cooking frames could be captured. Please retry with a YouTube video or local file.");
     source.limitations.push(`Only ${frames.length} of ${timestamps.length} planned recipe frames were captured; some cooking details may be missing.`);
   }
+  if (state.mode === "tutorial" && frames.length < timestamps.length) source.limitations.push(`${timestamps.length - frames.length} planned procedure frames could not be captured.`);
   const creatorText = state.mode === "recipe" ? await fetchRecipeCreatorText(tabId).catch(() => "") : "";
   const recipeContext: RecipeContext = { creatorText, sources: creatorText ? [{ id: "creator-description", title: "Creator description", url: probe.pageUrl, kind: "creator" }] : [], researchText: "", research: "not_requested" };
   const outputLanguage = resolveReportLanguage(state.reportLanguage, browserLanguage, transcript?.language);
@@ -1681,16 +1701,22 @@ async function runFileAnalysis(access: AiAccess, prompt: string): Promise<void> 
     t("synthesizing"),
   ]);
 
+  let earlyTranscript: Awaited<ReturnType<typeof transcribeLocalFile>> | null = null;
+  if (state.mode === "tutorial") {
+    steps.set(1, "active");
+    earlyTranscript = await transcribeLocalFile(access, local, (done, total) => steps.set(1, "active", t("transcribingProgress", { done, total })));
+    steps.set(1, "done", earlyTranscript.transcript ? t("transcribedChunks", { count: earlyTranscript.transcript.segments.length }) : t("audioSkipped"));
+  }
   steps.set(0, "active");
   const maxFrames = state.analysisProvider === "pro" ? Math.min(state.setupMaxFrames, 40) : state.setupMaxFrames;
-  const timestamps = state.mode === "recipe" ? recipeFrameTimestamps(local.duration) : planFrameTimestamps(local.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
+  const timestamps = state.mode === "recipe" ? recipeFrameTimestamps(local.duration) : state.mode === "tutorial" ? procedureFrameTimestamps(local.duration, earlyTranscript?.transcript) : planFrameTimestamps(local.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
   const frames = await captureLocalFrames(local, timestamps, (done, total) =>
     steps.set(0, "active", t("samplingProgress", { done, total })),
   );
   steps.set(0, "done", t("sampledFrames", { count: frames.length }));
 
   steps.set(1, "active");
-  const { transcript, limitation } = await transcribeLocalFile(access, local, (done, total) =>
+  const { transcript, limitation } = earlyTranscript ?? await transcribeLocalFile(access, local, (done, total) =>
     steps.set(1, "active", t("transcribingProgress", { done, total })),
   );
   steps.set(1, "done", transcript ? t("transcribedChunks", { count: transcript.segments.length }) : t("audioSkipped"));
@@ -1713,13 +1739,18 @@ async function describeAndSynthesize(
   recipeContext: RecipeContext = { creatorText: "", sources: [], researchText: "", research: "not_requested" },
 ): Promise<void> {
   steps.set(stepOffset, "active");
-  const summaries = await (state.mode === "recipe" ? describeRecipeFrames : describeFrames)(access, frames, (done, total) =>
+  const summaries = await (state.mode === "recipe" ? describeRecipeFrames : state.mode === "tutorial" ? describeProcedureFrames : describeFrames)(access, frames, (done, total) =>
     steps.set(stepOffset, "active", t("describingProgress", { done, total })),
   );
   if (state.mode === "recipe") {
     if (summaries.length < Math.ceil(frames.length / 2)) throw new Error("Too few cooking frames could be analyzed. Please retry the recipe scan.");
     if (summaries.length < frames.length) source.limitations.push(`${frames.length - summaries.length} of ${frames.length} sampled frames could not be analyzed; ingredients or steps may be missing.`);
     if (duration > 60) source.limitations.push(`Recipe sampling was limited to ${frames.length} frames over ${duration.toFixed(1)} seconds; brief ingredients or text may be missed.`);
+  }
+  if (state.mode === "tutorial") {
+    if (!frames.length || summaries.length < Math.ceil(frames.length / 2)) throw new Error(procedureCopy(documentLanguage()).noFrames);
+    source.limitations.push(`Procedure evidence uses ${summaries.length} analyzed frames across ${duration.toFixed(1)} seconds. Brief settings and skipped actions may be missing; execution and current software behavior were not verified.`);
+    if (summaries.length < frames.length) source.limitations.push(`${frames.length - summaries.length} captured frames could not be analyzed.`);
   }
   steps.set(stepOffset, "done", t("describedFrames", { count: summaries.length }));
 

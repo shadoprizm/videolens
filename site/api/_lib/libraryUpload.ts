@@ -1,4 +1,5 @@
 import { ApiError } from "./http.js";
+import { normalizeProcedure } from "../../shared/procedure.js";
 import { normalizeRecipe } from "../../shared/recipe.js";
 
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
@@ -28,7 +29,10 @@ export function libraryUpload(value: unknown) {
   // Explicitly select the report fields: never forward local storage, keys or raw media.
   const recipe = normalizeRecipe(a.recipe, typeof a.source.durationSeconds === "number" ? a.source.durationSeconds : null);
   if ((a.mode === "recipe" || a.recipe != null) && !recipe) return invalid();
+  const procedure = normalizeProcedure(a.procedure, typeof a.source.durationSeconds === "number" ? a.source.durationSeconds : null);
+  if (a.procedure != null && !procedure) return invalid();
   const reportData = {
+    ...(procedure ? { procedure } : {}),
     ...(recipe ? { recipe } : {}),
     source: { sourceType: a.source.sourceType, title: a.source.title, url: a.source.url,
       durationSeconds: a.source.durationSeconds, limitations: a.source.limitations },

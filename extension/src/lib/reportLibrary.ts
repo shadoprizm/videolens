@@ -1,4 +1,6 @@
+import { procedureMarkdown } from "./procedureReport";
 import { cleanSourceTitle } from "./sourceTitle";
+import { normalizeProcedure } from "./procedure";
 import { normalizeRecipe } from "./recipe";
 import { recipeMarkdown } from "./recipeReport";
 import type {
@@ -417,6 +419,7 @@ function normalizeSavedReport(value: unknown): SavedReport | null {
     updatedAt: value.updatedAt,
     analysis: {
       ...value.analysis,
+      ...(value.analysis.procedure ? { procedure: normalizeProcedure(value.analysis.procedure, value.analysis.source.durationSeconds, value.analysis.timeline) } : {}),
       ...(value.analysis.recipe ? { recipe: normalizeRecipe(value.analysis.recipe, value.analysis.source.durationSeconds) } : {}),
       source: { ...value.analysis.source, title: cleanSourceTitle(value.analysis.source.title, value.analysis.source.sourceType) },
     },
@@ -468,6 +471,7 @@ function isAnalysis(value: unknown): value is Analysis {
     || !CONFIDENCE_VALUES.has(value.confidence as Confidence)) {
     return false;
   }
+  if (value.procedure != null && !normalizeProcedure(value.procedure, typeof source.durationSeconds === "number" ? source.durationSeconds : null, value.timeline as Analysis["timeline"])) return false;
   return true;
 }
 
@@ -497,6 +501,7 @@ function searchableReportText(report: SavedReport): string {
     analysis.outputLanguage,
     analysis.prompt,
     analysis.summary,
+    analysis.procedure ? procedureMarkdown(analysis.procedure, analysis.outputLanguage, analysis.source.url) : "",
     analysis.recipe ? recipeMarkdown(analysis.recipe, analysis.outputLanguage) : "",
     ...analysis.timeline.segments.flatMap((segment) => [
       segment.sceneType,

@@ -1,3 +1,4 @@
+import { procedureCopy } from "./procedureCopy";
 import { recipeCopy } from "./recipeCopy";
 import type { AnalysisMode } from "./types";
 
@@ -309,5 +310,5 @@ export const REPORT_COPY: Record<ConcreteReportLanguage, ReportCopy> = {
 
 export function reportCopy(language: string | null | undefined): ReportCopy {
   const normalized = normalizeLanguageTag(language) ?? "en";
-  return { ...REPORT_COPY[normalized], modeLabels: { ...REPORT_COPY[normalized].modeLabels, recipe: recipeCopy(normalized).label } };
+  return { ...REPORT_COPY[normalized], modeLabels: { ...REPORT_COPY[normalized].modeLabels, recipe: recipeCopy(normalized).label, tutorial: procedureCopy(normalized).label } };
 }

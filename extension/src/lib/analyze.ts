@@ -1,4 +1,6 @@
 // Port of src/videolens/analysis/analyze_timeline.py and ask_question.py
+import { normalizeProcedure, PROCEDURE_INSTRUCTIONS } from "./procedure";
+import { procedureCopy } from "./procedureCopy";
 import { MODELS } from "./config";
 import { languageInstruction, type ConcreteReportLanguage } from "./languages";
 import { MODE_PROMPTS } from "./modes";
@@ -53,6 +55,18 @@ export async function analyzeTimeline(
   recipeContext?: RecipeContext,
 ): Promise<Analysis> {
   const prompts = MODE_PROMPTS[mode];
+  if (mode === "tutorial") {
+    const content = await chatCompletion(access, MODELS.synthesize, [
+      { role: "system", content: `${PROCEDURE_INSTRUCTIONS}\n\n${languageInstruction(outputLanguage)}` },
+      { role: "user", content: buildUserMessage(timeline, source, mode, userPrompt, prompts.findings) },
+    ], { jsonObject: true });
+    const data = JSON.parse(content);
+    const procedure = normalizeProcedure(data.procedure, source.durationSeconds, timeline);
+    if (!procedure) throw new Error(procedureCopy(outputLanguage).noProcedure);
+    const analysis = toAnalysis(data, source, mode, userPrompt, timeline, outputLanguage);
+    return { ...analysis, findings: [], recommendations: [], tasks: [], procedure,
+      limitations: [...new Set([...source.limitations, ...analysis.limitations])] };
+  }
   if (mode === "recipe") {
     const context = recipeContext ?? { creatorText: "", sources: [], researchText: "", research: "not_requested" as const };
     const content = await chatCompletion(access, MODELS.synthesize, [
@@ -209,6 +223,10 @@ export async function askQuestion(
 
   const lines: string[] = [];
   if (priorAnalysis) {
+    if (priorAnalysis.procedure) {
+      lines.push("PROCEDURE (preserve unknowns and suggested checks; do not invent exact values):");
+      lines.push(JSON.stringify(priorAnalysis.procedure));
+    }
     if (priorAnalysis.recipe) {
       lines.push("RECIPE (preserve each fact's provenance; never turn an estimate into a video fact):");
       lines.push(JSON.stringify(priorAnalysis.recipe));
