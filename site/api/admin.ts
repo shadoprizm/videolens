@@ -17,6 +17,11 @@ export async function handler(request: Request): Promise<Response> {
   try {
     await requireAdministrator(request);
     const params = new URL(request.url).searchParams;
+    if (params.get("view") === "funnel") {
+      const { data, error } = await supabaseAdmin().rpc("activation_funnel");
+      if (error) throw error;
+      return json(request, data);
+    }
     const membership = params.get("membership") || "all";
     if (!["all", "paid", "free", "trial", "complimentary"].includes(membership)) {
       throw new ApiError(400, "invalid_membership", "Choose a valid membership filter.");

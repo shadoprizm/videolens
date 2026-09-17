@@ -448,7 +448,7 @@ test("recipe preview runs through the sidebar and preserves the draft when optio
     return [{ result: { duration: 3, title: "Recipe test", pageUrl: fixture.source.url, isYouTube: true, width: 720, height: 1280 } }];
   };
   globalThis.fetch = async (url, init) => {
-    if (String(url).endsWith("/responses")) { searches++; return jsonResponse({ error: "offline" }, 503); }
+    if (String(url).endsWith("/responses")) { assert.ok(document.querySelector(".recipe-draft"), "draft reader is available before optional lookup"); searches++; return jsonResponse({ error: "offline" }, 503); }
     const body = JSON.parse(init.body);
     const content = body.messages[1].content;
     const data = Array.isArray(content) ? { frames: content.filter(p => p.type === "text" && p.text.startsWith("Frame at")).map(p => ({ timestamp: Number(p.text.split(" ")[2]), visual_summary: "Eggs and flour are mixed.", extracted_text: ["2 eggs"], confidence: "high" })) } : fixture;
@@ -519,6 +519,44 @@ test("procedure runs through the actual sidebar bundle with caption-guided captu
     assert.match(document.querySelector(".procedure-card").textContent, /Sharing permission is not shown/);
     assert.ok(document.querySelector(".full-report"));
   } finally { globalThis.fetch = originalFetch; restore(); }
+});
+
+test("checkout return refreshes exhausted managed access without losing the chosen report", async () => {
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 3, analysisProvider: "pro", proToken: "test", proEmail: "test@example.invalid" });
+  const originalFetch = globalThis.fetch;
+  let entitlement = managedEntitlement({ managedReportsRemaining: 0, canUseManagedAi: false });
+  globalThis.fetch = async () => jsonResponse({ entitlement });
+  try {
+    await importBundle(sidePanelSource, "checkout-return");
+    await waitFor(() => document.querySelector("#choose-page-video"));
+    await new Promise(resolve => setTimeout(resolve, 20));
+    document.querySelector("#choose-page-video").click();
+    document.querySelector(".create-report").click();
+    await waitFor(() => document.querySelector("#refresh-managed-access"));
+    assert.match(document.querySelector(".managed-access").textContent, /allowance is used up/);
+    entitlement = managedEntitlement({ plan: "pro", managedReportsLimit: 20, managedReportsRemaining: 20 });
+    document.querySelector("#refresh-managed-access").click();
+    await waitFor(() => document.querySelector(".managed-access small").textContent.includes("20"));
+    assert.ok(document.querySelector(".private-access"));
+    document.querySelector(".back-link").click();
+    assert.match(document.querySelector(".report-choice").textContent, /Detailed report/);
+    await new Promise(resolve => setTimeout(resolve, 0));
+  } finally { globalThis.fetch = originalFetch; restore(); }
+});
+
+test("a report saved before checkout reopens after the sidebar restarts", async () => {
+  const fixture = JSON.parse(readFileSync("test/fixtures/recipe.json", "utf8"));
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 3 });
+  try {
+    const bundle = await build({ entryPoints: ["src/lib/reportLibrary.ts"], bundle: true, format: "esm", platform: "browser", write: false });
+    const library = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString("base64")}`);
+    const saved = await library.saveReport({ analysis: fixture, qa: [] });
+    restore.localState.checkoutReportId = saved.id;
+    await importBundle(sidePanelSource, "checkout-restore");
+    await waitFor(() => document.querySelector(".recipe-card"));
+    assert.match(document.querySelector(".recipe-card").textContent, /Flour quantity is missing/);
+    assert.equal(restore.localState.checkoutReportId, undefined);
+  } finally { restore(); }
 });
 
 function installBrowserEnvironment(

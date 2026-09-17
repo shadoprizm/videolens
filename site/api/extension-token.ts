@@ -1,3 +1,4 @@
+import { recordActivation } from "./_lib/activation.js";
 import { createExtensionToken, sha256 } from "./_lib/auth.js";
 import { ApiError, errorResponse, json, options } from "./_lib/http.js";
 import { supabaseAdmin } from "./_lib/supabase.js";
@@ -57,6 +58,7 @@ export async function handler(request: Request): Promise<Response> {
     if (consumeError) throw consumeError;
     if (!consumed) throw new ApiError(409, "pairing_already_used", "This extension connection was already used.");
 
+    await recordActivation(data.user_id, "account_connected", nonceHash);
     return json(request, { status: "connected", token, email: profile.email });
   } catch (error) {
     return errorResponse(request, error);

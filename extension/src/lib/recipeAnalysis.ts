@@ -8,9 +8,11 @@ export async function analyzeRecipeWithResearch(
   access: AiAccess, timeline: Timeline, source: SourceInfo, prompt: string,
   language: ConcreteReportLanguage | "source", context: RecipeContext,
   lookup: boolean, onResearch: () => void = () => {},
+  onDraft: (draft: Analysis) => Promise<void> = async () => {},
 ): Promise<Analysis> {
   const draft = await analyzeTimeline(access, timeline, source, "recipe", prompt, language, context);
   if (!lookup || !draft.recipe) return draft;
+  await onDraft(draft);
   onResearch();
   try {
     const r = draft.recipe;

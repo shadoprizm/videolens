@@ -37,7 +37,7 @@ function clearSensitiveData(): void {
   pending?.abort();
   sequence++;
   el("dashboard").hidden = true;
-  for (const id of ["members", "activity", "metrics", "sources", "modes", "chart"]) el(id).replaceChildren();
+  for (const id of ["members", "activity", "metrics", "sources", "modes", "chart", "activation-funnel"]) el(id).replaceChildren();
   el("updated").textContent = "";
   el("scan-summary").textContent = "";
   memberId = "";
@@ -71,6 +71,7 @@ async function load(): Promise<void> {
       throw new Error(result.message || "Could not load the dashboard.");
     }
     render(result as Snapshot);
+    void loadFunnel(data.session.access_token, current, controller.signal);
     el("dashboard").hidden = false; el("access").hidden = true; el("refresh").hidden = false;
     showMessage("");
   } catch (error) {
@@ -83,6 +84,22 @@ async function load(): Promise<void> {
     if (pending === controller) el<HTMLButtonElement>("refresh").disabled = false;
   }
 }
+async function loadFunnel(token: string, current: number, signal: AbortSignal): Promise<void> {
+  const labels: Record<string,string> = { account_connected: "Account connected", starter_started: "Starter started", starter_completed: "Starter completed", starter_failed: "Starter failed", checkout_started: "Checkout opened", subscription_active: "Subscription active", pro_started: "Pro report started", pro_completed: "Pro report completed", pro_failed: "Pro report failed" };
+  try {
+    const response = await fetch("/api/admin?view=funnel", { headers: { Authorization: `Bearer ${token}` }, signal });
+    if (!response.ok) throw new Error("Unavailable");
+    const data = await response.json() as { events: { event: string; members: number; occurrences: number }[] };
+    if (current !== sequence) return;
+    el("activation-funnel").replaceChildren(...Object.entries(labels).map(([event,label]) => {
+      const row = data.events.find(row => row.event === event);
+      const card = text("article", "", "metric");
+      card.append(text("span",label,"label"),text("strong",String(row?.members || 0)),text("small",`${row?.occurrences || 0} events`));
+      return card;
+    }));
+  } catch { if (current === sequence) el("activation-funnel").replaceChildren(text("p","Activation metrics are temporarily unavailable.")); }
+}
+
 function render(data: Snapshot): void {
   el("updated").textContent = `Updated ${date(data.generatedAt)}`;
   const cards: [string, number][] = [["Registered members", data.summary.members], ["Paid Pro", data.summary.paid], ["Free", data.summary.free], ["Complimentary Pro", data.summary.complimentary], ["Pro trials", data.summary.trial], ["Signed in · 30 days", data.summary.active30Days]];

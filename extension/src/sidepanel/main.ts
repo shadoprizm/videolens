@@ -2,6 +2,7 @@ import { procedureFrameTimestamps } from "../lib/procedure";
 import { procedureCopy } from "../lib/procedureCopy";
 import { procedureHtml, procedureChecklist, PROCEDURE_CSS } from "../lib/procedureReport";
 import { describeProcedureFrames } from "../lib/describeProcedureFrames";
+import { failureCode, recoveryHint, needsManagedContinuation } from "../lib/activation";
 import { analyzeTimeline, askQuestion, estimateCost, fmtTs } from "../lib/analyze";
 import {
   captureTabFrames,
@@ -184,6 +185,9 @@ const PRIMARY_REPORT_MODES: AnalysisMode[] = ["general", "key_insights", "tutori
 const recipeStyle = document.createElement("style");
 recipeStyle.textContent = RECIPE_CSS + PROCEDURE_CSS;
 document.head.appendChild(recipeStyle);
+let analysisInFlight = false;
+let accountRefreshing = false;
+let lastAccountRefresh = 0;
 let librarySearchTimer: number | null = null;
 let libraryRefreshSequence = 0;
 let cloudLibraryEnabled = false;
@@ -340,6 +344,13 @@ async function hydrateDeferredState(): Promise<void> {
     hydrateReportLibrary(),
     hydrateProState(),
   ]);
+  if (hasExtensionStorage && state.view === "home") {
+    const { checkoutReportId } = await chrome.storage.local.get("checkoutReportId");
+    if (typeof checkoutReportId === "string") {
+      await chrome.storage.local.remove("checkoutReportId");
+      await openLocalReport(checkoutReportId);
+    }
+  }
   render();
 }
 
@@ -368,6 +379,38 @@ async function hydrateProState(): Promise<void> {
   }
 }
 
+async function refreshAccountAccess(manual = false): Promise<void> {
+  if (!hasExtensionStorage || analysisInFlight || accountRefreshing) return;
+  accountRefreshing = true;
+  try {
+    state.proSession = await getProSession() || await resumeProConnection();
+    if (!state.proSession) { render(); return; }
+    state.proEntitlement = await fetchProEntitlement(state.proSession.token);
+    lastAccountRefresh = Date.now();
+    render();
+  } catch {
+    if (manual) { state.error = "Account access could not be refreshed. Check your connection and try again."; render(); }
+    // A transient refresh never removes a usable report or resets the user's setup.
+  } finally { accountRefreshing = false; }
+}
+window.addEventListener("focus", () => {
+  if (Date.now() - lastAccountRefresh > 5000) void refreshAccountAccess();
+});
+
+async function continueWithManaged(): Promise<void> {
+  try {
+    if (state.analysis) {
+      await persistCurrentReport(true);
+      if (!state.savedReportId) { render(); return; }
+      await chrome.storage.local.set({ checkoutReportId: state.savedReportId });
+    }
+    openProAccount();
+  } catch {
+    state.error = t("librarySaveFailed");
+    render();
+  }
+}
+
 // ── rendering ───────────────────────────────────────────────────────────────
 
 function render(): void {
@@ -381,6 +424,7 @@ function render(): void {
     "results-view",
     !state.startupError && state.privacyDisclosureAccepted && state.view === "results" && Boolean(state.analysis),
   );
+  if (state.view === "progress") return;
   root.replaceChildren();
   if (state.startupError) renderStartupError();
   else if (!state.privacyDisclosureAccepted) renderPrivacyDisclosure();
@@ -735,7 +779,7 @@ function renderAccessSetup(): void {
   const managed = el(
     `<section class="access-card managed-access">
       <div class="access-card-heading"><span class="plan-pill">${state.proSession && state.proEntitlement?.plan === "pro" ? "PRO" : esc(t("starter"))}</span><h2>${esc(t("managedAccessTitle"))}</h2></div>
-      <p>${esc(t("managedAccessBody"))}</p>
+      <p>${esc(managedUnavailable ? "Your managed allowance is used up. Choose Pro for 20 managed reports per calendar month, or use Private mode with your own key. Your saved reports stay available." : t("managedAccessBody"))}</p>
       ${state.proSession ? `<small>${esc(state.proSession.email)}${state.proEntitlement ? ` · ${esc(t("reportsRemaining", { remaining: state.proEntitlement.managedReportsRemaining, limit: state.proEntitlement.managedReportsLimit }))}` : ""}</small>` : ""}
       <button class="btn btn-primary" id="managed-access-action">${esc(managedReady ? t("useManaged") : managedUnavailable ? t("accountBilling") : t("connectAccount"))}</button>
     </section>`,
@@ -744,9 +788,14 @@ function renderAccessSetup(): void {
   if (managedReady) {
     managedButton.addEventListener("click", () => startWithProvider("pro"));
   } else if (managedUnavailable) {
-    managedButton.addEventListener("click", openProAccount);
+    managedButton.addEventListener("click", () => void continueWithManaged());
   } else {
     managedButton.addEventListener("click", () => void connectManagedAccess(managedButton));
+  }
+  if (state.proSession) {
+    const refresh = el('<button class="btn btn-ghost btn-sm" id="refresh-managed-access">Refresh account access</button>');
+    refresh.addEventListener("click", () => void refreshAccountAccess(true));
+    managed.appendChild(refresh);
   }
   root.appendChild(managed);
 
@@ -1071,7 +1120,7 @@ async function refreshReportLibrary(): Promise<void> {
   }
 }
 
-async function persistCurrentReport(): Promise<void> {
+async function persistCurrentReport(localOnly = false): Promise<void> {
   if (!hasExtensionStorage || !state.analysis) return;
   try {
     const saved = await saveReport({
@@ -1083,7 +1132,7 @@ async function persistCurrentReport(): Promise<void> {
     state.savedReportId = saved.id;
     state.libraryStorageFull = false;
     await refreshReportLibrary();
-    if (state.proSession && await getCloudLibraryEnabled()) {
+    if (!localOnly && state.proSession && await getCloudLibraryEnabled()) {
       try { await uploadReportCopy(state.proSession.token, saved, true); }
       catch { state.error = cloudCopy("failed"); }
     }
@@ -1165,7 +1214,7 @@ interface StepHandle {
 
 function renderProgress(steps: string[]): StepHandle {
   root.replaceChildren();
-  const list = el(`<ul class="steps"></ul>`);
+  const list = el(`<ul class="steps" aria-live="polite" aria-label="Report progress"></ul>`);
   const items = steps.map((s) => {
     const li = el(`<li><span class="dot"></span><span class="t">${esc(s)}</span></li>`);
     list.appendChild(li);
@@ -1243,6 +1292,12 @@ function renderResults(): void {
   );
   reportActions.append(fullBtn, printBtn, htmlBtn);
   root.appendChild(reportActions);
+  if (needsManagedContinuation(state.proEntitlement, state.managedReportId)) {
+    const continuation = el(`<section class="card managed-continuation"><h3>Your starter report is ready</h3><p>Keep using managed reports with Pro: 20 per calendar month, no API key setup. Private mode stays free with your own key.</p><p class="hint">Your report stays in this browser’s Library while you visit checkout.</p><button class="btn btn-primary" id="continue-managed">Keep using managed reports</button><button class="btn btn-ghost" id="continue-private">Use my own key</button></section>`);
+    continuation.querySelector("#continue-managed")!.addEventListener("click", () => void continueWithManaged());
+    continuation.querySelector("#continue-private")!.addEventListener("click", () => { state.view = "settings"; render(); });
+    root.appendChild(continuation);
+  }
 
   const exportRow = el(`<div class="export-row secondary-exports"></div>`);
   const mdBtn = el(`<button class="btn btn-ghost btn-sm">${esc(t("markdown"))}</button>`);
@@ -1532,6 +1587,13 @@ function renderSettings(): void {
 // ── pipeline run ────────────────────────────────────────────────────────────
 
 async function runAnalysis(): Promise<void> {
+  if (analysisInFlight) return;
+  analysisInFlight = true;
+  try { await performAnalysis(); }
+  finally { analysisInFlight = false; }
+}
+
+async function performAnalysis(): Promise<void> {
   state.error = null;
 
   if (!isProviderReady(state.analysisProvider)) {
@@ -1611,6 +1673,7 @@ async function runAnalysis(): Promise<void> {
     }
     state.qa = [];
     state.hasCompletedFirstReport = true;
+    await persistCurrentReport(true);
     if (hasExtensionStorage) void markFirstReportCompleted().catch((error) => console.error("first-report state:", error));
     if (managedReportId && state.proSession) {
       try {
@@ -1628,11 +1691,16 @@ async function runAnalysis(): Promise<void> {
     await persistCurrentReport();
     state.view = "results";
   } catch (e) {
+    const code = failureCode(e);
+    let allowanceMessage = "";
     if (managedReportId && state.proSession) {
-      await completeManagedReport(state.proSession.token, managedReportId, state.analysis, false, true).catch(() => undefined);
+      try {
+        await completeManagedReport(state.proSession.token, managedReportId, null, false, true);
+        allowanceMessage = " Your managed allowance has been restored.";
+      } catch { allowanceMessage = " We could not confirm allowance recovery. Refresh account access before retrying."; }
       state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => state.proEntitlement);
     }
-    state.error = localizeKnownError((e as Error).message);
+    state.error = `${localizeKnownError((e as Error).message)} ${recoveryHint(code)}${allowanceMessage}`;
     state.view = "reportSetup";
   }
   render();
@@ -1764,7 +1832,16 @@ async function describeAndSynthesize(
   steps.set(stepOffset + 2, "active");
   state.analysis = state.mode === "recipe"
     ? await analyzeRecipeWithResearch(access, timeline, source, prompt, outputLanguage, recipeContext, state.recipeLookup,
-      () => steps.set(stepOffset + 2, "active", recipeCopy(documentLanguage()).researching))
+      () => steps.set(stepOffset + 2, "active", recipeCopy(documentLanguage()).researching),
+      async draft => {
+        state.analysis = draft;
+        await persistCurrentReport(true);
+        if (state.savedReportId) {
+          const preview = el('<button class="btn btn-secondary recipe-draft">Read saved recipe while lookup continues ↗</button>');
+          preview.addEventListener("click", () => void openFullReport(state.savedReportId!));
+          root.appendChild(preview);
+        }
+      })
     : await analyzeTimeline(access, timeline, source, state.mode, prompt, outputLanguage);
   steps.set(stepOffset + 2, "done");
 }

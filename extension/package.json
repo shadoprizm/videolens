@@ -1,6 +1,6 @@
 {
   "name": "videolens-extension",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "description": "Turn videos into useful written reports with private BYOK and optional managed Pro modes",
   "type": "module",

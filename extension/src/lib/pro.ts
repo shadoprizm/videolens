@@ -130,7 +130,7 @@ export async function completeManagedReport(
 }
 
 export function openProAccount(): void {
-  void chrome.tabs.create({ url: LINKS.account, active: true });
+  void chrome.tabs.create({ url: `${LINKS.account}?from=extension`, active: true });
 }
 
 export async function uploadSavedReport(token: string, report: SavedReport): Promise<void> {

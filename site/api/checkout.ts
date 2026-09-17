@@ -1,3 +1,4 @@
+import { recordActivation } from "./_lib/activation.js";
 import { authenticate } from "./_lib/auth.js";
 import { optionalEnv, requireEnv, siteUrl } from "./_lib/env.js";
 import { ApiError, errorResponse, json, options, readJson } from "./_lib/http.js";
@@ -77,6 +78,7 @@ export async function handler(request: Request): Promise<Response> {
       ...(trialDays ? { custom_text: { submit: { message: `Your paid plan starts after ${trialDays} free days. Today's charge is $0. Cancel in Manage billing before the trial ends to avoid a charge.` } } } : {}),
     });
     if (!session.url) throw new Error("Stripe Checkout did not return a URL.");
+    await recordActivation(user.id, "checkout_started", session.id);
     return json(request, { url: session.url });
   } catch (error) {
     if (error instanceof Error && error.message.includes("Missing required environment variable")) {
