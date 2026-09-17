@@ -269,14 +269,19 @@
     "artifact": "releases/firefox/videolens-firefox-v0.7.0.zip",
     "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.7.0.zip",
     "packageVersion": "0.7.0",
-    "status": "ready_to_submit",
+    "status": "awaiting_review",
     "publishedVersion": "0.5.1",
     "checkedAt": "2026-09-17",
     "sha256": "c8063755819e7f9857f9b5fbc8b76309e69404a3600d7596539c00b439a894b8",
     "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.7.0/videolens-firefox-v0.7.0.zip",
     "sourceSha256": "a77e744e368ffc111555b67e5f586b2dfe996fdd87df090aef00ba45010c7948",
     "sourceDownloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.7.0/videolens-firefox-source-v0.7.0.zip",
-    "publishedVersionCheckedAt": "2026-09-17"
+    "publishedVersionCheckedAt": "2026-09-17",
+    "submittedAt": "2026-09-17",
+    "versionId": 6492410,
+    "fileId": 5036570,
+    "sourceSubmitted": true,
+    "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6492410"
   },
   "validation": {
     "releaseCheck": "passed",
@@ -299,12 +304,23 @@
       "errors": 0,
       "warnings": 0,
       "notices": 0
-    }
+    },
+    "reviewerSource": "Clean npm install and Firefox build from the reviewer-source ZIP reproduce the packaged Firefox files.",
+    "ci": [
+      "https://github.com/shadoprizm/videolens/actions/runs/35199220769",
+      "https://github.com/shadoprizm/videolens/actions/runs/35199220739"
+    ],
+    "live": "Production clean lesson URL and account return HTTP 200; unauthenticated report API returns 401. At 390px the lesson has no horizontal overflow, study controls render, and responses/review marks survive reload. Authenticated cloud round trip was covered by serialization tests, not a live account upload."
   },
   "website": {
-    "status": "pending",
+    "status": "deployed",
     "url": "https://videolens.io",
-    "previewUrl": "https://videolens.io/lesson-preview"
+    "previewUrl": "https://videolens.io/lesson-preview",
+    "deployment": "dpl_4ZXvrcJ7qfST4LN3ViJ4yd4m8aN6",
+    "deploymentUrl": "https://videolens-site-1cojlrwad-shadoprizms-projects.vercel.app",
+    "sourceCommit": "616b72fbe5ab6ed4084e47096b75a955bb0bd90d",
+    "deployedAt": "2026-09-17"
   },
-  "githubRelease": "https://github.com/shadoprizm/videolens/releases/tag/v0.7.0"
+  "githubRelease": "https://github.com/shadoprizm/videolens/releases/tag/v0.7.0",
+  "artifactProvenance": "GitHub release asset digests match the packaged Chrome, Firefox and reviewer-source archives. Source was rebuilt and compared before Firefox submission. Submitted archives are unchanged."
 }
