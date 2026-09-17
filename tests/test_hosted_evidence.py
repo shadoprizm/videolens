@@ -117,6 +117,8 @@ def test_structured_synthesis_cache_and_all_exports(kind, mode, payload):
     html = render_html(restored)
     assert "<script>alert" not in html
     assert "No findings were generated" not in html
+    assert "<span>Steps</span><strong>1</strong>" in html
+    assert "<span>Evidence points</span><strong>0</strong>" not in html
     assert "Unknown" in render_markdown(restored) or "inferred" in render_markdown(restored).lower()
     assert render_pdf(restored).startswith(b"%PDF")
     assert (
@@ -267,3 +269,7 @@ def test_structured_result_screen_has_working_checklist(tmp_path):
     assert not app.exception
     assert next(c for c in app.checkbox if c.label.startswith("Step 1:")).value
     assert "Download checklist" in [b.label for b in app.get("download_button")]
+
+    next(b for b in app.button if b.label.startswith("Play ")).click().run()
+    assert not app.exception
+    assert app.session_state["seek_to"] == 2

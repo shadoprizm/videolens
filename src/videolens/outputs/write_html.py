@@ -5,7 +5,7 @@ from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from videolens.types import Analysis
-from videolens.analysis.structured import structured_html
+from videolens.analysis.structured import report_sections, structured_html
 
 
 def render_html(analysis: Analysis) -> str:
@@ -15,6 +15,13 @@ def render_html(analysis: Analysis) -> str:
     source_label = source.author or _source_type_label(source.platform or source.source_type.value)
     duration = _fmt_duration(source.duration_seconds)
     evidence_count = sum(len(finding.evidence) for finding in analysis.findings)
+    structured = analysis.procedure or analysis.recipe
+    item_label = "Steps" if structured else "Key findings"
+    item_count = len(structured["steps"]) if structured else len(analysis.findings)
+    if structured:
+        evidence_count = sum(
+            len(f["timestamps"]) for _, rows in report_sections(analysis) for _, f in rows
+        )
     confidence = analysis.confidence.capitalize()
 
     finding_cards = (
@@ -102,7 +109,7 @@ def render_html(analysis: Analysis) -> str:
       <div class="hero-meta">
         <div><span>Duration</span><strong>{duration}</strong></div>
         <div><span>Confidence</span><strong>{confidence}</strong></div>
-        <div><span>Key findings</span><strong>{len(analysis.findings)}</strong></div>
+        <div><span>{item_label}</span><strong>{item_count}</strong></div>
         <div><span>Evidence points</span><strong>{evidence_count}</strong></div>
       </div>
     </header>
