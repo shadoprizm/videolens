@@ -1,0 +1,103 @@
+{
+  "procedure": {
+    "title": "Create a Status dropdown",
+    "outcome": {
+      "value": "A dropdown in B2:B10",
+      "basis": "video",
+      "timestamps": [
+        10
+      ],
+      "note": ""
+    },
+    "environment": [
+      {
+        "value": "Spreadsheet application",
+        "basis": "video",
+        "timestamps": [
+          0
+        ],
+        "note": ""
+      }
+    ],
+    "prerequisites": [
+      {
+        "value": "Permission to edit the sheet",
+        "basis": "inferred",
+        "timestamps": [],
+        "note": "Changing validation rules requires editing the sheet."
+      }
+    ],
+    "steps": [
+      {
+        "action": {
+          "value": "Select B2:B10 and open Data validation.",
+          "basis": "video",
+          "timestamps": [
+            0
+          ],
+          "note": ""
+        },
+        "details": [
+          {
+            "label": "Cell range",
+            "value": {
+              "value": "B2:B10",
+              "basis": "video",
+              "timestamps": [
+                0
+              ],
+              "note": ""
+            }
+          },
+          {
+            "label": "Sharing permission",
+            "value": {
+              "value": null,
+              "basis": "unknown",
+              "timestamps": [],
+              "note": "Not shown in the video."
+            }
+          }
+        ],
+        "check": {
+          "value": "Confirm that B2:B10 is highlighted.",
+          "basis": "inferred",
+          "timestamps": [],
+          "note": "Suggested check of the selected range; not demonstrated."
+        }
+      },
+      {
+        "action": {
+          "value": "Enter the choices and save.",
+          "basis": "video",
+          "timestamps": [
+            10
+          ],
+          "note": ""
+        },
+        "details": [
+          {
+            "label": "Choices",
+            "value": {
+              "value": "Todo\nDone",
+              "basis": "video",
+              "timestamps": [
+                10
+              ],
+              "note": ""
+            }
+          }
+        ],
+        "check": {
+          "value": "Open the dropdown and confirm both choices.",
+          "basis": "inferred",
+          "timestamps": [],
+          "note": "Suggested verification; the video stops before this test."
+        }
+      }
+    ],
+    "gaps": [
+      "Sharing permission is not shown."
+    ]
+  }
+}

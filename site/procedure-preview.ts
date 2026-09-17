@@ -1,4 +1,4 @@
-import example from '../extension/test/fixtures/procedure.json';
+import example from './shared/procedureExample.json';
 import {procedureHtml,procedureMarkdown,PROCEDURE_CSS} from './shared/procedureReport.js';
 const style=document.createElement('style');style.textContent=PROCEDURE_CSS;document.head.append(style);
 const rendered=new DOMParser().parseFromString(procedureHtml(example.procedure,'en'), 'text/html');

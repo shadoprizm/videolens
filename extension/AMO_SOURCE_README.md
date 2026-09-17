@@ -1,4 +1,4 @@
-# VideoLens Firefox 0.5.1 — reviewer build instructions
+# VideoLens Firefox 0.6.0 — reviewer build instructions
 
 This source archive reproduces the packaged Firefox extension build. The
 extension is written in TypeScript and bundled as unminified ES modules with
@@ -14,7 +14,7 @@ build the extension.
 
 ## Build the reviewed Firefox files
 
-The archive contains `extension/`, the shared recipe modules under `site/shared/`,
+The archive contains `extension/`, the shared recipe and procedure modules under `site/shared/`,
 and the two shared reader files under `site/`.
 From the root of this source archive:
 
@@ -48,6 +48,6 @@ The build entry point is `build.mjs`. For Firefox it bundles
 `src/background.firefox.ts`, `src/sidepanel/main.ts` and `src/reader/main.ts`, copies `public/`, and
 replaces the copied Chrome manifest with `manifest.firefox.json`.
 The full-page reader imports `../site/cloud-report.ts` and `../site/cloud-report.css`,
-the same rendering code and styles used on the VideoLens website. Both files and their shared recipe-module dependencies are included.
+the same rendering code and styles used on the VideoLens website. Both files and their shared recipe and procedure dependencies are included.
 
 Public source repository: https://github.com/shadoprizm/videolens

@@ -61,6 +61,7 @@ if (target === "firefox-source") {
     "extension/release-tracker.json",
     "extension/AMO_SOURCE_README.md",
     "extension/RECIPE_PREVIEW.md",
+    "extension/PROCEDURE.md",
     "extension/gen-icons.mjs",
     "site/shared",
     "site/cloud-report.ts",

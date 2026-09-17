@@ -1,0 +1,197 @@
+{
+  "evaluatedAt": "2026-09-17",
+  "kind": "Downloaded real videos through shipping sampling, vision, timeline and synthesis code; manual source-frame spot review, not task-execution or native browser-capture trials.",
+  "models": {
+    "frameDescribe": "gpt-5.6-terra",
+    "synthesize": "gpt-5.6-terra"
+  },
+  "videos": [
+    {
+      "id": "31WnIJJnr0w",
+      "title": "How to Freeze Rows & Columns in Google Sheets (Official Way + Secret Tip)",
+      "url": "https://www.youtube.com/watch?v=31WnIJJnr0w",
+      "durationSeconds": 170.454,
+      "sampledFrames": 120,
+      "analyzedFrames": 120,
+      "captionsAvailable": true,
+      "initialRequests": 41,
+      "initialProviderCostUsd": 0.7312569999999999,
+      "finalSynthesisRequests": 1,
+      "finalSynthesisCostUsd": 0.1120915,
+      "finalSteps": 7
+    },
+    {
+      "id": "93wlRA8UKzc",
+      "title": "Como Redimensionar o Cambiar tama\u00f1o de Dise\u00f1o en Canva GRATIS",
+      "url": "https://www.youtube.com/watch?v=93wlRA8UKzc",
+      "durationSeconds": 47.794,
+      "sampledFrames": 96,
+      "analyzedFrames": 96,
+      "captionsAvailable": false,
+      "initialRequests": 33,
+      "initialProviderCostUsd": 0.5484499999999999,
+      "finalSynthesisRequests": 1,
+      "finalSynthesisCostUsd": 0.0578748,
+      "finalSteps": 13
+    },
+    {
+      "id": "Bgl54vaoR1s",
+      "title": "How to: Freeze Rows or Columns in Google Sheets",
+      "url": "https://www.youtube.com/watch?v=Bgl54vaoR1s",
+      "durationSeconds": 17.754,
+      "sampledFrames": 36,
+      "analyzedFrames": 36,
+      "captionsAvailable": false,
+      "initialRequests": 13,
+      "initialProviderCostUsd": 0.2535155,
+      "finalSynthesisRequests": 1,
+      "finalSynthesisCostUsd": 0.03888,
+      "finalSteps": 4
+    },
+    {
+      "id": "E9F9EXwEXLU",
+      "title": "How to Change the Default Search Engine in Google Chrome",
+      "url": "https://www.youtube.com/watch?v=E9F9EXwEXLU",
+      "durationSeconds": 99.674,
+      "sampledFrames": 120,
+      "analyzedFrames": 120,
+      "captionsAvailable": true,
+      "initialRequests": 41,
+      "initialProviderCostUsd": 0.6196639999999999,
+      "finalSynthesisRequests": 1,
+      "finalSynthesisCostUsd": 0.0352052,
+      "finalSteps": 6
+    },
+    {
+      "id": "QbbprkeJbLM",
+      "title": "Insert a table in Microsoft Word",
+      "url": "https://www.youtube.com/watch?v=QbbprkeJbLM",
+      "durationSeconds": 89.654,
+      "sampledFrames": 120,
+      "analyzedFrames": 120,
+      "captionsAvailable": true,
+      "initialRequests": 41,
+      "initialProviderCostUsd": 0.677527,
+      "finalSynthesisRequests": 1,
+      "finalSynthesisCostUsd": 0.0321048,
+      "finalSteps": 5
+    },
+    {
+      "id": "excel-dropdown",
+      "title": "How to create a drop-down list in Excel | Microsoft",
+      "url": "https://www.youtube.com/watch?v=-02SsHDW2lQ",
+      "durationSeconds": 58.654,
+      "sampledFrames": 118,
+      "analyzedFrames": 118,
+      "captionsAvailable": true,
+      "initialRequests": 41,
+      "initialProviderCostUsd": 0.608091,
+      "finalSynthesisRequests": 1,
+      "finalSynthesisCostUsd": 0.0711415,
+      "finalSteps": 7
+    },
+    {
+      "id": "udv5tffwEX0",
+      "title": "How to create a drop-down list in Microsoft Excel",
+      "url": "https://www.youtube.com/watch?v=udv5tffwEX0",
+      "durationSeconds": 60.154,
+      "sampledFrames": 120,
+      "analyzedFrames": 120,
+      "captionsAvailable": false,
+      "initialRequests": 41,
+      "initialProviderCostUsd": 0.5493975000000001,
+      "finalSynthesisRequests": 1,
+      "finalSynthesisCostUsd": 0.066636,
+      "finalSteps": 6
+    },
+    {
+      "id": "vtRH7E5Shhc",
+      "title": "\u041a\u0430\u043a \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0446\u0432\u0435\u0442\u043e\u0432\u0443\u044e \u0442\u0435\u043c\u0443 \u0434\u043b\u044f Visual Studio Code | VS Code Color Themes",
+      "url": "https://www.youtube.com/watch?v=vtRH7E5Shhc",
+      "durationSeconds": 241.514,
+      "sampledFrames": 120,
+      "analyzedFrames": 120,
+      "captionsAvailable": false,
+      "initialRequests": 42,
+      "initialProviderCostUsd": 0.9635818,
+      "finalSynthesisRequests": 1,
+      "finalSynthesisCostUsd": 0.1467305,
+      "finalSteps": 9
+    },
+    {
+      "id": "w2dXlvPw3qQ",
+      "title": "How To Change & Edit Color Theme in Visual Studio Code",
+      "url": "https://www.youtube.com/watch?v=w2dXlvPw3qQ",
+      "durationSeconds": 234.134,
+      "sampledFrames": 120,
+      "analyzedFrames": 120,
+      "captionsAvailable": true,
+      "initialRequests": 41,
+      "initialProviderCostUsd": 0.807573,
+      "finalSynthesisRequests": 1,
+      "finalSynthesisCostUsd": 0.1372635,
+      "finalSteps": 9
+    },
+    {
+      "id": "zI-GBMMhQAQ",
+      "title": "How to Resize Canvas in Canva (Step-by-Step Tutorial) 2025",
+      "url": "https://www.youtube.com/watch?v=zI-GBMMhQAQ",
+      "durationSeconds": 114.454,
+      "sampledFrames": 120,
+      "analyzedFrames": 120,
+      "captionsAvailable": true,
+      "initialRequests": 41,
+      "initialProviderCostUsd": 0.6863499999999998,
+      "finalSynthesisRequests": 1,
+      "finalSynthesisCostUsd": 0.055674,
+      "finalSteps": 10
+    }
+  ],
+  "sampledFrames": 1090,
+  "analyzedFrames": 1090,
+  "initialProviderRequests": 375,
+  "initialProviderCostUsd": 6.4454068,
+  "finalSynthesisCostUsd": 0.7536018,
+  "controlledCases": {
+    "kind": "controlled evidence scenarios; not real-video or task-execution tests",
+    "total": 8,
+    "passed": 8,
+    "costUsd": 0.06365799999999999,
+    "results": [
+      {
+        "id": "reject-static-screen",
+        "passed": true,
+        "error": "No usable software procedure could be extracted. Try a walkthrough that shows concrete software steps."
+      },
+      {
+        "id": "reject-cooking",
+        "passed": true,
+        "error": "No usable software procedure could be extracted. Try a walkthrough that shows concrete software steps."
+      },
+      {
+        "id": "cropped-command",
+        "passed": true
+      },
+      {
+        "id": "available-button",
+        "passed": true
+      },
+      {
+        "id": "corrected-value",
+        "passed": true
+      },
+      {
+        "id": "unknown-plan",
+        "passed": true
+      },
+      {
+        "id": "secret-placeholder",
+        "passed": true
+      },
+      {
+        "id": "injected-caption",
+        "passed": true
+      }
+    ]
+  }
+}
