@@ -136,12 +136,18 @@
       "warnings": 0,
       "notices": 0
     },
-    "database": "Applied activation_funnel; transactionally verified starter failure, Pro completion and deduplication. anon/authenticated cannot access metrics. Test users rolled back.",
-    "checkout": "Verified subscription state, report restoration and safe retry tests; no live payment made."
+    "database": "Applied activation_funnel; transactionally verified starter failure, Pro completion and deduplication. anon/authenticated cannot access metrics. Test users rolled back. Service-role regression SQL passes, including trigger writes and aggregate reads.",
+    "checkout": "Verified subscription state, report restoration and safe retry tests; no live payment made.",
+    "ci": "https://github.com/shadoprizm/videolens/actions/runs/35172531382",
+    "live": "Homepage, Firefox landing, account, admin and privacy HTTP 200; protected APIs return 401 without credentials. Signed-in account refresh preserves five existing reports and allowance. Desktop and 390px viewport checked; footer overflow fixed. Live administrator activation panel verified after correcting aggregate privileges to use public.profiles; metrics remain administrator-only."
   },
   "website": {
-    "status": "not_deployed",
-    "url": "https://videolens.io"
+    "status": "deployed",
+    "url": "https://videolens.io",
+    "deployment": "dpl_GYTVfaW75ixRKi7Sb9SFauVR3bM9",
+    "deploymentUrl": "https://videolens-site-b061evc23-shadoprizms-projects.vercel.app",
+    "sourceCommit": "de67373be80a9843de13b792ba86a6f15eb62a08",
+    "deployedAt": "2026-09-17T01:58:00Z"
   },
   "chrome": {
     "artifact": "releases/chrome/videolens-chrome-v0.5.1.zip",
@@ -155,11 +161,18 @@
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.5.1.zip",
     "packageVersion": "0.5.1",
-    "status": "ready_to_submit",
+    "status": "awaiting_review",
     "publishedVersion": "0.4.4",
     "blockedReason": null,
     "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.5.1.zip",
     "sha256": "669b6a71eaba7c3dd39a045f0ad0ccdbacf642ab419afcb92c3d23ce401f910c",
-    "checkedAt": "2026-09-16"
-  }
+    "checkedAt": "2026-09-16",
+    "submittedAt": "2026-09-17T02:00:00Z",
+    "versionId": 6491833,
+    "fileId": 5035993,
+    "sourceSubmitted": true,
+    "sourceSha256": "aa7a15c483edb7c838824fbe8322670a5452cb481f1a46f65d3c318108af0f78",
+    "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6491833"
+  },
+  "artifactRelease": "https://github.com/shadoprizm/videolens/releases/tag/v0.5.1"
 }
