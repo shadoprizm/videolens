@@ -12,7 +12,7 @@ from uuid import uuid4
 import pandas as pd
 import streamlit as st
 
-from videolens.analysis.structured import structured_markdown, fact_text
+from videolens.analysis.structured import structured_markdown, fact_text, report_sections
 from videolens.config import Config, Defaults, Models
 from videolens.outputs import render_html, render_pdf
 from videolens.pipeline import ExtractionResult, run_extraction
@@ -830,6 +830,14 @@ def render_report_tab(result: ExtractionResult) -> None:
     if analysis.recipe or analysis.procedure:
         st.markdown(structured_markdown(analysis))
         report = analysis.procedure or analysis.recipe
+        timestamps = sorted(
+            {t for _, rows in report_sections(analysis) for _, f in rows for t in f["timestamps"]}
+        )
+        with st.expander("Jump to source evidence"):
+            for timestamp in timestamps:
+                if st.button(f"Play {_fmt_ts(timestamp)}", key=f"structured_seek_{timestamp}"):
+                    st.session_state["seek_to"] = timestamp
+                    st.rerun()
         st.subheader("Your checklist")
         st.caption(
             "Checkmarks stay in this session. Download the report to keep the steps and evidence."
