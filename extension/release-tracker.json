@@ -273,8 +273,8 @@
       "artifact": "releases/firefox/videolens-firefox-v0.7.0.zip",
       "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.7.0.zip",
       "packageVersion": "0.7.0",
-      "status": "awaiting_review",
-      "publishedVersion": "0.5.1",
+      "status": "published",
+      "publishedVersion": "0.7.0",
       "checkedAt": "2026-09-17",
       "sha256": "c8063755819e7f9857f9b5fbc8b76309e69404a3600d7596539c00b439a894b8",
       "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.7.0/videolens-firefox-v0.7.0.zip",
@@ -285,7 +285,8 @@
       "versionId": 6492410,
       "fileId": 5036570,
       "sourceSubmitted": true,
-      "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6492410"
+      "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6492410",
+      "blockedReason": null
     },
     "validation": {
       "releaseCheck": "passed",
@@ -337,11 +338,21 @@
       "warnings": 0,
       "notices": 0
     },
-    "browser": "Desktop homepage and 390px mobile homepage/extension access flow visually checked. Browser bundle tests cover free account pairing, existing BYOK settings, checkout restoration; account tests cover first-report setup, exhausted allowance, subscription management and pairing redirects. No live purchase or new production account was created."
+    "browser": "Desktop homepage and 390px mobile homepage/extension access flow visually checked. Browser bundle tests cover free account pairing, existing BYOK settings, checkout restoration; account tests cover first-report setup, exhausted allowance, subscription management and pairing redirects. No live purchase or new production account was created.",
+    "sourceRebuild": "Clean extracted reviewer source reproduced all 19 packaged Firefox files byte for byte.",
+    "ci": {
+      "extension": "https://github.com/shadoprizm/videolens/actions/runs/35276565029",
+      "website": "https://github.com/shadoprizm/videolens/actions/runs/35276565193",
+      "status": "passed"
+    }
   },
   "website": {
-    "status": "pending",
-    "url": "https://videolens.io"
+    "status": "deployed",
+    "url": "https://videolens.io",
+    "deployment": "dpl_B68jYijRSnGY6BsaoJHCjmm8Gwz1",
+    "deploymentUrl": "https://videolens-site-b81cgox9e-shadoprizms-projects.vercel.app",
+    "sourceCommit": "eb01dc0ebf1dd02d6f145a4f3e150129ed4bb113",
+    "verification": "Live primary signup CTA opens /account; signed-out form renders at phone width. Production configuration reports accounts and checkout available. No real email or purchase sent."
   },
   "chrome": {
     "artifact": "releases/chrome/videolens-chrome-v0.7.1.zip",
@@ -355,11 +366,19 @@
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.7.1.zip",
     "packageVersion": "0.7.1",
-    "status": "ready_to_submit",
-    "publishedVersion": "0.5.1",
+    "status": "awaiting_review",
+    "publishedVersion": "0.7.0",
     "checkedAt": "2026-09-17",
     "blockedReason": null,
     "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.7.1.zip",
-    "sha256": "580d0ec0329d461383318c0bf39307efd40cd2b356900a0a3d1a1a4ca4a2dfe0"
-  }
+    "sha256": "580d0ec0329d461383318c0bf39307efd40cd2b356900a0a3d1a1a4ca4a2dfe0",
+    "submittedAt": "2026-09-17",
+    "versionId": 6493892,
+    "fileId": 5038051,
+    "sourceSubmitted": true,
+    "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6493892",
+    "publishedVersionCheckedAt": "2026-09-17",
+    "sourceSha256": "3f66a29d657f7025aba12d998f3606cdbc7ec911eedc25210b6ad1dbd6f921c1"
+  },
+  "releaseUrl": "https://github.com/shadoprizm/videolens/releases/tag/v0.7.1"
 }
