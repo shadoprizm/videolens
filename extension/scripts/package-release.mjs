@@ -62,6 +62,7 @@ if (target === "firefox-source") {
     "extension/AMO_SOURCE_README.md",
     "extension/RECIPE_PREVIEW.md",
     "extension/PROCEDURE.md",
+    "extension/LESSON.md",
     "extension/gen-icons.mjs",
     "site/shared",
     "site/cloud-report.ts",

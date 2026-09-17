@@ -1,4 +1,4 @@
-# VideoLens Firefox 0.6.0 — reviewer build instructions
+# VideoLens Firefox 0.7.0 — reviewer build instructions
 
 This source archive reproduces the packaged Firefox extension build. The
 extension is written in TypeScript and bundled as unminified ES modules with
@@ -14,7 +14,7 @@ build the extension.
 
 ## Build the reviewed Firefox files
 
-The archive contains `extension/`, the shared recipe and procedure modules under `site/shared/`,
+The archive contains `extension/`, the shared recipe, procedure and lesson modules under `site/shared/`,
 and the two shared reader files under `site/`.
 From the root of this source archive:
 
