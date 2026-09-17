@@ -26,6 +26,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/lesson-preview", "destination": "/lesson-preview.html" },
     { "source": "/procedure-preview", "destination": "/procedure-preview.html" },
     {
       "source": "/recipe-preview",
