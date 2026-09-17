@@ -26,8 +26,8 @@
         "artifact": "releases/firefox/videolens-firefox-v0.5.0.zip",
         "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.5.0.zip",
         "packageVersion": "0.5.0",
-        "status": "awaiting_review",
-        "publishedVersion": "0.4.4",
+        "status": "published",
+        "publishedVersion": "0.5.0",
         "blockedReason": null,
         "sha256": "a5547a728851390a452ae63410693aedf102a31e5fa3735c326b5d7e6b647fb1",
         "checkedAt": "2026-09-16",
@@ -35,7 +35,9 @@
         "versionId": 6491649,
         "fileId": 5035809,
         "sourceSubmitted": true,
-        "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6491649"
+        "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6491649",
+        "publishedVersionCheckedAt": "2026-09-17",
+        "note": "AMO listed 0.5.0 while submitting 0.6.0; 0.5.1 was still awaiting review."
       },
       "previousRelease": {
         "targetVersion": "0.4.6",
@@ -187,18 +189,26 @@
     "publishedVersion": "0.4.1.1",
     "checkedAt": "2026-09-17",
     "blockedReason": "Chrome Web Store publisher automation was explicitly rejected during the coordinated 0.5.1 release: The extensions gallery cannot be scripted. No bypass attempted. The validated 0.6.0 Chrome archive requires owner submission.",
-    "sha256": "5a933d37841854197244a289a4d1e53e7c9021113750da2384ffce68f5b626c5"
+    "sha256": "5a933d37841854197244a289a4d1e53e7c9021113750da2384ffce68f5b626c5",
+    "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.6.0/videolens-chrome-v0.6.0.zip"
   },
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.6.0.zip",
     "packageVersion": "0.6.0",
-    "status": "ready_to_submit",
+    "status": "awaiting_review",
     "publishedVersion": "0.5.0",
     "checkedAt": "2026-09-17",
     "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.6.0.zip",
     "publishedVersionCheckedAt": "2026-09-17",
     "sha256": "3637503bed46e7b1b6efc27359c476a9bc5957f293ffd9bd7d6063f9fe6f55f5",
-    "sourceSha256": "01586c65c136f267b053c42889fc5aa3402885f68035cf0d73a78316d9bc3dd8"
+    "sourceSha256": "01586c65c136f267b053c42889fc5aa3402885f68035cf0d73a78316d9bc3dd8",
+    "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.6.0/videolens-firefox-v0.6.0.zip",
+    "sourceDownloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.6.0/videolens-firefox-source-v0.6.0.zip",
+    "submittedAt": "2026-09-17",
+    "versionId": 6491861,
+    "fileId": 5036021,
+    "sourceSubmitted": true,
+    "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6491861"
   },
   "validation": {
     "releaseCheck": "passed",
@@ -224,11 +234,20 @@
       "notices": 0
     },
     "browser": "Illustrative procedure page checked on desktop and 390px mobile with no horizontal overflow or browser errors. Checklist toggles work. Compiled-sidebar test covers caption-guided capture, synthesis and checklist rendering; native Chrome/Firefox capture and user task completion were not tested in this session.",
-    "reviewerSource": "Clean npm install and Firefox build from the reviewer archive reproduce the packaged files."
+    "reviewerSource": "Clean npm install and Firefox build from the reviewer archive reproduce the packaged files.",
+    "live": "Production procedure example renders at 390px with no overflow or browser errors; copy-checklist confirmation and checkbox toggle verified. AI GET 405, unauthenticated AI POST and reports GET 401. Authenticated procedure upload round trip not performed; local/cloud serialization tests pass.",
+    "ci": "https://github.com/shadoprizm/videolens/actions/runs/35173629738"
   },
   "website": {
-    "status": "pending",
+    "status": "deployed",
     "url": "https://videolens.io",
-    "previewUrl": "https://videolens.io/procedure-preview"
-  }
+    "previewUrl": "https://videolens.io/procedure-preview",
+    "deployment": "dpl_2ujK9RghxMjVbJnk3dNZ1gqy3QZE",
+    "deploymentUrl": "https://videolens-site-9a84xynmq-shadoprizms-projects.vercel.app",
+    "sourceCommit": "97534114c41e1de99fc043d24d1909b3dd565654",
+    "deployedAt": "2026-09-17",
+    "deploymentNote": "Ready production deployment includes Procedure and the latest activation/account improvements. HTTPS procedure example, homepage, Firefox page, account and privacy return 200."
+  },
+  "githubRelease": "https://github.com/shadoprizm/videolens/releases/tag/v0.6.0",
+  "artifactProvenance": "GitHub release asset digests match local packaged Chrome, Firefox and reviewer-source archives. Reviewer source was built and compared before submission; do not regenerate submitted artifacts."
 }
