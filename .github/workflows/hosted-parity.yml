@@ -1,0 +1,22 @@
+name: Hosted app and website
+on:
+  push:
+    paths: ['src/**', 'tests/**', 'site/**', 'scripts/sync-hosted-prompts.py', 'pyproject.toml', 'uv.lock', '.github/workflows/hosted-parity.yml']
+  pull_request:
+    paths: ['src/**', 'tests/**', 'site/**', 'scripts/sync-hosted-prompts.py', 'pyproject.toml', 'uv.lock', '.github/workflows/hosted-parity.yml']
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 ffmpeg
+      - run: uv sync --frozen --extra ui --group dev
+      - run: uv run pytest -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci && npm test
+        working-directory: site

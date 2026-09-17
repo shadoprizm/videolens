@@ -31,6 +31,7 @@ class AnalysisMode(str, Enum):
     MEETING = "meeting"
     UX = "ux"
     TUTORIAL = "tutorial"
+    RECIPE = "recipe"
     PRODUCT_DEMO = "product_demo"
     CONTENT = "content"
     PRIVACY = "privacy"
@@ -149,6 +150,8 @@ class Task(BaseModel):
 
 
 class Analysis(BaseModel):
+    recipe: dict | None = None
+    procedure: dict | None = None
     source: ResolvedSource
     mode: AnalysisMode
     prompt: str

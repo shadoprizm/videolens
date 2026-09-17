@@ -20,6 +20,7 @@ _MODE_MODULES = {
     AnalysisMode.MEETING: meeting,
     AnalysisMode.UX: ux,
     AnalysisMode.TUTORIAL: tutorial,
+    AnalysisMode.RECIPE: general,
     AnalysisMode.PRODUCT_DEMO: product_demo,
     AnalysisMode.CONTENT: content,
     AnalysisMode.PRIVACY: privacy,

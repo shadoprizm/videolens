@@ -5,6 +5,7 @@ from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from videolens.types import Analysis
+from videolens.analysis.structured import structured_html
 
 
 def render_html(analysis: Analysis) -> str:
@@ -76,7 +77,7 @@ def render_html(analysis: Analysis) -> str:
         else '<span class="source-link source-link-static">Illustrative source</span>'
     )
     mode_label = _mode_label(analysis.mode.value)
-    return f"""<!doctype html>
+    result = f"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -112,6 +113,8 @@ def render_html(analysis: Analysis) -> str:
       <p class="summary-copy">{_e(analysis.summary or "No summary was generated.")}</p>
       {source_link}
     </section>
+
+    {structured_html(analysis)}
 
     <section class="report-section findings-section">
       <div class="section-kicker">02 / KEY FINDINGS</div>
@@ -175,6 +178,16 @@ def render_html(analysis: Analysis) -> str:
   </main>
 </body>
 </html>"""
+    if analysis.recipe or analysis.procedure:
+        import re
+
+        result = re.sub(
+            r'    <section class="report-section findings-section">.*?(?=    <section class="report-section timeline-section">)',
+            "",
+            result,
+            flags=re.S,
+        )
+    return result
 
 
 def write_html(analysis: Analysis, dest: Path) -> Path:
@@ -248,7 +261,8 @@ def _mode_label(value: str) -> str:
     return {
         "general": "Detailed written report",
         "meeting": "Interview, podcast, or meeting brief",
-        "tutorial": "Tutorial guide",
+        "tutorial": "Make a Procedure",
+        "recipe": "Make a Recipe",
         "product_demo": "Product demo report",
         "production_recipe": "Production recipe",
         "bug": "Bug report",
@@ -302,6 +316,9 @@ def _report_css() -> str:
       -webkit-font-smoothing: antialiased;
     }
     a { color: inherit; }
+    .structured-report { overflow-wrap: anywhere; }
+    .structured-report li { margin: 12px 0; white-space: pre-wrap; }
+    .structured-report small { color: #64748b; }
     .report-shell {
       width: min(980px, calc(100% - 32px));
       margin: 32px auto;

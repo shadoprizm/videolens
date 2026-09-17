@@ -7,7 +7,7 @@ VideoLens combines transcription, frame-level vision, and OCR into a single cach
 Key facts:
 
 - **Availability:** Private BYOK mode and the MIT-licensed core are free forever. A signed-in account includes one managed starter report. VideoLens Pro is $12/month or $99/year and includes 20 managed reports per calendar month.
-- **Privacy:** Private mode sends analysis content directly from Chrome to OpenAI with the user's key; VideoLens does not receive it. Managed mode passes requested analysis content through VideoLens and Vercel AI Gateway to the configured AI provider (currently OpenAI). VideoLens does not retain raw media in its database, and completed reports are stored only when the user enables cloud saving. The extension has no analytics.
+- **Privacy:** Private mode sends analysis content directly from Chrome or Firefox to OpenAI with the user's key; VideoLens does not receive it. Managed mode passes requested analysis content through VideoLens and Vercel AI Gateway to the configured AI provider (currently OpenAI). VideoLens does not retain raw media in its database, and completed reports are stored only when the user enables cloud saving. The extension has no analytics.
 - **Sources supported:** Local files plus ~1,500 platforms via yt-dlp (YouTube, Loom, Vimeo, TikTok, Twitch, Twitter/X, Reddit, Google Drive, and more). Not supported: DRM-protected players (Netflix, Disney+) and live streams.
 - **Pipeline:** resolve source → extract audio, frames, and OCR → build a time-windowed timeline → analyze against your prompt and mode → structured findings with timestamp citations. Every step is cached, so re-runs are cheap and follow-up questions cost cents.
 - **Outputs:** Standalone professional HTML, print-quality PDF, Markdown, and JSON, plus follow-up Q&A over the cached timeline.
@@ -17,8 +17,8 @@ Key facts:
 
 - Python CLI: prompt-directed local video analysis.
 - Web UI: local upload and URL analysis interface.
-- Hosted app (app.videolens.io): the same code, hosted; bring your own OpenAI key, held in session memory only.
-- Chrome extension: side-panel analysis with free Private / BYOK and optional Pro / Managed modes.
+- Hosted app (app.videolens.io): the same code, hosted; bring your own OpenAI key, held in server session memory only. Media is processed by the hosted VideoLens server before provider calls.
+- Chrome and Firefox extensions: side-panel analysis with free Private / BYOK and optional Pro / Managed modes.
 - MCP server: exposes VideoLens as tools for AI agents such as Claude Code and Cursor.
 
 ## Report styles
@@ -61,3 +61,10 @@ Key facts:
 ## Contact
 
 - Support and privacy questions: support@videolens.io
+
+## Structured extraction
+- Make a Recipe: https://app.videolens.io/?workflow=recipe — ingredients and cooking steps with independent quantity, timing, and temperature evidence. Hosted extraction does not perform online recipe research.
+- Make a Procedure: https://app.videolens.io/?workflow=procedure — software walkthroughs with prerequisites, exact settings, ordered actions, success checks, gaps, and checklists.
+- Both hosted workflows support YouTube and local files, BYOK, and HTML/PDF/Markdown/JSON exports. Managed analysis and optional cloud saving are available through the browser extensions.
+- Firefox: https://addons.mozilla.org/firefox/addon/videolens-video-reports/
+- Store listings are the source of truth for browser release versions; public website copy does not pin them.

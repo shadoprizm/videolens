@@ -6,12 +6,13 @@ import re
 from base64 import b64encode
 from pathlib import Path
 from time import monotonic
+from tempfile import TemporaryDirectory
 from uuid import uuid4
 
 import pandas as pd
 import streamlit as st
 
-from videolens import __version__
+from videolens.analysis.structured import structured_markdown, fact_text
 from videolens.config import Config, Defaults, Models
 from videolens.outputs import render_html, render_pdf
 from videolens.pipeline import ExtractionResult, run_extraction
@@ -47,8 +48,8 @@ STEP_KEYS: list[tuple[str, str]] = [
     ("resolve", "Resolve"),
     ("fetch", "Fetch"),
     ("probe", "Probe"),
-    ("frames", "Frames"),
     ("transcribe", "Transcribe"),
+    ("frames", "Frames"),
     ("describe", "Describe"),
     ("timeline", "Timeline"),
     ("analyze", "Analyze"),
@@ -161,14 +162,19 @@ def _output_basename(result: ExtractionResult) -> str:
     return "videolens_analysis"
 
 
+def _session_directory() -> Path:
+    if "session_files" not in st.session_state:
+        st.session_state["session_files"] = TemporaryDirectory(prefix="videolens-session-")
+    return Path(st.session_state["session_files"].name)
+
+
 def _save_upload(uploaded) -> Path:
-    """Persist an uploaded file under .videolens/uploads/<hash>/ so it survives
-    reruns and can be replayed in the video player."""
+    """Keep uploads isolated to this server session for reruns and playback."""
     data = bytes(uploaded.getbuffer())
     h = hashlib.sha256(data).hexdigest()[:16]
-    upload_dir = Path.cwd() / ".videolens" / "uploads" / h
+    upload_dir = _session_directory() / "uploads" / h
     upload_dir.mkdir(parents=True, exist_ok=True)
-    dest = upload_dir / uploaded.name
+    dest = upload_dir / Path(uploaded.name).name
     if not dest.exists():
         dest.write_bytes(data)
     return dest
@@ -197,8 +203,12 @@ def _step_index_from_message(msg: str) -> int | None:
         return 1
     if "probing metadata" in msg_low or "cached metadata" in msg_low:
         return 2
-    if "extracting frames" in msg_low or "cached frames" in msg_low:
-        return 3
+    if (
+        "extracting frames" in msg_low
+        or "extracting evidence frames" in msg_low
+        or "cached frames" in msg_low
+    ):
+        return 4
     if (
         "extracting audio" in msg_low
         or "cached audio" in msg_low
@@ -206,7 +216,7 @@ def _step_index_from_message(msg: str) -> int | None:
         or "transcribing" in msg_low
         or "cached transcript" in msg_low
     ):
-        return 4
+        return 3
     if "describing" in msg_low or "cached frame summaries" in msg_low or "described " in msg_low:
         return 5
     if "building timeline" in msg_low or "cached timeline" in msg_low:
@@ -240,7 +250,8 @@ def _mode_description(mode: str) -> str:
         "bug": "Bug recording: repro steps, severity, ticket-ready summary.",
         "meeting": "Interviews, podcasts, and meetings: themes, arguments, decisions, and follow-ups.",
         "ux": "Session replay: user intent, friction points, abandoned flows, UI/copy fixes.",
-        "tutorial": "How-to video: tools, commands, ordered steps, prerequisites, agent-ready checklist.",
+        "tutorial": "Software walkthrough: sourced prerequisites, exact settings, steps, checks, and missing details.",
+        "recipe": "Cooking video: ingredients and steps with separate evidence for quantities, timings, and temperatures.",
         "product_demo": "Product demo: feature inventory, positioning, strengths/weaknesses, opportunities.",
         "content": "Content critique: hook, pacing, clarity, claims/proof, suggested edits.",
         "privacy": "Privacy review: visible secrets, credentials, PII, internal URLs — redaction plan.",
@@ -268,18 +279,29 @@ def main() -> None:
 
     api_key = st.session_state.get("api_key", "")
     mode = st.session_state.get("mode", "general")
-    max_frames = st.session_state.get("max_frames", 20)
-    frame_interval = st.session_state.get("frame_interval", 5.0)
+    max_frames = 120 if mode in ("recipe", "tutorial") else st.session_state.get("max_frames", 20)
+    frame_interval = (
+        0.5 if mode in ("recipe", "tutorial") else st.session_state.get("frame_interval", 5.0)
+    )
     force = st.session_state.get("force", False)
 
     if not api_key:
         st.info(
             "The sample report needs no key. To turn your own YouTube video into a report, open the "
-            "sidebar and add your OpenAI API key; it remains in this browser session only."
+            "sidebar and add your OpenAI API key; it remains in server session memory only."
         )
 
     st.markdown("### 1. Add a YouTube video")
-    st.caption("Paste a YouTube link. Other supported video URLs and local files still work too.")
+    if mode in ("recipe", "tutorial"):
+        st.caption(
+            "Use a YouTube video or local file. Up to 120 frames are analyzed; cost depends on video length. Missing details remain unknown."
+        )
+        if mode == "recipe":
+            st.caption("Video evidence only. This hosted workflow does not look up recipes online.")
+    else:
+        st.caption(
+            "Paste a YouTube link. Other supported video URLs and local files still work too."
+        )
     url_tab, source_tab = st.tabs(["**Paste a YouTube URL**", "**Upload a video file**"])
 
     source_path: str | None = None
@@ -307,8 +329,7 @@ def main() -> None:
             source_path = str(upload_path)
             _track_once("source_upload", "source_added", source_kind="upload")
             st.caption(
-                f"`{uploaded.name}` · {uploaded.size / 1024 / 1024:.1f} MB · saved to "
-                f"`{upload_path.parent.relative_to(Path.cwd())}/`"
+                f"{uploaded.name} · {uploaded.size / 1024 / 1024:.1f} MB · ready for this session"
             )
 
     if "prompt_input" not in st.session_state:
@@ -392,7 +413,7 @@ def _render_header() -> None:
     st.markdown(
         f"""
         <div style="display:flex;align-items:center;justify-content:space-between;
-                    padding:14px 0 10px 0;border-bottom:1px solid #E2E8F0;margin-bottom:18px">
+                    flex-wrap:wrap;gap:12px;padding:14px 0 10px 0;border-bottom:1px solid #E2E8F0;margin-bottom:18px">
           <div style="display:flex;align-items:center;gap:12px">
             <div style="font-size:28px;font-weight:800;letter-spacing:-0.5px;
                         background:linear-gradient(135deg,{BRAND_COLOR},#6366F1);
@@ -401,12 +422,13 @@ def _render_header() -> None:
             </div>
             <span style="padding:3px 8px;background:#F1F5F9;color:#64748B;
                          border-radius:8px;font-size:11px;font-weight:600">
-              v{__version__} · alpha
+              Video reports
             </span>
           </div>
           <div style="display:flex;align-items:center;gap:14px;color:#64748B;font-size:13px">
-            <a href="https://github.com/shadoprizm/videolens" target="_blank"
-               style="color:#64748B;text-decoration:none">GitHub ↗</a>
+            <a href="https://videolens.io/account" target="_blank" style="color:#64748B;text-decoration:none">Account &amp; cloud library ↗</a>
+            <a href="https://videolens.io" target="_blank"
+               style="color:#64748B;text-decoration:none">Website ↗</a>
           </div>
         </div>
         <div style="color:#475569;font-size:15.5px;margin-bottom:18px;max-width:760px">
@@ -569,10 +591,18 @@ def _render_sidebar_config() -> None:
         value=st.session_state.get("api_key", ""),
         type="password",
         placeholder="sk-...",
-        help="Kept only in this browser session. VideoLens does not store your key.",
+        help="Kept only in server session memory. VideoLens never saves your key.",
     )
     st.session_state["api_key"] = api_key.strip()
-    st.caption("BYOK: your key is used for this session only and is never saved by VideoLens.")
+    st.caption(
+        "Hosted BYOK: VideoLens processes your video on its server and uses your key for this session. Your key is never saved."
+    )
+    st.markdown(
+        "Prefer local-first analysis or a managed report without an API key? [Chrome extension](https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl) · [Firefox add-on](https://addons.mozilla.org/firefox/addon/videolens-video-reports/)"
+    )
+    st.link_button(
+        "Account & cloud library", "https://videolens.io/account", use_container_width=True
+    )
 
     st.divider()
 
@@ -587,6 +617,10 @@ def _render_sidebar_config() -> None:
     st.caption(_mode_description(mode))
 
     with st.expander("Advanced processing settings", expanded=False):
+        if mode in ("recipe", "tutorial"):
+            st.caption(
+                "Recipe and Procedure use automatic evidence sampling, up to 120 frames. The sliders below apply to other report styles."
+            )
         st.session_state["max_frames"] = st.slider(
             "Max frames",
             min_value=3,
@@ -633,7 +667,7 @@ def _run_pipeline(
     config = Config(
         models=Models(),
         defaults=Defaults(),
-        cache_root=Path.cwd() / ".videolens" / "cache",
+        cache_root=_session_directory() / "cache",
         openai_api_key=api_key,
     )
 
@@ -793,62 +827,82 @@ def render_report_tab(result: ExtractionResult) -> None:
         st.write(analysis.summary or "_(no summary)_")
 
     st.divider()
+    if analysis.recipe or analysis.procedure:
+        st.markdown(structured_markdown(analysis))
+        report = analysis.procedure or analysis.recipe
+        st.subheader("Your checklist")
+        st.caption(
+            "Checkmarks stay in this session. Download the report to keep the steps and evidence."
+        )
+        report_id = hashlib.sha256(analysis.model_dump_json().encode()).hexdigest()[:12]
+        for index, step in enumerate(report["steps"]):
+            action = step.get("action") or step.get("instruction")
+            st.checkbox(f"Step {index + 1}: {fact_text(action)}", key=f"check_{report_id}_{index}")
+        st.download_button(
+            "Download checklist",
+            structured_markdown(analysis),
+            file_name="videolens-checklist.md",
+            mime="text/markdown",
+        )
 
-    cols = st.columns([1.2, 1])
-    with cols[0]:
-        st.subheader("Findings")
-        if not analysis.findings:
-            st.caption("_(none)_")
-        for i, f in enumerate(analysis.findings, 1):
-            conf_color = {"high": "#10B981", "medium": "#F59E0B", "low": "#EF4444"}.get(
-                f.confidence, "#94A3B8"
-            )
-            with st.expander(f"**{i}. {f.finding}**", expanded=(i <= 2)):
-                st.markdown(
-                    f'<span style="font-size:11px;color:{conf_color};font-weight:700;'
-                    f'text-transform:uppercase">{f.confidence} confidence</span>',
-                    unsafe_allow_html=True,
+    if not (analysis.recipe or analysis.procedure):
+        cols = st.columns([1.2, 1])
+        with cols[0]:
+            st.subheader("Findings")
+            if not analysis.findings:
+                st.caption("_(none)_")
+            for i, f in enumerate(analysis.findings, 1):
+                conf_color = {"high": "#10B981", "medium": "#F59E0B", "low": "#EF4444"}.get(
+                    f.confidence, "#94A3B8"
                 )
-                if f.evidence:
-                    st.markdown("**Evidence**")
-                    for j, e in enumerate(f.evidence):
-                        ev_cols = st.columns([1, 5])
-                        with ev_cols[0]:
-                            if st.button(
-                                f"⏱ {_fmt_ts(e.timestamp)}",
-                                key=f"seek_{i}_{j}_{e.timestamp}",
-                                use_container_width=True,
-                            ):
-                                _track_event(
-                                    "evidence_used",
-                                    workflow=st.session_state.get("workflow", analysis.mode.value),
-                                    mode=analysis.mode.value,
-                                )
-                                st.session_state["seek_to"] = e.timestamp
-                                st.rerun()
-                        ev_cols[1].markdown(e.detail)
+                with st.expander(f"**{i}. {f.finding}**", expanded=(i <= 2)):
+                    st.markdown(
+                        f'<span style="font-size:11px;color:{conf_color};font-weight:700;'
+                        f'text-transform:uppercase">{f.confidence} confidence</span>',
+                        unsafe_allow_html=True,
+                    )
+                    if f.evidence:
+                        st.markdown("**Evidence**")
+                        for j, e in enumerate(f.evidence):
+                            ev_cols = st.columns([1, 5])
+                            with ev_cols[0]:
+                                if st.button(
+                                    f"⏱ {_fmt_ts(e.timestamp)}",
+                                    key=f"seek_{i}_{j}_{e.timestamp}",
+                                    use_container_width=True,
+                                ):
+                                    _track_event(
+                                        "evidence_used",
+                                        workflow=st.session_state.get(
+                                            "workflow", analysis.mode.value
+                                        ),
+                                        mode=analysis.mode.value,
+                                    )
+                                    st.session_state["seek_to"] = e.timestamp
+                                    st.rerun()
+                            ev_cols[1].markdown(e.detail)
+                    else:
+                        st.caption("_(no evidence cited)_")
+
+        with cols[1]:
+            st.subheader("Recommendations")
+            if not analysis.recommendations:
+                st.caption("_(none)_")
+            for r in analysis.recommendations:
+                st.markdown(f"**{r.recommendation}**")
+                if r.rationale:
+                    st.caption(r.rationale)
+                st.caption(f"Confidence: {r.confidence}")
+                st.write("")
+
+            st.subheader("Follow-up ideas")
+            if not analysis.tasks:
+                st.caption("_(none)_")
+            for t in analysis.tasks:
+                if t.detail:
+                    st.markdown(f"- **{t.title}** — {t.detail}")
                 else:
-                    st.caption("_(no evidence cited)_")
-
-    with cols[1]:
-        st.subheader("Recommendations")
-        if not analysis.recommendations:
-            st.caption("_(none)_")
-        for r in analysis.recommendations:
-            st.markdown(f"**{r.recommendation}**")
-            if r.rationale:
-                st.caption(r.rationale)
-            st.caption(f"Confidence: {r.confidence}")
-            st.write("")
-
-        st.subheader("Follow-up ideas")
-        if not analysis.tasks:
-            st.caption("_(none)_")
-        for t in analysis.tasks:
-            if t.detail:
-                st.markdown(f"- **{t.title}** — {t.detail}")
-            else:
-                st.markdown(f"- {t.title}")
+                    st.markdown(f"- {t.title}")
 
     if analysis.limitations:
         st.divider()

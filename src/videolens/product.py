@@ -52,14 +52,21 @@ WORKFLOW_PRESETS: dict[str, WorkflowPreset] = {
     ),
     "tutorial": WorkflowPreset(
         mode=AnalysisMode.TUTORIAL,
-        label="Turn the video into a written guide",
-        short_label="Tutorial guide",
-        description="Ordered steps, prerequisites, commands, warnings, examples, and verification checks.",
+        label="Make a Procedure",
+        short_label="Make a Procedure",
+        description="Software walkthroughs with sourced steps, exact settings, success checks, and visible gaps.",
         prompt=(
-            "Convert this video into a complete written guide. Include prerequisites, tools, ordered "
+            "Convert this software walkthrough into an evidence-backed procedure. Include prerequisites, tools, ordered "
             "steps, exact commands or settings, explanations, examples, warnings, and verification "
             "checks. Preserve important visual details and cite the relevant timestamps."
         ),
+    ),
+    "recipe": WorkflowPreset(
+        mode=AnalysisMode.RECIPE,
+        label="Make a Recipe",
+        short_label="Make a Recipe",
+        description="Ingredients, quantities, equipment, and cooking steps with evidence and unknowns kept distinct.",
+        prompt="Reconstruct the cooking recipe shown in this video. Preserve ingredients and ordered steps, cite evidence, and clearly mark missing quantities, temperatures, and timings. Do not invent exact measurements.",
     ),
     "interview": WorkflowPreset(
         mode=AnalysisMode.MEETING,
@@ -159,7 +166,8 @@ WORKFLOW_PRESETS: dict[str, WorkflowPreset] = {
 }
 
 
-PRIMARY_WORKFLOWS = ("detailed", "key_insights", "tutorial", "interview")
+WORKFLOW_PRESETS["procedure"] = WORKFLOW_PRESETS["tutorial"]
+PRIMARY_WORKFLOWS = ("detailed", "key_insights", "tutorial", "recipe", "interview")
 
 
 def preset_for(value: str | None) -> WorkflowPreset:
@@ -175,6 +183,10 @@ def preset_for_mode(mode: AnalysisMode | str) -> WorkflowPreset:
 
 
 def render_report_markdown(analysis: Analysis) -> str:
+    if analysis.recipe or analysis.procedure:
+        from videolens.outputs.write_markdown import render_markdown
+
+        return render_markdown(analysis)
     lines = [
         f"# {analysis.source.title or 'Video report'}",
         "",
