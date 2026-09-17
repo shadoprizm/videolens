@@ -68,7 +68,7 @@ const renderPage = (page) => {
         name: "VideoLens",
         url: `${siteUrl}/`,
         applicationCategory: "MultimediaApplication",
-        operatingSystem: "Web, macOS, Linux, Windows, Chrome",
+        operatingSystem: "Web, macOS, Linux, Windows, Chrome, Firefox",
         description: "Open-source software that turns long videos into professional written reports with transcription, frame vision, OCR, and timestamped evidence.",
         license: "https://github.com/shadoprizm/videolens/blob/main/LICENSE",
         offers: [
@@ -240,7 +240,7 @@ const staticFiles = [
   "index.html", "privacy.html", "account.html", "admin.html", "admin.css", "chrome.html", "firefox.html", "recipe-preview.html", "procedure-preview.html", "lesson-preview.html", "robots.txt", "llms.txt",
   "content.css", "account.css", "cloud-report.css", "analytics.js", "favicon.svg", "favicon.ico", "favicon-16x16.png",
   "favicon-32x32.png", "apple-touch-icon.png", "android-chrome-192x192.png",
-  "android-chrome-512x512.png", "site.webmanifest", "og.png", "og-extension-launch.png", "googlecc8e26327b14309f.html"
+  "android-chrome-512x512.png", "site.webmanifest", "og.png", "og-extension-launch.png", "og-browser-extensions.png", "googlecc8e26327b14309f.html"
 ];
 
 for (const file of staticFiles) {

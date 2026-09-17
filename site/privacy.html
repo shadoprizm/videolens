@@ -87,7 +87,7 @@
           <li><strong>Your OpenAI API key.</strong> Stored in <code>chrome.storage.local</code> on your device only. It is not synced between browsers and is transmitted only to api.openai.com. Remove it any time in Settings.</li>
           <li><strong>Analysis results and local library.</strong> Completed reports, timelines, and Q&amp;A history are saved automatically in local IndexedDB so you can continue or reopen them. This library stays in your browser profile, has no VideoLens-imposed report-count limit, and can be deleted report by report. You may explicitly upload existing reports and follow-up answers to your connected account, including reports made with your own API key. You may also enable cloud saving for new reports and follow-up answers. Cloud saving is off by default; local copies are retained. Turning cloud saving off stops future uploads and does not delete existing cloud copies.</li>
           <li><strong>Account connection.</strong> The extension stores a VideoLens session token and account email in <code>chrome.storage.local</code>. The token expires after 30 days and can be removed with Disconnect. Website login and billing credentials are never copied into the extension.</li>
-          <li><strong>Browsing data.</strong> For YouTube, the extension asks once for optional access to youtube.com so capture works from either Chrome entry point; it reads the page only after you start an analysis, solely to find the selected video, captions, and page title. Other supported sites use Chrome's temporary activeTab permission. VideoLens does not track your browsing or analyze pages in the background.</li>
+          <li><strong>Browsing data.</strong> For YouTube, the extension asks once for optional access to youtube.com so capture works from the browser toolbar or sidebar; it reads the page only after you start an analysis, solely to find the selected video, captions, and page title. Other supported sites use the browser's temporary activeTab permission. VideoLens does not track your browsing or analyze pages in the background.</li>
           <li><strong>Analytics.</strong> The extension contains no analytics, telemetry, or error reporting of any kind.</li>
         </ul>
         <p class="mt-4"><strong>Chrome Web Store Limited Use.</strong> VideoLens's use and transfer of information received through Chrome extension APIs adheres to the Chrome Web Store User Data Policy, including its Limited Use requirements. The extension uses this information only to provide the video-analysis features the user requests.</p>
@@ -125,7 +125,7 @@
         <ul class="list-disc pl-5 space-y-2">
           <li>The public marketing site uses Vercel Web Analytics and Speed Insights to measure aggregate page visits, referrers, device/browser categories, approximate country or region, Core Web Vitals, and clicks on key links such as Launch App and GitHub.</li>
           <li>Vercel Web Analytics does not use third-party cookies and stores anonymized, aggregated data. Conversion events include only the destination category and public page path — never video content, prompts, reports, API keys, or email addresses.</li>
-          <li>The Chrome extension remains free of analytics and telemetry. The hosted app records only the limited operational product events described above; measurement never includes analyzed content or reports.</li>
+          <li>The Chrome and Firefox extensions remain free of analytics and telemetry. The hosted app records only the limited operational product events described above; measurement never includes analyzed content or reports.</li>
         </ul>
       </section>
 
@@ -152,7 +152,7 @@
 
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">Changes</h2>
-        <p>If this policy changes materially, the "last updated" date above will change and the new version will be posted at this URL. The extension never gains new data collection silently — Chrome requires updated permissions to be re-approved.</p>
+        <p>If this policy changes materially, the "last updated" date above will change and the new version will be posted at this URL. The extension never gains new data collection silently — additional permissions require your approval.</p>
       </section>
     </div>
   <section><h2>Managed service reliability and activation</h2><p>For connected accounts, we retain account connection, managed report start/completion/failure, checkout start, and subscription activation milestones. These contain an account identifier, a fixed event name, an opaque deduplication key, and a timestamp. They do not contain video titles, URLs, filenames, prompts, report text, API keys, or payment details. Private/BYOK scans are not tracked. Only the administrator can view aggregate activation metrics.</p></section>
