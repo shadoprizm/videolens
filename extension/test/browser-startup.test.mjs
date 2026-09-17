@@ -99,7 +99,7 @@ test("the new-user home asks only for a source before report setup", async () =>
 
     document.querySelector("#change-report-type").click();
     await waitFor(() => document.querySelector(".report-mode-select"));
-    assert.equal(document.querySelectorAll(".report-mode-select option").length, 11);
+    assert.equal(document.querySelectorAll(".report-mode-select option").length, 12);
 
     document.querySelector(".create-report").click();
     await waitFor(() => document.querySelector(".managed-access"));
@@ -517,6 +517,49 @@ test("procedure runs through the actual sidebar bundle with caption-guided captu
     assert.equal(searches, 0);
     assert.equal(document.querySelectorAll('.procedure-checklist input[type="checkbox"]').length, 2);
     assert.match(document.querySelector(".procedure-card").textContent, /Sharing permission is not shown/);
+    assert.ok(document.querySelector(".full-report"));
+  } finally { globalThis.fetch = originalFetch; restore(); }
+});
+
+test("lesson runs through the actual sidebar bundle with questions and study controls", async () => {
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 3, openaiApiKey: "test-key" });
+  const originalFetch = globalThis.fetch;
+  const fixture = JSON.parse(readFileSync("test/fixtures/lesson.json", "utf8"));
+  let capturedTimes = [], searches = 0;
+  globalThis.chrome.scripting.executeScript = async ({ args, world }) => {
+    if (Array.isArray(args?.[0])) {
+      capturedTimes = args[0];
+      return [{ result: { frames: capturedTimes.map(timestamp => ({ timestamp, dataUrl: "data:image/jpeg;base64,AA==" })) } }];
+    }
+    if (world === "MAIN") return [{ result: args?.length ? { language: "en", segments: [{ start: 0, end: 3, text: "Select cells B2:B10" }] } : "Contains flour" }];
+    return [{ result: { duration: 30, title: "Procedure test", pageUrl: fixture.source.url, isYouTube: true, width: 720, height: 1280 } }];
+  };
+  globalThis.fetch = async (url, init) => {
+    if (String(url).endsWith("/responses")) { searches++; return jsonResponse({ error: "offline" }, 503); }
+    const body = JSON.parse(init.body);
+    const content = body.messages[1].content;
+    const data = Array.isArray(content) ? { frames: content.filter(p => p.type === "text" && p.text.startsWith("Frame at")).map(p => ({ timestamp: Number(p.text.split(" ")[2]), visual_summary: "Data validation settings.", extracted_text: ["B2:B10", "Todo", "Done"], confidence: "high" })) } : fixture;
+    return jsonResponse({ choices: [{ message: { content: JSON.stringify(data) } }] });
+  };
+  try {
+    await importBundle(sidePanelSource, "lesson-sidebar");
+    await waitFor(() => document.querySelector("#choose-page-video"));
+    document.querySelector("#choose-page-video").click();
+    document.querySelector("#change-report-type").click();
+    const select = document.querySelector(".report-mode-select");
+    const option = select.querySelector('[value="lesson"]');
+    assert.ok(option);
+    Object.defineProperty(select, "value", { configurable: true, value: "lesson" });
+    select.dispatchEvent(new window.Event("change"));
+    assert.ok(document.querySelector("input[type=range]"));
+    document.querySelector(".create-report").click();
+    await waitFor(() => document.querySelector(".lesson-card"), 2000);
+    assert.ok(capturedTimes.length > 0 && capturedTimes.length <= 40);
+    assert.ok(capturedTimes.includes(0));
+    assert.equal(searches, 0);
+    assert.equal(document.querySelectorAll("[data-response]").length, 3);
+    assert.ok(document.querySelector(".lesson-study-tools:not([hidden])"));
+    assert.match(document.querySelector(".lesson-card").textContent, /Final application challenge/);
     assert.ok(document.querySelector(".full-report"));
   } finally { globalThis.fetch = originalFetch; restore(); }
 });

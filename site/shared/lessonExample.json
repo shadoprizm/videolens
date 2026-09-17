@@ -1,0 +1,168 @@
+{
+  "lesson": {
+    "title": "Turn rereading into retrieval practice",
+    "overview": "Practice bringing an idea to mind before you check your notes. Build a short study routine around a question, an unaided response, and feedback.",
+    "level": "Introductory",
+    "prerequisites": [
+      "Choose a short concept you have already studied."
+    ],
+    "objectives": [
+      {
+        "id": "o1",
+        "description": "Explain how recalling differs from rereading."
+      },
+      {
+        "id": "o2",
+        "description": "Design a study cycle that includes an unaided response and feedback."
+      }
+    ],
+    "readiness": [],
+    "modules": [
+      {
+        "id": "m1",
+        "title": "Try to recall before you look",
+        "objectiveIds": [
+          "o1"
+        ],
+        "explanation": "Rereading puts the explanation in front of you again. Retrieval starts with a question and asks you to bring the explanation to mind. Close the notes, attempt an answer, and only then compare it with the source. A difficult attempt can show which part needs another look.",
+        "timestamps": [
+          5
+        ],
+        "example": {
+          "text": "After reading a paragraph about a process, close it and explain the first step in your own words. Reopen the paragraph to find omissions or errors.",
+          "basis": "generated",
+          "timestamps": [
+            5
+          ]
+        },
+        "milestone": "Describe what changes when the notes are closed.",
+        "questions": [
+          {
+            "id": "q1",
+            "objectiveIds": [
+              "o1"
+            ],
+            "kind": "explain",
+            "prompt": "Why does answering with the notes closed give you different information than rereading?",
+            "hint": "Think about what the learner has to retrieve without looking.",
+            "answer": "It reveals what you can bring to mind without the explanation in view.",
+            "explanation": "Rereading supplies the content. An unaided response exposes omissions that can guide the next review.",
+            "rubric": [
+              "Mentions answering without notes.",
+              "Explains how comparing afterward can reveal gaps."
+            ],
+            "timestamps": [
+              5
+            ]
+          }
+        ]
+      },
+      {
+        "id": "m2",
+        "title": "Close the loop with feedback",
+        "objectiveIds": [
+          "o2"
+        ],
+        "explanation": "After attempting an answer, compare it with the source. Identify one missing or incorrect point, correct your explanation, and try again later without looking. Use the question to practice recalling the idea, rather than memorizing where it appeared on the page.",
+        "timestamps": [
+          15
+        ],
+        "example": {
+          "text": "Write a question about a concept from yesterday. Answer from memory, check your notes, and write down one correction to revisit next time.",
+          "basis": "generated",
+          "timestamps": [
+            15
+          ]
+        },
+        "milestone": "Write a study sequence that includes an attempt before feedback.",
+        "questions": [
+          {
+            "id": "q2",
+            "objectiveIds": [
+              "o2"
+            ],
+            "kind": "apply",
+            "prompt": "You have a page of notes. What three actions would turn it into a short retrieval exercise?",
+            "hint": "Think about what the learner has to retrieve without looking.",
+            "answer": "Write a question, answer with the notes closed, then reopen the notes and correct the response.",
+            "explanation": "The order matters: the learner attempts recall before the source supplies the answer.",
+            "rubric": [
+              "Includes a question.",
+              "Places an unaided response before checking.",
+              "Uses feedback to correct a gap."
+            ],
+            "timestamps": [
+              15
+            ]
+          }
+        ]
+      }
+    ],
+    "challenge": {
+      "id": "final",
+      "objectiveIds": [
+        "o2"
+      ],
+      "kind": "apply",
+      "prompt": "Choose one idea you studied recently. Write a question, attempt an answer without notes, and describe how you would check and improve it.",
+      "hint": "Think about what the learner has to retrieve without looking.",
+      "answer": "A suitable response includes a focused question, a genuine unaided attempt, and a plan to compare the answer with the original source and correct an omission.",
+      "explanation": "The particular topic is your choice. Evaluate the study process against these criteria; this exercise does not independently verify your subject-matter answer.",
+      "rubric": [
+        "The question targets one idea.",
+        "The attempt comes before opening the notes.",
+        "Feedback identifies a correction or confirms a specific point."
+      ],
+      "timestamps": [
+        15
+      ]
+    },
+    "review": [
+      "Later today, answer your question again before opening the notes.",
+      "On another day, explain the idea in a new example and check it against the source."
+    ],
+    "gaps": [
+      "This illustrative lesson does not prescribe an optimal review interval or measure learning outcomes."
+    ]
+  },
+  "source": {
+    "sourceType": "local_file",
+    "title": "Retrieval practice — illustrative source",
+    "url": null,
+    "durationSeconds": 30,
+    "limitations": [
+      "Illustrative fixture, not extracted from a real video."
+    ]
+  },
+  "mode": "lesson",
+  "outputLanguage": "en",
+  "prompt": "Create a lesson.",
+  "summary": "Practice recall, then use feedback to correct gaps.",
+  "timeline": {
+    "segments": [
+      {
+        "start": 0,
+        "end": 10,
+        "sceneType": "teaching",
+        "transcript": "Rereading shows the content. Retrieval means answering a question with your notes closed and comparing afterward to see what was missing.",
+        "ocr": [],
+        "visualSummary": "Notes are closed before a response.",
+        "confidence": "high"
+      },
+      {
+        "start": 10,
+        "end": 30,
+        "sceneType": "teaching",
+        "transcript": "Write a question. Answer before looking. Reopen the notes, correct a missing point, then try again later.",
+        "ocr": [],
+        "visualSummary": "Question → response → feedback.",
+        "confidence": "high"
+      }
+    ]
+  },
+  "findings": [],
+  "recommendations": [],
+  "tasks": [],
+  "limitations": [],
+  "confidence": "medium"
+}

@@ -1,3 +1,4 @@
+import { lessonCopy } from "./lessonCopy";
 import { recipeCopy } from "./recipeCopy";
 import type { AnalysisMode } from "./types";
 import type { UiKey } from "./i18n";
@@ -89,6 +90,7 @@ export const ES_419: Record<UiKey, string> = {
 };
 
 export const ES_419_MODE_DEFAULTS: ModeDefaults = {
+  lesson: lessonCopy("es"),
   recipe: recipeCopy("es"),
   general: { label: "Informe detallado", prompt: "Crea un informe escrito completo con la información importante de este video." },
   key_insights: { label: "Ideas clave", prompt: "Extrae las ideas más importantes, la evidencia que las respalda y las conclusiones prácticas." },
@@ -187,6 +189,7 @@ export const RO: Record<UiKey, string> = {
 };
 
 export const RO_MODE_DEFAULTS: ModeDefaults = {
+  lesson: lessonCopy("ro"),
   recipe: recipeCopy("ro"),
   general: { label: "Raport detaliat", prompt: "Creează un raport scris complet cu informațiile importante din acest videoclip." },
   key_insights: { label: "Idei principale", prompt: "Extrage ideile cele mai importante, dovezile care le susțin și concluziile practice." },
@@ -285,6 +288,7 @@ export const HI: Record<UiKey, string> = {
 };
 
 export const HI_MODE_DEFAULTS: ModeDefaults = {
+  lesson: lessonCopy("hi"),
   recipe: recipeCopy("hi"),
   general: { label: "विस्तृत रिपोर्ट", prompt: "इस वीडियो की महत्वपूर्ण जानकारी पर एक विस्तृत लिखित रिपोर्ट बनाएँ।" },
   key_insights: { label: "मुख्य जानकारियाँ", prompt: "सबसे महत्वपूर्ण जानकारियाँ, सहायक प्रमाण और व्यावहारिक निष्कर्ष निकालें।" },

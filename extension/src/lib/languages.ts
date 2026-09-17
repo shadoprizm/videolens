@@ -1,3 +1,4 @@
+import { lessonCopy } from "./lessonCopy";
 import { procedureCopy } from "./procedureCopy";
 import { recipeCopy } from "./recipeCopy";
 import type { AnalysisMode } from "./types";
@@ -124,6 +125,7 @@ const EN_MODE_LABELS: Record<AnalysisMode, string> = {
   bug: "Bug report",
   meeting: "Meeting",
   ux: "UX review",
+  lesson: "Create a Lesson",
   tutorial: "Tutorial",
   interview: "Interview / podcast",
   product_demo: "Product demo",
@@ -134,14 +136,14 @@ const EN_MODE_LABELS: Record<AnalysisMode, string> = {
 const ZH_CN_MODE_LABELS: Record<AnalysisMode, string> = {
   recipe: recipeCopy("zh-CN").label,
   general: "详细报告", key_insights: "核心洞察", bug: "错误报告", meeting: "会议纪要",
-  ux: "用户体验评审", tutorial: "教程指南", interview: "访谈 / 播客",
+  lesson: "创建课程", ux: "用户体验评审", tutorial: "教程指南", interview: "访谈 / 播客",
   product_demo: "产品演示", content: "内容评审", privacy: "隐私扫描",
 };
 
 const ZH_TW_MODE_LABELS: Record<AnalysisMode, string> = {
   recipe: recipeCopy("zh-TW").label,
   general: "詳細報告", key_insights: "核心洞察", bug: "錯誤報告", meeting: "會議紀要",
-  ux: "使用者體驗評審", tutorial: "教學指南", interview: "訪談 / Podcast",
+  lesson: "建立課程", ux: "使用者體驗評審", tutorial: "教學指南", interview: "訪談 / Podcast",
   product_demo: "產品展示", content: "內容評審", privacy: "隱私掃描",
 };
 
@@ -310,5 +312,5 @@ export const REPORT_COPY: Record<ConcreteReportLanguage, ReportCopy> = {
 
 export function reportCopy(language: string | null | undefined): ReportCopy {
   const normalized = normalizeLanguageTag(language) ?? "en";
-  return { ...REPORT_COPY[normalized], modeLabels: { ...REPORT_COPY[normalized].modeLabels, recipe: recipeCopy(normalized).label, tutorial: procedureCopy(normalized).label } };
+  return { ...REPORT_COPY[normalized], modeLabels: { ...REPORT_COPY[normalized].modeLabels, lesson: lessonCopy(normalized).label, recipe: recipeCopy(normalized).label, tutorial: procedureCopy(normalized).label } };
 }

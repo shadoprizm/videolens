@@ -1,3 +1,4 @@
+import { bindLessonStudy } from "../lib/lessonStudy";
 // The web account and extension use the exact same pure reader and stylesheet.
 import { reportBody, reportFilename, reportHtml, reportJson, reportMarkdown, reportTitle, type CloudReport } from "../../../site/cloud-report";
 import { getSavedReport, listSavedReports } from "../lib/reportLibrary";
@@ -57,6 +58,7 @@ async function render(): Promise<void> {
     document.title = `${reportTitle(current)} — VideoLens`;
     const rendered = new DOMParser().parseFromString(`<!doctype html><html><body>${reportBody(current)}</body></html>`, "text/html");
     content.replaceChildren(...Array.from(rendered.body.childNodes, node => document.importNode(node, true)));
+    bindLessonStudy(content, saved.analysis.lesson, `local:${saved.id}`, saved.analysis.outputLanguage, saved.analysis.source.url);
     actions.replaceChildren(
       button(readerCopy.refresh, () => void render()),
       button(t("printPdf"), () => {

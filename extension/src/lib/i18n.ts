@@ -1,3 +1,4 @@
+import { lessonCopy } from "./lessonCopy";
 import { procedureCopy } from "./procedureCopy";
 import { recipeCopy } from "./recipeCopy";
 import type { AnalysisMode } from "./types";
@@ -422,6 +423,7 @@ export const UI_DICTIONARIES: Record<UiLocale, Record<UiKey, string>> = {
 
 const MODE_DEFAULTS: Record<UiLocale, Record<AnalysisMode, { label: string; prompt: string }>> = {
   en: {
+    lesson: lessonCopy("en"),
     recipe: recipeCopy("en"),
     general: { label: "Detailed report", prompt: "Create a thorough written report of the important information in this video." },
     key_insights: { label: "Key insights", prompt: "Extract the most important insights, supporting evidence, and practical takeaways." },
@@ -435,6 +437,7 @@ const MODE_DEFAULTS: Record<UiLocale, Record<AnalysisMode, { label: string; prom
     privacy: { label: "Privacy scan", prompt: "Find every secret, credential, or PII exposure before I share this." },
   },
   zh_CN: {
+    lesson: lessonCopy("zh_CN"),
     recipe: recipeCopy("zh_CN"),
     general: { label: "详细报告", prompt: "全面整理这段视频中的重要信息，并生成书面报告。" },
     key_insights: { label: "核心洞察", prompt: "提取最重要的洞察、支持证据和实用结论。" },
@@ -448,6 +451,7 @@ const MODE_DEFAULTS: Record<UiLocale, Record<AnalysisMode, { label: string; prom
     privacy: { label: "隐私扫描", prompt: "在分享前找出所有密钥、凭据或个人身份信息泄露。" },
   },
   zh_TW: {
+    lesson: lessonCopy("zh_TW"),
     recipe: recipeCopy("zh_TW"),
     general: { label: "詳細報告", prompt: "完整整理這段影片中的重要資訊，並產生書面報告。" },
     key_insights: { label: "核心洞察", prompt: "擷取最重要的洞察、支持證據和實用結論。" },

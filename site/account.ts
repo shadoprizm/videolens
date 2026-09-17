@@ -1,3 +1,4 @@
+import { bindLessonStudy } from "./shared/lessonStudy.js";
 import { checkoutReady } from "./checkout-return.js";
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { reportBody, reportDate, reportFilename, reportHtml, reportJson, reportMarkdown, reportMode, reportSearchText, reportTitle, type CloudReport } from "./cloud-report.js";
@@ -315,6 +316,9 @@ function openReport(report: CloudReport): void {
   activeReport = report;
   byId("reader-title").textContent = reportTitle(report);
   byId("reader-content").innerHTML = reportBody(report);
+  const data = report.report_data ?? {};
+  const source = data.source as { url?: string } | undefined;
+  if (session?.user.id) bindLessonStudy(byId("reader-content"), data.lesson, `account:${session.user.id}:${report.id}`, typeof data.outputLanguage === "string" ? data.outputLanguage : undefined, source?.url ?? null);
   if (!reader.open) reader.showModal();
   byId("reader-content").scrollTop = 0;
   document.body.classList.add("reading-report");

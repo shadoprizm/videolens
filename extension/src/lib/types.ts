@@ -6,6 +6,7 @@ export type AnalysisMode =
   | "bug"
   | "meeting"
   | "ux"
+  | "lesson"
   | "tutorial"
   | "interview"
   | "recipe"
@@ -85,6 +86,7 @@ export interface AnalysisTask {
 }
 
 export interface Analysis {
+  lesson?: import("./lesson").Lesson;
   procedure?: import("./procedure").Procedure;
   recipe?: import("./recipe").Recipe;
   source: SourceInfo;

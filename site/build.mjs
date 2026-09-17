@@ -237,7 +237,7 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
 const staticFiles = [
-  "index.html", "privacy.html", "account.html", "admin.html", "admin.css", "chrome.html", "firefox.html", "recipe-preview.html", "procedure-preview.html", "robots.txt", "llms.txt",
+  "index.html", "privacy.html", "account.html", "admin.html", "admin.css", "chrome.html", "firefox.html", "recipe-preview.html", "procedure-preview.html", "lesson-preview.html", "robots.txt", "llms.txt",
   "content.css", "account.css", "cloud-report.css", "analytics.js", "favicon.svg", "favicon.ico", "favicon-16x16.png",
   "favicon-32x32.png", "apple-touch-icon.png", "android-chrome-192x192.png",
   "android-chrome-512x512.png", "site.webmanifest", "og.png", "og-extension-launch.png", "googlecc8e26327b14309f.html"
@@ -294,3 +294,5 @@ const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://w
 writeFileSync(join(out, "sitemap.xml"), sitemap);
 
 console.log(`Built VideoLens site: ${pages.length + 2} indexable pages in dist/ (analytics: ${analyticsScriptSrc})`);
+
+await build({entryPoints: [join(root, "lesson-preview.ts")], bundle: true, format: "esm", platform: "browser", target: ["es2022"], minify: true, outfile: join(out, "lesson-preview.js")});

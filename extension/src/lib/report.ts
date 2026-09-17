@@ -1,3 +1,4 @@
+import { lessonHtml, lessonMarkdown, LESSON_CSS } from "./lessonReport";
 import { procedureHtml, procedureMarkdown, PROCEDURE_CSS } from "./procedureReport";
 // Portable report exports. HTML reports are completely self-contained: no
 // remote fonts, scripts, images, or VideoLens server are required.
@@ -19,6 +20,7 @@ export function toMarkdown(analysis: Analysis, qa: QaEntry[]): string {
   lines.push(`- **${copy.overallConfidence}:** ${copy.confidenceLabels[analysis.confidence]}`);
   lines.push("");
   lines.push(`## ${copy.executiveSummary}`, "", analysis.summary || `_${copy.none}_`, "");
+  if (analysis.lesson) lines.push(lessonMarkdown(analysis.lesson, analysis.outputLanguage, analysis.source.url), "");
   if (analysis.procedure) lines.push(procedureMarkdown(analysis.procedure, analysis.outputLanguage, analysis.source.url), "");
   if (analysis.recipe) lines.push(recipeMarkdown(analysis.recipe, analysis.outputLanguage), "");
 
@@ -115,6 +117,7 @@ export function toHtmlReport(analysis: Analysis, qa: QaEntry[]): string {
     </div>
   </header>
   <main>
+    ${analysis.lesson ? lessonHtml(analysis.lesson, analysis.outputLanguage, analysis.source.url, analysis.source.durationSeconds) : ""}
     ${analysis.procedure ? procedureHtml(analysis.procedure, analysis.outputLanguage, analysis.source.url, analysis.source.durationSeconds) : ""}
     ${analysis.recipe ? recipeHtml(analysis.recipe, analysis.outputLanguage, analysis.source.url, analysis.source.durationSeconds) : ""}
     <section class="executive-section"><div class="section-kicker">01 · ${html(copy.overview)}</div>
@@ -208,7 +211,7 @@ function html(value: string): string {
 
 function attr(value: string): string { return html(value); }
 
-const REPORT_CSS = PROCEDURE_CSS + RECIPE_CSS + `
+const REPORT_CSS = LESSON_CSS + PROCEDURE_CSS + RECIPE_CSS + `
   :root { --ink:#111827; --muted:#64748b; --line:#dfe7ef; --paper:#fff; --soft:#f4f8fb; --cyan:#0891b2; --indigo:#4f46e5; --green:#047857; --amber:#b45309; --red:#b91c1c; }
   * { box-sizing:border-box; } html { background:#e9eff5; color:var(--ink); font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
   body { margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; } .page-shell { width:min(100%,960px); margin:34px auto; background:var(--paper); box-shadow:0 24px 80px rgba(15,23,42,.14); }

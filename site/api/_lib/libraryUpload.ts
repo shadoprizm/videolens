@@ -1,3 +1,4 @@
+import { normalizeLesson } from "../../shared/lesson.js";
 import { ApiError } from "./http.js";
 import { normalizeProcedure } from "../../shared/procedure.js";
 import { normalizeRecipe } from "../../shared/recipe.js";
@@ -31,7 +32,14 @@ export function libraryUpload(value: unknown) {
   if ((a.mode === "recipe" || a.recipe != null) && !recipe) return invalid();
   const procedure = normalizeProcedure(a.procedure, typeof a.source.durationSeconds === "number" ? a.source.durationSeconds : null);
   if (a.procedure != null && !procedure) return invalid();
+  const lessonTimeline = { segments: a.timeline.segments.map(s => {
+    if (!object(s) || typeof s.start !== "number" || !Number.isFinite(s.start) || typeof s.end !== "number" || !Number.isFinite(s.end)) return invalid();
+    return { start: s.start, end: s.end };
+  }) };
+  const lesson = normalizeLesson(a.lesson, typeof a.source.durationSeconds === "number" ? a.source.durationSeconds : null, lessonTimeline);
+  if ((a.mode === "lesson" || a.lesson != null) && !lesson) return invalid();
   const reportData = {
+    ...(lesson ? { lesson } : {}),
     ...(procedure ? { procedure } : {}),
     ...(recipe ? { recipe } : {}),
     source: { sourceType: a.source.sourceType, title: a.source.title, url: a.source.url,

@@ -1,3 +1,5 @@
+import { LESSON_INSTRUCTIONS } from "./lesson";
+import { lessonCopy } from "./lessonCopy";
 // Ported verbatim from src/videolens/analysis/modes/*.py — keep in sync.
 import type { AnalysisMode } from "./types";
 
@@ -138,6 +140,13 @@ from what is inferred about the user's state.`,
       "from X to Y', 'Add inline validation to the password field', etc. Keep each " +
       "one shippable in a single PR.",
     defaultPrompt: "Identify user friction and recommend UX improvements.",
+  },
+  lesson: {
+    label: lessonCopy().label, instructions: LESSON_INSTRUCTIONS,
+    summary: "What the learner can work toward, grounded in the video.",
+    findings: "Cite the concepts, explanations, worked examples and limitations that support each learning objective.",
+    recommendations: "Evidence-based learning practice.", tasks: "Checkpoint questions and a final application challenge.",
+    defaultPrompt: lessonCopy().prompt,
   },
   tutorial: {
     label: "Make a Procedure",
@@ -283,6 +292,7 @@ export const MODE_ORDER: AnalysisMode[] = [
   "general",
   "key_insights",
   "tutorial",
+  "lesson",
   "interview",
   "recipe",
   "bug",

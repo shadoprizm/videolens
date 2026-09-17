@@ -1,3 +1,5 @@
+import { lessonHtml, lessonMarkdown, LESSON_CSS } from "./shared/lessonReport.js";
+import { lessonCopy } from "./shared/lessonCopy.js";
 import { procedureHtml, procedureMarkdown, PROCEDURE_CSS } from "./shared/procedureReport.js";
 // Render stored reports without executing or fetching any report-provided content.
 import { recipeHtml, recipeMarkdown, RECIPE_CSS } from "./shared/recipeReport.js";
@@ -40,6 +42,7 @@ export function reportTitle(report: CloudReport): string {
 
 export function reportMode(report: CloudReport): string {
   const mode = text(report.mode) || text(report.report_data?.mode);
+  if (mode === "lesson") return lessonCopy(text(report.report_data?.outputLanguage)).label;
   if (mode === "tutorial" && report.report_data?.procedure) return "Make a Procedure";
   return mode === "recipe" ? "Recipe (preview)" : modeNames[mode] || mode.replace(/_/g, " ") || "Video report";
 }
@@ -76,6 +79,7 @@ export function reportBody(report: CloudReport): string {
   const sections: string[] = [];
   const section = (title: string, content: string) => { if (content) sections.push(`<section class="cr-section"><h2>${title}</h2>${content}</section>`); };
   section("Executive summary", prose(text(data.summary)) || "<p>No summary was saved for this report.</p>");
+  if (data.lesson) sections.push(lessonHtml(data.lesson, text(data.outputLanguage), sourceUrl, typeof source.durationSeconds === "number" ? source.durationSeconds : null));
   if (data.procedure) sections.push(procedureHtml(data.procedure, text(data.outputLanguage), sourceUrl, typeof source.durationSeconds === "number" ? source.durationSeconds : null));
   if (data.recipe) sections.push(recipeHtml(data.recipe, text(data.outputLanguage), sourceUrl, typeof source.durationSeconds === "number" ? source.durationSeconds : null));
   section("Key findings", list(data.findings).map(record).map((finding, i) => `<article class="cr-finding"><div class="cr-number">${String(i + 1).padStart(2, "0")}</div><div><h3>${escape(text(finding.finding))}</h3>${confidence(finding.confidence)}${list(finding.evidence).map(record).map(e => `<div class="cr-evidence">${timestampLink(e.timestamp, sourceUrl)}<div>${prose(text(e.detail))}</div></div>`).join("")}</div></article>`).join(""));
@@ -87,7 +91,7 @@ export function reportBody(report: CloudReport): string {
   if (timeline.length) section("Evidence timeline", `<details class="cr-timeline"><summary>${timeline.length} captured segments · transcript and visual evidence</summary>${timeline.map(s => `<article class="cr-item"><h3>${timestampLink(s.start, sourceUrl)} – ${timestamp(s.end)}${text(s.sceneType) ? ` · ${escape(text(s.sceneType))}` : ""}</h3>${text(s.transcript) ? `<h4>Transcript</h4>${prose(text(s.transcript))}` : ""}${text(s.visualSummary) ? `<h4>Visual evidence</h4>${prose(text(s.visualSummary))}` : ""}${list(s.ocr).length ? `<h4>On-screen text</h4>${prose(list(s.ocr).map(text).filter(Boolean).join("\n"))}` : ""}</article>`).join("")}</details>`);
   section("Report brief", prose(text(data.prompt)));
   const language = /^[a-z]{2,3}(-[a-z0-9]{2,8})*$/i.test(text(data.outputLanguage)) ? text(data.outputLanguage) : "";
-  return `${data.procedure ? `<style>${PROCEDURE_CSS}</style>` : ""}${data.recipe ? `<style>${RECIPE_CSS}</style>` : ""}<article class="cloud-report"${language ? ` lang="${escape(language)}"` : ""}>
+  return `${data.lesson ? `<style>${LESSON_CSS}</style>` : ""}${data.procedure ? `<style>${PROCEDURE_CSS}</style>` : ""}${data.recipe ? `<style>${RECIPE_CSS}</style>` : ""}<article class="cloud-report"${language ? ` lang="${escape(language)}"` : ""}>
     <header class="cr-cover"><div class="cr-kicker">VideoLens · ${escape(reportMode(report))}</div><h1>${escape(reportTitle(report))}</h1><div class="cr-meta">${escape(reportDate(report))}${typeof source.durationSeconds === "number" ? ` · ${timestamp(source.durationSeconds)} video` : ""} ${confidence(data.confidence)}</div>${sourceUrl ? `<a class="cr-source" href="${escape(sourceUrl)}" target="_blank" rel="noopener noreferrer">Open original video ↗</a>` : ""}</header>
     <div class="cr-content">${sections.join("")}</div><div class="cr-footer">VideoLens · Saved video report</div></article>`;
 }
@@ -106,6 +110,7 @@ export function reportMarkdown(report: CloudReport): string {
   if (text(data.confidence)) lines.push(`Overall confidence: ${text(data.confidence)}`, "");
   const section = (name: string, content: string[]) => { if (content.length) lines.push(`## ${name}`, "", ...content, ""); };
   section("Executive summary", [text(data.summary)]);
+  if (data.lesson) lines.push(lessonMarkdown(data.lesson, text(data.outputLanguage), sourceUrl), "");
   if (data.procedure) lines.push(procedureMarkdown(data.procedure, text(data.outputLanguage), sourceUrl), "");
   if (data.recipe) lines.push(recipeMarkdown(data.recipe, text(data.outputLanguage)), "");
   section("Key findings", list(data.findings).map(record).flatMap(f => [`### ${text(f.finding)}`, "", `Confidence: ${text(f.confidence)}`, "", ...list(f.evidence).map(record).map(e => `- [${timestamp(e.timestamp)}] ${text(e.detail)}`), ""]));

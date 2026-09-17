@@ -1,3 +1,7 @@
+import { describeLessonFrames } from "../lib/describeFrames";
+import { lessonHtml, LESSON_CSS } from "../lib/lessonReport";
+import { lessonCopy } from "../lib/lessonCopy";
+import { bindLessonStudy } from "../lib/lessonStudy";
 import { procedureFrameTimestamps } from "../lib/procedure";
 import { procedureCopy } from "../lib/procedureCopy";
 import { procedureHtml, procedureChecklist, PROCEDURE_CSS } from "../lib/procedureReport";
@@ -181,9 +185,9 @@ const state: State = {
   startupError: null,
 };
 
-const PRIMARY_REPORT_MODES: AnalysisMode[] = ["general", "key_insights", "tutorial", "interview"];
+const PRIMARY_REPORT_MODES: AnalysisMode[] = ["general", "key_insights", "tutorial", "lesson", "interview"];
 const recipeStyle = document.createElement("style");
-recipeStyle.textContent = RECIPE_CSS + PROCEDURE_CSS;
+recipeStyle.textContent = RECIPE_CSS + PROCEDURE_CSS + LESSON_CSS;
 document.head.appendChild(recipeStyle);
 let analysisInFlight = false;
 let accountRefreshing = false;
@@ -627,6 +631,7 @@ function renderReportSetup(): void {
   if (state.modePickerExpanded) modeCard.appendChild(createModeSelect());
   root.appendChild(modeCard);
 
+  if (state.mode === "lesson") root.append(el(`<section class="card"><p class="hint">${esc(lessonCopy(documentLanguage()).prompt)}</p></section>`));
   if (state.mode === "tutorial") root.append(el(`<section class="card"><p class="hint">${esc(procedureCopy(documentLanguage()).sampling)}</p></section>`));
   if (state.mode === "recipe") {
     const copy = recipeCopy(documentLanguage());
@@ -1328,6 +1333,11 @@ function renderResults(): void {
       `<div class="summary-prose">${renderProse(a.summary, t("none"))}</div></section>`,
   );
   root.appendChild(summary);
+  if (a.lesson) {
+    const card = el(lessonHtml(a.lesson, a.outputLanguage, a.source.url, a.source.durationSeconds));
+    root.appendChild(card);
+    bindLessonStudy(card, a.lesson, `local:${state.savedReportId || a.source.url || a.source.title || "draft"}`, a.outputLanguage, a.source.url);
+  }
   if (a.procedure) root.appendChild(el(procedureHtml(a.procedure, a.outputLanguage, a.source.url, a.source.durationSeconds)));
   if (a.recipe) root.appendChild(el(recipeHtml(a.recipe, a.outputLanguage, a.source.url, a.source.durationSeconds)));
 
@@ -1808,7 +1818,7 @@ async function describeAndSynthesize(
   recipeContext: RecipeContext = { creatorText: "", sources: [], researchText: "", research: "not_requested" },
 ): Promise<void> {
   steps.set(stepOffset, "active");
-  const summaries = await (state.mode === "recipe" ? describeRecipeFrames : state.mode === "tutorial" ? describeProcedureFrames : describeFrames)(access, frames, (done, total) =>
+  const summaries = await (state.mode === "recipe" ? describeRecipeFrames : state.mode === "tutorial" ? describeProcedureFrames : state.mode === "lesson" ? describeLessonFrames : describeFrames)(access, frames, (done, total) =>
     steps.set(stepOffset, "active", t("describingProgress", { done, total })),
   );
   if (state.mode === "recipe") {
@@ -1819,6 +1829,11 @@ async function describeAndSynthesize(
   if (state.mode === "tutorial") {
     if (!frames.length || summaries.length < Math.ceil(frames.length / 2)) throw new Error(procedureCopy(documentLanguage()).noFrames);
     source.limitations.push(`Procedure evidence uses ${summaries.length} analyzed frames across ${duration.toFixed(1)} seconds. Brief settings and skipped actions may be missing; execution and current software behavior were not verified.`);
+    if (summaries.length < frames.length) source.limitations.push(`${frames.length - summaries.length} captured frames could not be analyzed.`);
+  }
+  if (state.mode === "lesson") {
+    if (!summaries.length && !transcript?.segments.some(s => s.text.trim())) throw new Error(lessonCopy(documentLanguage()).noLesson);
+    source.limitations.push(`Lesson evidence uses ${summaries.length} analyzed frames across ${duration.toFixed(1)} seconds. Brief diagrams, formulas, and transitions may be missed. Source claims are not independently verified.`);
     if (summaries.length < frames.length) source.limitations.push(`${frames.length - summaries.length} captured frames could not be analyzed.`);
   }
   steps.set(stepOffset, "done", t("describedFrames", { count: summaries.length }));
