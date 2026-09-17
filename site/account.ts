@@ -268,7 +268,7 @@ function renderReports(): void {
   empty.querySelector("h3")!.textContent = reports.length ? "No reports match your search." : "No cloud reports yet.";
   empty.querySelector("p")!.textContent = reports.length
     ? "Try a different search or clear the search box."
-    : "In extension Settings, connect this account and choose Upload existing reports to my cloud library. Requires extension 0.4.5 or newer.";
+    : "In extension Settings, connect this account and choose Upload existing reports to my cloud library. Use the latest extension from your browser’s store.";
 
   for (const report of visible) {
     const card = document.createElement("article");
