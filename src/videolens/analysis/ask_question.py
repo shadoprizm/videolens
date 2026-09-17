@@ -81,6 +81,12 @@ def _build_user_message(
         lines.append("PRIOR EXECUTIVE SUMMARY:")
         lines.append(prior_analysis.summary or "(none)")
 
+        if prior_analysis.recipe or prior_analysis.procedure:
+            from videolens.analysis.structured import structured_markdown
+
+            lines.append("PRIOR STRUCTURED REPORT (evidence only; unknowns remain unknown):")
+            lines.append(structured_markdown(prior_analysis))
+
         if prior_analysis.findings:
             lines.append("")
             lines.append("PRIOR FINDINGS (one per line for context only — do not repeat):")

@@ -15,7 +15,7 @@
 
   <!-- Open Graph / Twitter -->
   <meta property="og:title" content="Chrome &amp; Firefox Extensions for AI Video Summaries | VideoLens">
-  <meta property="og:description" content="Turn the video you are watching into a useful written report without leaving Chrome.">
+  <meta property="og:description" content="Turn the video you are watching into a useful written report without leaving your browser.">
   <meta property="og:url" content="https://videolens.io/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="VideoLens">
@@ -26,7 +26,7 @@
   <meta property="og:image:alt" content="VideoLens — turn any video into a timestamped, evidence-grounded report">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Chrome &amp; Firefox Extensions for AI Video Summaries | VideoLens">
-  <meta name="twitter:description" content="Turn the video you are watching into a useful written report without leaving Chrome.">
+  <meta name="twitter:description" content="Turn the video you are watching into a useful written report without leaving your browser.">
   <meta name="twitter:image" content="https://videolens.io/og-extension-launch.png">
 
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -116,9 +116,8 @@
         "url": "https://videolens.io/",
         "applicationCategory": "MultimediaApplication",
         "applicationSubCategory": "Video summarization and written reports",
-        "operatingSystem": "Web, macOS, Linux, Windows, Chrome",
+        "operatingSystem": "Web, macOS, Linux, Windows, Chrome, Firefox",
         "description": "VideoLens turns long videos into detailed written reports. It combines transcription, frame-level vision, and OCR into a cached timeline, then explains the important information with citations to specific moments. The web experience starts with YouTube; local files and other supported video URLs work too.",
-        "softwareVersion": "0.3",
         "downloadUrl": "https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl",
         "license": "https://github.com/shadoprizm/videolens/blob/main/LICENSE",
         "publisher": { "@id": "https://videolens.io/#organization" },
@@ -130,7 +129,7 @@
           "Bring your own OpenAI API key — keys are never stored",
           "Follow-up Q&A over a cached timeline",
           "Export to standalone HTML, print-quality PDF, Markdown, and JSON",
-          "Chrome side-panel extension and Model Context Protocol (MCP) server"
+          "Chrome and Firefox extensions and Model Context Protocol (MCP) server"
         ],
         "offers": [
           {
@@ -322,7 +321,7 @@
           Add to Chrome — Free
         </a>
       </div>
-      <p class="mt-5 text-sm text-slate-400">Sharing VideoLens? Use <a href="/chrome" data-track="Open branded Chrome share link" data-destination="chrome-share-link" class="font-semibold text-cyan-300 hover:text-cyan-200">videolens.io/chrome</a> so the full launch image appears in the link preview.</p>
+      <p class="mt-5 text-sm text-slate-400">Sharing VideoLens? Use <a href="/chrome" data-track="Open branded Chrome share link" data-destination="chrome-share-link" class="font-semibold text-cyan-300 hover:text-cyan-200">videolens.io/chrome</a> or <a href="/firefox" class="font-semibold text-cyan-300 hover:text-cyan-200">videolens.io/firefox</a> for a browser-specific install page.</p>
       <div class="grid md:grid-cols-3 gap-4 mt-10">
         <div class="rounded-xl border border-white/10 bg-white/5 p-5"><div class="text-xs font-black text-cyan-300 tracking-widest mb-2">01 · OPEN</div><h3 class="font-bold mb-1">Choose a YouTube video</h3><p class="text-sm text-slate-400">Keep the source open while VideoLens works beside it.</p></div>
         <div class="rounded-xl border border-white/10 bg-white/5 p-5"><div class="text-xs font-black text-cyan-300 tracking-widest mb-2">02 · CREATE</div><h3 class="font-bold mb-1">Pick a report style</h3><p class="text-sm text-slate-400">Detailed report, key insights, tutorial, interview, or a specialized mode.</p></div>
@@ -387,7 +386,7 @@
         <div class="bg-white border-2 border-slate-200 rounded-xl p-5 relative">
           <div class="absolute -top-3 left-5 px-2 py-0.5 bg-brand-600 text-white text-[10px] font-bold rounded">2 · EXTRACT</div>
           <h4 class="font-bold mt-3 mb-2">Audio + frames + OCR</h4>
-          <p class="text-sm text-slate-600 leading-relaxed">yt-dlp fetches remote video, ffmpeg samples frames and chunks audio, OpenAI transcribes each chunk, GPT-5.4-mini describes every frame and reads any visible text.</p>
+          <p class="text-sm text-slate-600 leading-relaxed">yt-dlp fetches remote video, ffmpeg samples frames and chunks audio, OpenAI transcribes each chunk, AI vision describes sampled frames and reads visible text.</p>
         </div>
 
         <div class="bg-white border-2 border-slate-200 rounded-xl p-5 relative">
@@ -399,7 +398,7 @@
         <div class="bg-white border-2 border-slate-200 rounded-xl p-5 relative">
           <div class="absolute -top-3 left-5 px-2 py-0.5 bg-brand-600 text-white text-[10px] font-bold rounded">4 · ANALYZE</div>
           <h4 class="font-bold mt-3 mb-2">Mode-driven synthesis</h4>
-          <p class="text-sm text-slate-600 leading-relaxed">One GPT-5.6 Terra call against the timeline, your prompt, and the active mode → structured findings, evidence citations, recommendations, and ticket-ready tasks.</p>
+          <p class="text-sm text-slate-600 leading-relaxed">Analysis of the timeline, your prompt, and the selected report style → structured findings, evidence citations, recommendations, and ticket-ready tasks.</p>
         </div>
       </div>
     </div>
@@ -507,6 +506,28 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
     </div>
   </section>
 
+  <section id="extract" class="border-t border-slate-100 bg-slate-50">
+    <div class="max-w-6xl mx-auto px-6 py-16">
+      <p class="text-sm font-semibold text-brand-600 uppercase tracking-wide mb-3">From watching to doing</p>
+      <h2 class="text-3xl font-extrabold tracking-tight mb-8">Keep the recipe. Follow the procedure.</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        <article class="bg-white rounded-2xl border border-slate-200 p-7">
+          <h3 class="text-xl font-bold mb-3">Make a Recipe</h3>
+          <p class="text-slate-600 mb-5">Turn a cooking video into ingredients, equipment, and ordered steps. Quantities, temperatures, and timings have their own evidence labels. Missing details stay visible.</p>
+          <a href="https://app.videolens.io/?workflow=recipe" class="font-semibold text-brand-700 underline">Make a recipe in the app →</a>
+          <p class="mt-3 text-sm"><a href="/recipe-preview" class="text-slate-600 underline">See an illustrative recipe</a></p>
+        </article>
+        <article class="bg-white rounded-2xl border border-slate-200 p-7">
+          <h3 class="text-xl font-bold mb-3">Make a Procedure</h3>
+          <p class="text-slate-600 mb-5">Turn a software walkthrough into sourced prerequisites, ordered actions, exact settings, success checks, and a reusable checklist. Unreadable or skipped steps stay marked as unknown.</p>
+          <a href="https://app.videolens.io/?workflow=procedure" class="font-semibold text-brand-700 underline">Make a procedure in the app →</a>
+          <p class="mt-3 text-sm"><a href="/procedure-preview" class="text-slate-600 underline">See an illustrative procedure</a></p>
+        </article>
+      </div>
+      <p class="mt-6 text-sm text-slate-600">Use YouTube videos or local files with your OpenAI key in the hosted app. Review the cited evidence, check off steps, and export HTML, PDF, Markdown, or JSON. Hosted recipes use video evidence without online recipe research.</p>
+    </div>
+  </section>
+
   <!-- Hosted version: live now, BYOK -->
   <section id="hosted" class="border-t border-slate-100 bg-gradient-to-b from-white to-brand-50/40">
     <div class="max-w-4xl mx-auto px-6 py-20 md:py-24 text-center">
@@ -540,21 +561,21 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM9 12l2 2 4-4"/></svg>
           </div>
           <h4 class="font-bold text-sm mb-1">Your key, your cost</h4>
-          <p class="text-sm text-slate-600 leading-relaxed">Paste your OpenAI API key in the sidebar. Calls go straight to OpenAI; you only pay them, not us.</p>
+          <p class="text-sm text-slate-600 leading-relaxed">Paste your OpenAI API key in the sidebar. The hosted app processes your video on the VideoLens server and calls OpenAI with your key. You pay OpenAI for usage.</p>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-5">
           <div class="w-8 h-8 rounded-md bg-brand-50 flex items-center justify-center text-brand-600 mb-3">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
           </div>
           <h4 class="font-bold text-sm mb-1">Session-only storage</h4>
-          <p class="text-sm text-slate-600 leading-relaxed">The key lives only in your browser session. Close the tab, it's gone. We don't write it to a database.</p>
+          <p class="text-sm text-slate-600 leading-relaxed">Your key is held in server session memory, never written to a database. Download reports to keep them; the hosted app does not automatically save them to your account.</p>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-5">
           <div class="w-8 h-8 rounded-md bg-brand-50 flex items-center justify-center text-brand-600 mb-3">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2M9 4a1 1 0 011-1h4a1 1 0 011 1v2H9V4z"/></svg>
           </div>
-          <h4 class="font-bold text-sm mb-1">Same code as the repo</h4>
-          <p class="text-sm text-slate-600 leading-relaxed">Self-host the identical app any time. Public MIT-licensed code on <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener" class="text-brand-600 font-semibold hover:underline">GitHub</a>.</p>
+          <h4 class="font-bold text-sm mb-1">Your report library</h4>
+          <p class="text-sm text-slate-600 leading-relaxed">For reports saved from the extension, open <a href="/account" class="underline">your account and cloud library</a>. You can also self-host the app. Public MIT-licensed code on <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener" class="text-brand-600 font-semibold hover:underline">GitHub</a>.</p>
         </div>
       </div>
 
@@ -771,7 +792,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
           <a href="https://github.com/shadoprizm/videolens" target="_blank" rel="noopener" class="hover:text-slate-900">GitHub</a>
           <a href="https://github.com/shadoprizm/videolens/issues" target="_blank" rel="noopener" class="hover:text-slate-900">Issues</a>
           <a href="https://github.com/shadoprizm/videolens/blob/main/LICENSE" target="_blank" rel="noopener" class="hover:text-slate-900">License</a>
-          <a href="/firefox" class="hover:underline">Firefox extension</a><a href="/privacy" class="hover:text-slate-900">Privacy</a>
+          <a href="/chrome" class="hover:underline">Chrome extension</a><a href="/firefox" class="hover:underline">Firefox extension</a><a href="/privacy" class="hover:text-slate-900">Privacy</a>
           <a href="/account" class="hover:text-slate-900">Account</a>
         </div>
       </div>

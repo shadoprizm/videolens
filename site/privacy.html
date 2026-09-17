@@ -14,7 +14,7 @@
 
   <!-- Open Graph / Twitter -->
   <meta property="og:title" content="Privacy Policy — VideoLens">
-  <meta property="og:description" content="How VideoLens handles data across Private BYOK mode, Pro Managed mode, accounts, cloud reports, the hosted app, and the Chrome extension.">
+  <meta property="og:description" content="How VideoLens handles data across Private BYOK mode, Pro Managed mode, accounts, cloud reports, the hosted app, and the Chrome and Firefox extensions.">
   <meta property="og:url" content="https://videolens.io/privacy">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="VideoLens">
@@ -22,7 +22,7 @@
   <meta property="og:image" content="https://videolens.io/og.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Privacy Policy — VideoLens">
-  <meta name="twitter:description" content="How VideoLens handles data across the tool, the hosted app, and the Chrome extension.">
+  <meta name="twitter:description" content="How VideoLens handles data across the tool, the hosted app, and the Chrome and Firefox extensions.">
   <meta name="twitter:image" content="https://videolens.io/og.png">
 
   <script type="application/ld+json">
@@ -71,16 +71,16 @@
 
   <main class="max-w-3xl mx-auto px-6 py-14 prose-slate">
     <h1 class="text-4xl font-extrabold tracking-tight mb-2">Privacy Policy</h1>
-    <p class="text-sm text-slate-500 mb-10">Last updated: September 14, 2026 · Applies to videolens.io, VideoLens accounts and Pro, the hosted app, and the VideoLens Chrome and Firefox extensions.</p>
+    <p class="text-sm text-slate-500 mb-10">Last updated: September 17, 2026 · Applies to videolens.io, VideoLens accounts and Pro, the hosted app, and the VideoLens Chrome and Firefox extensions.</p>
 
     <div class="space-y-10 text-slate-700 leading-relaxed">
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">The short version</h2>
-        <p>VideoLens gives you two explicit extension modes. In <strong>Private / BYOK mode</strong>, analysis goes directly from your browser to OpenAI with your key; VideoLens does not receive that analysis content unless you separately choose to upload completed reports to your cloud library. Your API key is never uploaded to VideoLens. In <strong>Pro / Managed mode</strong>, the content required for the analysis passes through VideoLens and Vercel AI Gateway to the configured AI provider (currently OpenAI) so you do not need a key. VideoLens does not retain raw frames or audio in its database. Completed reports and follow-up Q&amp;A are saved automatically in Chrome on your device; cloud storage remains optional and off by default. The extension contains no analytics.</p>
+        <p>VideoLens gives you two explicit extension modes. In <strong>Private / BYOK mode</strong>, analysis goes directly from your browser to OpenAI with your key; VideoLens does not receive that analysis content unless you separately choose to upload completed reports to your cloud library. Your API key is never uploaded to VideoLens. In <strong>Pro / Managed mode</strong>, the content required for the analysis passes through VideoLens and Vercel AI Gateway to the configured AI provider (currently OpenAI) so you do not need a key. VideoLens does not retain raw frames or audio in its database. Completed reports and follow-up Q&amp;A are saved automatically in your browser on your device; cloud storage remains optional and off by default. The extension contains no analytics.</p>
       </section>
 
       <section>
-        <h2 class="text-xl font-bold text-slate-900 mb-3">Chrome extension</h2>
+        <h2 class="text-xl font-bold text-slate-900 mb-3">Chrome and Firefox extensions</h2>
         <ul class="list-disc pl-5 space-y-2">
           <li><strong>Private / BYOK analysis.</strong> The selected video's frames, audio or captions, page title, and your prompt go directly from the extension to OpenAI's API (api.openai.com) using your own API key. They are not sent to VideoLens.</li>
           <li><strong>Pro / Managed analysis.</strong> If you deliberately select Managed mode, the same analysis content is sent over HTTPS to videolens.io, which authenticates your subscription or starter allowance and sends it through Vercel AI Gateway to the configured AI provider (currently OpenAI). VideoLens does not write raw frames, audio chunks, captions, or prompts to its database or intentionally include them in application logs.</li>
@@ -113,8 +113,8 @@
       <section>
         <h2 class="text-xl font-bold text-slate-900 mb-3">Hosted app (app.videolens.io)</h2>
         <ul class="list-disc pl-5 space-y-2">
-          <li>Your OpenAI API key is held in session memory only and is never written to a database. Closing the tab discards it.</li>
-          <li>Uploaded videos and generated artifacts live in an ephemeral per-session cache used to make re-runs cheap, and are not retained as a dataset or shared.</li>
+          <li>The hosted app processes selected videos on the VideoLens server and calls OpenAI with your key. Your key is held in server session memory only and is never written to a database. It is discarded when the server session expires.</li>
+          <li>Uploaded videos and generated artifacts live in an isolated temporary server-session directory used for re-runs and playback. Cleanup occurs when that session is released; closing a tab may not end it immediately. Download reports to keep them. Hosted reports are not automatically added to your account or cloud library.</li>
           <li>The hosted app writes privacy-safe product events to its operational logs so we can measure whether the workflow succeeds. These events contain a random session identifier, workflow and mode, upload-versus-URL source type, success or non-sensitive error category, export format, and coarse duration or performance buckets.</li>
           <li>Hosted-app product events never include videos, filenames, source URLs, prompts, reports, transcript text, extracted images, API keys, email addresses, or persistent cross-session identifiers.</li>
         </ul>

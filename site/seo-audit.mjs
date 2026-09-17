@@ -30,6 +30,11 @@ for (const file of htmlFiles) {
   if (/REPLACE_WITH|Coming next:.*UX|Three modes built in/.test(html)) errors.push(`${label}: stale placeholder or product copy found`);
 }
 
+for (const page of ["index.html", "chrome.html", "firefox.html"]) {
+  const html = readFileSync(join(out, page), "utf8");
+  if (/"softwareVersion"|\b[vV]ersion\s+\d+\.\d+/i.test(html)) errors.push(`${page}: do not pin browser release versions in public copy`);
+}
+
 const sitemapPath = join(out, "sitemap.xml");
 if (!existsSync(sitemapPath)) errors.push("sitemap.xml missing");
 else {

@@ -31,45 +31,51 @@ def render_markdown(analysis: Analysis) -> str:
     lines.append(analysis.summary or "_(no summary)_")
     lines.append("")
 
-    lines.append("## Key Findings")
-    lines.append("")
-    if not analysis.findings:
-        lines.append("_(no findings)_")
-    else:
-        for i, f in enumerate(analysis.findings, 1):
-            lines.append(f"### {i}. {f.finding}")
-            lines.append(f"*Confidence: {f.confidence}*")
-            lines.append("")
-            if f.evidence:
-                lines.append("**Evidence:**")
-                for e in f.evidence:
-                    lines.append(f"- `{_fmt_ts(e.timestamp)}` — {e.detail}")
+    from videolens.analysis.structured import structured_markdown
+
+    if analysis.recipe or analysis.procedure:
+        lines.extend([structured_markdown(analysis), ""])
+
+    if not (analysis.recipe or analysis.procedure):
+        lines.append("## Key Findings")
+        lines.append("")
+        if not analysis.findings:
+            lines.append("_(no findings)_")
+        else:
+            for i, f in enumerate(analysis.findings, 1):
+                lines.append(f"### {i}. {f.finding}")
+                lines.append(f"*Confidence: {f.confidence}*")
                 lines.append("")
-    lines.append("")
+                if f.evidence:
+                    lines.append("**Evidence:**")
+                    for e in f.evidence:
+                        lines.append(f"- `{_fmt_ts(e.timestamp)}` — {e.detail}")
+                    lines.append("")
+        lines.append("")
 
-    lines.append("## Practical Takeaways")
-    lines.append("")
-    if not analysis.recommendations:
-        lines.append("_(none)_")
-    else:
-        for i, r in enumerate(analysis.recommendations, 1):
-            lines.append(f"{i}. **{r.recommendation}**  ")
-            if r.rationale:
-                lines.append(f"   _{r.rationale}_  ")
-            lines.append(f"   Confidence: {r.confidence}")
-            lines.append("")
+        lines.append("## Practical Takeaways")
+        lines.append("")
+        if not analysis.recommendations:
+            lines.append("_(none)_")
+        else:
+            for i, r in enumerate(analysis.recommendations, 1):
+                lines.append(f"{i}. **{r.recommendation}**  ")
+                if r.rationale:
+                    lines.append(f"   _{r.rationale}_  ")
+                lines.append(f"   Confidence: {r.confidence}")
+                lines.append("")
 
-    lines.append("## Follow-up Ideas")
-    lines.append("")
-    if not analysis.tasks:
-        lines.append("_(none)_")
-    else:
-        for t in analysis.tasks:
-            if t.detail:
-                lines.append(f"- [ ] **{t.title}** — {t.detail}")
-            else:
-                lines.append(f"- [ ] {t.title}")
-    lines.append("")
+        lines.append("## Follow-up Ideas")
+        lines.append("")
+        if not analysis.tasks:
+            lines.append("_(none)_")
+        else:
+            for t in analysis.tasks:
+                if t.detail:
+                    lines.append(f"- [ ] **{t.title}** — {t.detail}")
+                else:
+                    lines.append(f"- [ ] {t.title}")
+        lines.append("")
 
     lines.append("## Timeline")
     lines.append("")
