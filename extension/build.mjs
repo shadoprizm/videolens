@@ -28,7 +28,7 @@ await build({
   target: browserTarget,
   outdir,
   sourcemap: false,
-  minify: false,
+  minify: true,
   define: { __REPORT_CSS__: JSON.stringify(readFileSync("../site/cloud-report.css", "utf8")) },
 });
 

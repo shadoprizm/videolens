@@ -1,17 +1,17 @@
-# VideoLens Firefox 0.7.1 — reviewer build instructions
+# VideoLens Firefox 0.7.2 — reviewer build instructions
 
 This source archive reproduces the packaged Firefox extension build. The
-extension is written in TypeScript and bundled as unminified ES modules with
+extension is written in TypeScript and bundled as minified ES modules with
 esbuild. It does not download or execute remote code.
 
 ## Changes in this release
 
-New users are guided to create or connect a free account before their first report.
-Using an OpenAI key remains available as a secondary option; existing provider choices,
-keys, saved reports and cloud-save consent are preserved. Free accounts display a Free
-badge. After a successful starter report, the Pro offer follows the report content and
-shows the price and allowance. Chrome and Firefox use the same UI source. No new
-permissions, data collection, AI providers, or payment behavior are introduced.
+The sidebar reads only the settings needed for its first screen. Saved reports load
+when the Library is opened, and specialized report styles load when those results
+are shown. The bundled JavaScript is minified to reduce parsing work. Chrome and
+Firefox use the same UI source. Saved reports, account choices, and consent are
+preserved. No new permissions, data collection, AI providers, or payment behavior
+are introduced.
 
 ## Requirements
 

@@ -26,6 +26,41 @@ export interface StoredProSession {
 
 export const PRIVACY_DISCLOSURE_VERSION = 3;
 
+export interface StartupSettings {
+  privacyDisclosureAccepted: boolean;
+  maxFrames: number;
+  reportLanguage: ReportLanguage;
+  analysisProvider: AnalysisProvider;
+  proCloudSave: boolean;
+  proSession: StoredProSession | null;
+  privateAccessReady: boolean;
+  hasCompletedFirstReport: boolean;
+  cloudLibraryEnabled: boolean;
+}
+
+// The sidebar needs one small, consistent storage snapshot before its first render.
+export async function getStartupSettings(defaultMaxFrames: number): Promise<StartupSettings> {
+  const state = await chrome.storage.local.get([
+    "privacyDisclosureVersion", "maxFrames", "reportLanguage", "analysisProvider",
+    "proCloudSave", "proToken", "proEmail", "openaiApiKey",
+    "hasCompletedFirstReport", "cloudLibraryAccount",
+  ]) as LocalState;
+  const proSession = state.proToken && state.proEmail
+    ? { token: state.proToken, email: state.proEmail }
+    : null;
+  return {
+    privacyDisclosureAccepted: state.privacyDisclosureVersion === PRIVACY_DISCLOSURE_VERSION,
+    maxFrames: state.maxFrames ?? defaultMaxFrames,
+    reportLanguage: isReportLanguage(state.reportLanguage) ? state.reportLanguage : "browser",
+    analysisProvider: state.analysisProvider ?? (state.openaiApiKey ? "byok" : "pro"),
+    proCloudSave: state.proCloudSave ?? false,
+    proSession,
+    privateAccessReady: Boolean(state.openaiApiKey),
+    hasCompletedFirstReport: state.hasCompletedFirstReport === true,
+    cloudLibraryEnabled: Boolean(proSession && state.cloudLibraryAccount === proSession.email),
+  };
+}
+
 async function getLocal(): Promise<LocalState> {
   return (await chrome.storage.local.get(null)) as LocalState;
 }

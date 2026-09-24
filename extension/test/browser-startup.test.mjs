@@ -419,6 +419,40 @@ test("the actual side-panel bundle renders before pending Pro recovery finishes"
   }
 });
 
+test("startup uses one targeted storage read and opens the report library only when requested", async () => {
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 3, hasCompletedFirstReport: true });
+  const originalGet = chrome.storage.local.get;
+  const originalOpen = indexedDB.open;
+  let startupReads = 0;
+  let libraryOpens = 0;
+  chrome.storage.local.get = async (keys) => {
+    if (document.querySelector(".startup-state")) {
+      startupReads += 1;
+      assert.ok(Array.isArray(keys), "startup should request only the settings it needs");
+    }
+    return originalGet(keys);
+  };
+  indexedDB.open = function (...args) {
+    libraryOpens += 1;
+    return originalOpen.apply(this, args);
+  };
+
+  try {
+    await importBundle(sidePanelSource, "fast-startup");
+    await waitFor(() => document.querySelector(".compact-home"));
+    assert.equal(startupReads, 1);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(libraryOpens, 0, "opening the home screen should not scan saved reports");
+    document.querySelector("#btn-library").click();
+    await waitFor(() => libraryOpens > 0);
+    await waitFor(() => !document.querySelector(".library-empty[role=status]"));
+  } finally {
+    chrome.storage.local.get = originalGet;
+    indexedDB.open = originalOpen;
+    restore();
+  }
+});
+
 test("the service worker registers lifecycle listeners and configures the toolbar", async () => {
   const originalChrome = globalThis.chrome;
   const listeners = {};

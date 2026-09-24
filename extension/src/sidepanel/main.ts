@@ -79,14 +79,11 @@ import {
   acceptPrivacyDisclosure,
   getAnalysisProvider,
   getApiKey,
-  hasCompletedFirstReport,
-  getMaxFrames,
   getProCloudSave,
   getCloudLibraryEnabled,
+  getStartupSettings,
   setCloudLibraryEnabled,
-  getReportLanguage,
   getProSession,
-  hasAcceptedPrivacyDisclosure,
   resetPrivacyDisclosure,
   markFirstReportCompleted,
   setAnalysisProvider,
@@ -186,14 +183,21 @@ const state: State = {
 };
 
 const PRIMARY_REPORT_MODES: AnalysisMode[] = ["general", "key_insights", "tutorial", "lesson", "interview"];
-const recipeStyle = document.createElement("style");
-recipeStyle.textContent = RECIPE_CSS + PROCEDURE_CSS + LESSON_CSS;
-document.head.appendChild(recipeStyle);
+let reportStylesLoaded = false;
+function ensureReportStyles(): void {
+  if (reportStylesLoaded) return;
+  const style = document.createElement("style");
+  style.textContent = RECIPE_CSS + PROCEDURE_CSS + LESSON_CSS;
+  document.head.appendChild(style);
+  reportStylesLoaded = true;
+}
 let analysisInFlight = false;
 let accountRefreshing = false;
 let lastAccountRefresh = 0;
 let librarySearchTimer: number | null = null;
 let libraryRefreshSequence = 0;
+let libraryHydration: Promise<void> | null = null;
+let startupReady = false;
 let cloudLibraryEnabled = false;
 let cloudUploadBusy = false;
 let cloudUploadCancelled = false;
@@ -246,6 +250,7 @@ libraryButton.addEventListener("click", () => {
   state.view = state.view === "library" ? "home" : "library";
   state.error = null;
   render();
+  if (state.view === "library") void loadReportLibraryOnDemand();
 });
 settingsButton.addEventListener("click", () => {
   if (state.startupError || !state.privacyDisclosureAccepted || state.view === "progress") return;
@@ -266,17 +271,16 @@ async function initializeSidePanel(): Promise<void> {
       return;
     }
 
-    state.privacyDisclosureAccepted = await hasAcceptedPrivacyDisclosure();
+    await loadStoredSettings();
     if (!state.privacyDisclosureAccepted) {
       render();
       return;
     }
 
-    await loadStoredSettings();
-
-    // Render from local state before optional network and IndexedDB recovery.
-    // A slow Pro endpoint or busy report library must never leave the panel blank.
+    // The home screen only waits for one small storage read.
     render();
+    startupReady = true;
+    lastAccountRefresh = Date.now();
     void hydrateDeferredState();
   } catch (error) {
     console.error("VideoLens startup:", error);
@@ -286,24 +290,16 @@ async function initializeSidePanel(): Promise<void> {
 }
 
 async function loadStoredSettings(): Promise<void> {
-  const [maxFrames, reportLanguage, analysisProvider, proCloudSave, proSession, apiKey, completedFirstReport, libraryCloudEnabled] = await Promise.all([
-    getMaxFrames(DEFAULTS.maxFrames),
-    getReportLanguage(),
-    getAnalysisProvider(),
-    getProCloudSave(),
-    getProSession(),
-    getApiKey(),
-    hasCompletedFirstReport(),
-    getCloudLibraryEnabled(),
-  ]);
-  state.maxFrames = maxFrames;
-  state.reportLanguage = reportLanguage;
-  state.analysisProvider = analysisProvider;
-  state.proCloudSave = proCloudSave;
-  cloudLibraryEnabled = libraryCloudEnabled;
-  state.proSession = proSession;
-  state.privateAccessReady = Boolean(apiKey);
-  state.hasCompletedFirstReport = completedFirstReport;
+  const settings = await getStartupSettings(DEFAULTS.maxFrames);
+  state.privacyDisclosureAccepted = settings.privacyDisclosureAccepted;
+  state.maxFrames = settings.maxFrames;
+  state.reportLanguage = settings.reportLanguage;
+  state.analysisProvider = settings.analysisProvider;
+  state.proCloudSave = settings.proCloudSave;
+  cloudLibraryEnabled = settings.cloudLibraryEnabled;
+  state.proSession = settings.proSession;
+  state.privateAccessReady = settings.privateAccessReady;
+  state.hasCompletedFirstReport = settings.hasCompletedFirstReport;
 }
 
 async function initializePreview(): Promise<void> {
@@ -344,31 +340,36 @@ async function initializePreview(): Promise<void> {
 }
 
 async function hydrateDeferredState(): Promise<void> {
-  await Promise.allSettled([
-    hydrateReportLibrary(),
-    hydrateProState(),
-  ]);
-  if (hasExtensionStorage && state.view === "home") {
+  const hadSession = Boolean(state.proSession);
+  void hydrateProState().then(() => {
+    if (state.view === "home" && !hadSession && state.proSession) render();
+    else renderBadge();
+  });
+  if (state.view === "home") {
     const { checkoutReportId } = await chrome.storage.local.get("checkoutReportId");
-    if (typeof checkoutReportId === "string") {
+    if (typeof checkoutReportId === "string" && state.view === "home") {
       await chrome.storage.local.remove("checkoutReportId");
       await openLocalReport(checkoutReportId);
     }
   }
-  render();
 }
 
-async function hydrateReportLibrary(): Promise<void> {
-  try {
-    await ensurePersistentReportStorage();
-    await refreshReportLibrary();
-    if (!state.hasCompletedFirstReport && state.savedReportCount > 0) {
-      state.hasCompletedFirstReport = true;
-      if (hasExtensionStorage) await markFirstReportCompleted();
+function loadReportLibraryOnDemand(): Promise<void> {
+  if (!state.libraryLoading) return Promise.resolve();
+  if (!libraryHydration) libraryHydration = (async () => {
+    try {
+      await ensurePersistentReportStorage();
+      await refreshReportLibrary();
+      if (!state.hasCompletedFirstReport && state.savedReportCount > 0) {
+        state.hasCompletedFirstReport = true;
+        if (hasExtensionStorage) void markFirstReportCompleted().catch((error) => console.error("first-report state:", error));
+      }
+    } finally {
+      state.libraryLoading = false;
+      if (state.view === "library") render();
     }
-  } finally {
-    state.libraryLoading = false;
-  }
+  })();
+  return libraryHydration;
 }
 
 async function hydrateProState(): Promise<void> {
@@ -398,7 +399,7 @@ async function refreshAccountAccess(manual = false): Promise<void> {
   } finally { accountRefreshing = false; }
 }
 window.addEventListener("focus", () => {
-  if (Date.now() - lastAccountRefresh > 5000) void refreshAccountAccess();
+  if (startupReady && Date.now() - lastAccountRefresh > 5000) void refreshAccountAccess();
 });
 
 async function continueWithManaged(): Promise<void> {
@@ -1148,6 +1149,7 @@ async function persistCurrentReport(localOnly = false): Promise<void> {
     state.savedReportId = saved.id;
     state.libraryStorageFull = false;
     await refreshReportLibrary();
+    void ensurePersistentReportStorage();
     if (!localOnly && state.proSession && await getCloudLibraryEnabled()) {
       try { await uploadReportCopy(state.proSession.token, saved, true); }
       catch { state.error = cloudCopy("failed"); }
@@ -1277,6 +1279,7 @@ async function openFullReport(id?: string): Promise<void> {
 
 function renderResults(): void {
   const a = state.analysis!;
+  if (a.recipe || a.procedure || a.lesson) ensureReportStyles();
 
   const back = el(`<button class="back-link">${esc(t("newAnalysis"))}</button>`);
   back.addEventListener("click", () => {
