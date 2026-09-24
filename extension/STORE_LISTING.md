@@ -15,77 +15,95 @@ Everything to paste into the Chrome Web Store developer console.
 ## Description
 
 ```
-VideoLens analyzes the video you're already watching and returns a structured,
-timestamped report — right in Chrome's side panel.
+VideoLens turns videos into useful written reports — right in Chrome’s side panel.
 
-WHAT'S NEW — SEPTEMBER 13, 2026 · VERSION 0.4.5
-• Upload your existing library to your VideoLens account, including BYOK reports and follow-up answers
-• Save new reports and follow-up answers to the cloud when you choose
-• See upload progress and retry failed uploads without duplicates
-• Keep local copies; uploads use no managed AI report credits
+Understand the important ideas, capture visual details, and return to the moments that matter. VideoLens combines sampled frames, on-screen text, and available captions or audio to create structured reports with timestamped evidence.
 
-Choose the report language independently from the video. VideoLens supports
-English, Simplified Chinese, Traditional Chinese, Latin American Spanish,
-Brazilian Portuguese, Japanese, Korean, French, German, Romanian, and Hindi,
-plus an automatic same-as-video option.
-Follow-up answers and exported reports stay in the selected language.
+Open a YouTube video or supported HTML5 player, choose a report style, and tell VideoLens what you want to learn. YouTube Shorts and local video files work too.
 
-Every completed report and its follow-up Q&A are saved automatically to a
-private local library in Chrome. Continue the latest report, reopen any saved
-report, or delete it whenever you want. The local library has no VideoLens-
-imposed report-count limit and is never synced or sent to VideoLens.
+CHOOSE THE REPORT YOU NEED
 
-Open a YouTube video or another page with an HTML5 video player, choose a
-report style, and ask what you want to learn. VideoLens samples frames, reads
-available captions, and creates an evidence-grounded analysis where every
-finding cites the exact moment in the video. Local video files work too
-(mp4 / webm / mov), including audio transcription for files up to 20 minutes.
+- Detailed report — main ideas, context, examples, caveats, and conclusions
+- Key insights — the most useful takeaways
+- Tutorial guide — ordered steps, commands, warnings, and verification
+- Interview / podcast — themes, claims, quotes, and follow-up questions
+- Meeting — decisions, commitments, and follow-up actions
+- Bug report — reproduction steps, failure modes, and severity
+- UX review — friction in session replays and screen recordings
+- Product demo — features and positioning
+- Content review — hook, pacing, claims, and calls to action
+- Privacy scan — possible secrets, credentials, and personal information visible in a video
+- Recipe (preview) — ingredients, quantities, and preparation steps from cooking videos, with estimates and missing details clearly marked
 
-REPORT STYLES AND SPECIALIZED MODES
-• Detailed report — important ideas, context, examples, caveats, and conclusions
-• Key insights — signal without repetition or filler
-• Tutorial guide — ordered steps, commands, warnings, and verification
-• Interview / podcast — themes, claims, quotes, and follow-up questions
-• Bug report — repro steps, failure modes, severity
-• Meeting — decisions, commitments, follow-up actions
-• UX review — user friction in session replays and screen recordings
-• Product demo — feature inventory and positioning analysis
-• Content review — hook, pacing, claims, call-to-action critique
-• Privacy scan — find secrets, credentials, and PII before you share
+ASK QUESTIONS AND EXPLORE THE EVIDENCE
 
-TWO CLEAR MODES
-Private / BYOK mode is free forever. The pipeline runs inside your browser;
-the selected video's frames, audio or captions, page title, and your prompt
-go directly to OpenAI using your key. VideoLens does not receive them. Your
-key stays on your device. A typical video costs $0.05–$1.50 in OpenAI usage,
-billed directly to your OpenAI account. An estimate appears before each run.
+Ask follow-up questions about an analyzed video without starting over. Use timestamp citations to return to the source and check the context behind a finding.
 
-Pro / Managed mode removes the API-key setup. The analysis content passes
-securely through VideoLens and Vercel AI Gateway to the configured AI provider
-(currently OpenAI) and counts against a managed-report allowance. A free account
-includes one managed starter report. Pro includes 20 managed reports per calendar
-month for $12/month or $99/year. Raw frames and audio are not retained. Saving
-the completed report to your cloud library is optional and off by default.
+Open the complete report in a spacious full-page reader directly from the side panel.
+
+KEEP YOUR REPORTS
+
+Completed reports and follow-up answers save automatically to a local library on your device. Continue your latest report, reopen earlier reports, search their contents, or delete them.
+
+There is no VideoLens-imposed limit on locally saved reports; available device storage still applies. Export a library backup and restore it when needed.
+
+Cloud storage is optional. Connect a VideoLens account and choose to upload existing reports or save future reports and answers online. Local copies remain available, and library uploads do not use managed AI report credits.
+
+EXPORT SOMETHING WORTH SHARING
+
+- Download a self-contained HTML report
+- Save a polished PDF through Chrome’s print dialog
+- Export Markdown or JSON
+- Copy the report as text
+- Read locally saved reports offline
+
+CHOOSE YOUR REPORT LANGUAGE
+
+Generate reports in English, Simplified Chinese, Traditional Chinese, Latin American Spanish, Brazilian Portuguese, Japanese, Korean, French, German, Romanian, or Hindi.
+
+Choose a language independently of the video, follow your browser language, or select Same as video. Follow-up answers and exports use the selected report language.
+
+TWO WAYS TO USE VIDEOLENS
+
+Private / BYOK
+
+Use your own OpenAI API key with no VideoLens subscription or analysis-count limit. Video preparation happens in your browser, and selected analysis content goes directly to OpenAI. Your key is stored locally and sent only to OpenAI.
+
+OpenAI usage is billed to your OpenAI account. Costs vary with the video and processing required.
+
+Pro / Managed
+
+Analyze without setting up an API key. A free account includes one managed starter report. Pro includes 20 managed reports per calendar month for $12/month or $99/year.
+
+Managed analysis sends the required content through VideoLens to the configured AI provider, currently OpenAI. VideoLens does not retain raw frames or audio. Cloud saving is optional and off by default.
+
+Optional online recipe lookup sends recipe context through your selected AI connection to OpenAI’s web search. Search queries may reach search providers, and lookup adds provider charges when using your own API key.
+
+SUPPORTED SOURCES AND LIMITS
+
+VideoLens supports YouTube videos and Shorts, compatible HTML5 video players, and local video files. MP4, WebM, and MOV playback depends on the codecs supported by Chrome.
+
+For in-page videos, spoken content comes from available captions; VideoLens does not directly transcribe tab audio. Supported local files up to 20 minutes can be transcribed. Longer local files use visual analysis without audio transcription.
+
+DRM-protected video and live streams are not supported. Some websites prevent frame capture through browser security restrictions.
+
+Recipe preview supports YouTube and local files. Reconstructed recipes have not been kitchen-tested; review estimates and missing details before cooking.
 
 OPEN SOURCE
-The private BYOK workflow remains free under the MIT license with unlimited
-analyses. Pro is an optional convenience layer, not a replacement for Free.
 
-ALSO IN THE BOX
-• Follow-up Q&A: ask more questions against the analyzed timeline for cents
-• Unlimited local report library with Continue, reopen, and delete controls
-• Multilingual reports with automatic browser-language and same-as-video options
-• Download a self-contained, professionally designed HTML report
-• Open the print-ready report and save a polished PDF using Chrome's print dialog
-• Export Markdown or JSON, or copy the report as text
-• Open source (MIT): github.com/shadoprizm/videolens
+VideoLens is open source under the MIT license. Private mode remains free to use, with AI usage billed separately by OpenAI. Pro provides optional managed processing and account features.
 
-LIMITS WORTH KNOWING
-DRM-protected players (Netflix, Disney+, etc.) cannot be captured — this is
-a browser security guarantee, not a bug. Live streams are not supported.
-Audio transcription of in-page videos uses available captions (YouTube);
-local files up to 20 minutes are transcribed directly. On other sites,
-cross-origin video security can prevent frame capture.
+Source code: github.com/shadoprizm/videolens
+Privacy policy: videolens.io/privacy
+
+RELEASE NOTES — VERSION 0.7.1 · SEPTEMBER 18, 2026
+
+- Added Create a Lesson, with learning objectives, guided modules, checkpoint questions, saved study progress, a final challenge, and printable student worksheets and answer keys
+- Upgraded Tutorial Guide to Make a Procedure, producing source-backed prerequisites, exact actions and settings, success checks, clearly marked gaps, and a reusable checklist
+- Added account-first onboarding: create a free account and make one managed starter report without an API key or credit card
+- Kept Private / BYOK mode free and available without creating a VideoLens account
+- Improved report continuity so managed reports save locally, survive sidebar or checkout restarts, and refresh account access after checkout
+- Improved failure guidance, duplicate-analysis protection, and Recipe draft preservation while optional online research continues
 ```
 
 ## Permission justifications (the review form asks for each)
