@@ -23,6 +23,8 @@ Version 0.4.6 captures YouTube video headings without notification-count prefixe
 
 Version 0.5.0 adds Recipe (preview) for YouTube, Shorts and local cooking videos: denser frame capture, evidence-linked ingredients and steps, optional cited online lookup, and recipe-aware saved reports and exports. Missing measurements remain visibly unknown. Recipe reconstruction has not been kitchen-tested.
 
+Version 0.7.2 shortens sidebar startup with one targeted settings read, on-demand report-library loading, and a smaller JavaScript bundle. The saved library and account settings are preserved.
+
 ## 1. Build & verify
 
 ```bash
