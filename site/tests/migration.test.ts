@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const migrationPath = fileURLToPath(
-  new URL("../../supabase/migrations/20260817230407_pro_accounts_billing_and_reports.sql", import.meta.url),
+  new URL("../../supabase/migrations/20260818010844_pro_accounts_billing_and_reports.sql", import.meta.url),
 );
 const migration = readFileSync(migrationPath, "utf8");
 

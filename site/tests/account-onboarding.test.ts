@@ -33,7 +33,8 @@ async function openAccount(options: { signedIn?: boolean; remaining?: number; pr
   const url = new URL(`https://videolens.io/account${options.search || ""}`);
   vm.runInNewContext(bundle.outputFiles[0].text, {
     window, document: window.document, location: url, URL, Headers, fetch, queueMicrotask, console, Option,
-    fixtureAuth: { auth: { onAuthStateChange: () => {}, getSession: async () => ({ data: { session } }), signInWithOtp } },
+    fixtureAuth: { auth: { onAuthStateChange: () => {}, getSession: async () => ({ data: { session } }), signInWithOtp,
+      oauth: { listGrants: async () => ({ data: [], error: null }) } } },
     FormData: class { get() { return "member@example.invalid"; } },
   });
   const document = window.document;

@@ -115,3 +115,4 @@ create function public.administrator_dashboard(
 $$;
 revoke all on function public.administrator_dashboard(text, text, integer, integer, uuid) from public, anon, authenticated;
 grant execute on function public.administrator_dashboard(text, text, integer, integer, uuid) to service_role;
+;

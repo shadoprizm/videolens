@@ -237,7 +237,7 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
 const staticFiles = [
-  "index.html", "privacy.html", "account.html", "admin.html", "admin.css", "chrome.html", "firefox.html", "recipe-preview.html", "procedure-preview.html", "lesson-preview.html", "robots.txt", "llms.txt",
+  "index.html", "privacy.html", "support.html", "terms.html", "account.html", "admin.html", "admin.css", "chrome.html", "firefox.html", "recipe-preview.html", "procedure-preview.html", "lesson-preview.html", "oauth-consent.html", "robots.txt", "llms.txt",
   "content.css", "account.css", "cloud-report.css", "analytics.js", "favicon.svg", "favicon.ico", "favicon-16x16.png",
   "favicon-32x32.png", "apple-touch-icon.png", "android-chrome-192x192.png",
   "android-chrome-512x512.png", "site.webmanifest", "og.png", "og-extension-launch.png", "og-browser-extensions.png", "googlecc8e26327b14309f.html"
@@ -271,6 +271,9 @@ await build({
   minify: true,
   outfile: join(out, "account.js"),
 });
+
+await build({ entryPoints: [join(root, "oauth-consent.ts")], bundle: true, format: "esm",
+  platform: "browser", target: ["es2022"], minify: true, outfile: join(out, "oauth-consent.js") });
 
 await build({
   entryPoints: [join(root, "admin.ts")], bundle: true, format: "esm",
