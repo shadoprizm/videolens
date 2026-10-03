@@ -17,6 +17,6 @@ Supabase production Auth needs these targeted settings after the site release: `
 
 `plugin.json` holds the public listing and five positive and three negative review cases. `mcp.json` points to the one production server. Icons are copied from the existing VideoLens site. The review account credentials and instructions belong in the secure OpenAI dashboard form, never in the ZIP or repository. Add the verified demo recording URL after running the scenarios against the live connection, then rebuild the ZIP from this directory's `plugin.json`, `mcp.json`, and `assets/`.
 
-The package currently identifies the publisher as the VideoLens brand. Confirm the exact verified developer identity and country availability in the OpenAI dashboard before submission. Do not label a draft upload, scan, or passing local test as a completed review submission.
+The package uses the verified individual developer identity currently available in the OpenAI dashboard, Jeramy Adam Ratelle. The app display name remains VideoLens. Confirm country availability in the dashboard before submission. Do not label a draft upload, scan, or passing local test as a completed review submission.
 
 This site-only release does not change `extension/`; it has no Chrome or Firefox extension release impact.

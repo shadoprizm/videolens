@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Find and read reports explicitly saved in your VideoLens cloud library.",
   "author": {
-    "name": "VideoLens",
+    "name": "Jeramy Adam Ratelle",
     "email": "astrawebdevservices@gmail.com",
     "url": "https://videolens.io"
   },
@@ -18,7 +18,7 @@
         "displayName": "VideoLens",
         "shortDescription": "Explore saved video reports",
         "longDescription": "Connect your VideoLens account to find and read reports you explicitly saved to your cloud library. Ask about a report's summary, findings, lesson, procedure, recipe, or timestamped transcript and visual evidence. VideoLens cannot analyze a new video from ChatGPT, access local-only reports, delete reports, or change billing.",
-        "developerName": "VideoLens",
+        "developerName": "Jeramy Adam Ratelle",
         "category": "Productivity",
         "capabilities": ["Find saved video reports", "Read reports and timestamps"],
         "websiteURL": "https://videolens.io",
