@@ -239,3 +239,4 @@ grant execute on function public.record_managed_ai_request(uuid, uuid, text) to 
 
 comment on table public.reports is 'Managed report reservations; final report JSON is stored only when the user explicitly enables cloud saving.';
 comment on table public.extension_pairings is 'Short-lived, one-time browser-extension pairing challenges; no Supabase refresh token is sent to the extension.';
+;

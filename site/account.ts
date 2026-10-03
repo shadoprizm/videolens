@@ -91,12 +91,46 @@ async function renderSession(): Promise<void> {
   showOnly(signedInView);
   byId("account-email").textContent = session.user.email || "Signed in";
   try {
-    await Promise.all([loadEntitlement(), loadReports()]);
+    await Promise.all([loadEntitlement(), loadReports(), loadConnectedApps()]);
     if (sequence !== renderSequence) return;
     renderExtensionConnect();
     showCheckoutMessage();
     void confirmCheckout();
   } catch (error) { if (sequence === renderSequence) setMessage(asMessage(error), "error"); }
+}
+
+async function loadConnectedApps(): Promise<void> {
+  if (!supabase) return;
+  const section = byId("connected-apps");
+  const list = byId("connected-app-list");
+  const { data, error } = await supabase.auth.oauth.listGrants();
+  if (error || !data?.length) { section.hidden = true; return; }
+  list.replaceChildren();
+  for (const grant of data) {
+    const row = document.createElement("div");
+    row.className = "mode-row";
+    const details = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = grant.client.name;
+    const scopes = document.createElement("p");
+    scopes.textContent = `Granted: ${grant.scopes.join(", ") || "account access"}`;
+    details.append(name, scopes);
+    const revoke = document.createElement("button");
+    revoke.type = "button";
+    revoke.className = "button button-secondary";
+    revoke.textContent = "Remove access";
+    revoke.addEventListener("click", async () => {
+      if (!confirm(`Remove ${grant.client.name}'s access to your VideoLens account?`)) return;
+      revoke.disabled = true;
+      const result = await supabase!.auth.oauth.revokeGrant({ clientId: grant.client.id });
+      if (result.error) { setMessage(result.error.message, "error"); revoke.disabled = false; return; }
+      await loadConnectedApps();
+      setMessage(`${grant.client.name} access removed.`, "success");
+    });
+    row.append(details, revoke);
+    list.append(row);
+  }
+  section.hidden = false;
 }
 
 function showOnly(view: HTMLElement): void {

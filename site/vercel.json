@@ -26,6 +26,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/.well-known/oauth-protected-resource", "destination": "/api/oauth-protected-resource" },
     { "source": "/lesson-preview", "destination": "/lesson-preview.html" },
     { "source": "/procedure-preview", "destination": "/procedure-preview.html" },
     {
@@ -36,10 +37,13 @@
       "source": "/admin",
       "destination": "/admin.html"
     },
+    { "source": "/oauth/consent", "destination": "/oauth-consent.html" },
     {
       "source": "/privacy",
       "destination": "/privacy.html"
     },
+    { "source": "/support", "destination": "/support.html" },
+    { "source": "/terms", "destination": "/terms.html" },
     {
       "source": "/account",
       "destination": "/account.html"

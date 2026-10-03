@@ -11,3 +11,4 @@ language sql stable security invoker set search_path = '' as $$
 $$;
 revoke all on function public.activation_funnel() from public, anon, authenticated;
 grant execute on function public.activation_funnel() to service_role;
+;

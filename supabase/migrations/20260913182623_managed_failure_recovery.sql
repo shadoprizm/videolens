@@ -209,3 +209,4 @@ select jsonb_build_object(
   ) d)
 );
 $$;
+;

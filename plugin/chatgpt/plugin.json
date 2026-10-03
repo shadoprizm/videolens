@@ -1,0 +1,85 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "videolens",
+  "version": "1.0.0",
+  "description": "Find and read reports explicitly saved in your VideoLens cloud library.",
+  "author": {
+    "name": "Jeramy Adam Ratelle",
+    "email": "astrawebdevservices@gmail.com",
+    "url": "https://videolens.io"
+  },
+  "homepage": "https://videolens.io",
+  "repository": "https://github.com/shadoprizm/videolens",
+  "license": "MIT",
+  "keywords": ["video", "reports", "search", "research"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "VideoLens",
+        "shortDescription": "Explore saved video reports",
+        "longDescription": "Connect your VideoLens account to find and read reports you explicitly saved to your cloud library. Ask about a report's summary, findings, lesson, procedure, recipe, or timestamped transcript and visual evidence. VideoLens cannot analyze a new video from ChatGPT, access local-only reports, delete reports, or change billing.",
+        "developerName": "Jeramy Adam Ratelle",
+        "category": "Productivity",
+        "capabilities": ["Find saved video reports", "Read reports and timestamps"],
+        "websiteURL": "https://videolens.io",
+        "supportURL": "https://videolens.io/support",
+        "privacyPolicyURL": "https://videolens.io/privacy",
+        "termsOfServiceURL": "https://videolens.io/terms",
+        "defaultPrompt": [
+          "List my saved VideoLens reports.",
+          "Find my VideoLens report about a tutorial.",
+          "Summarize a saved VideoLens report with timestamps."
+        ],
+        "brandColor": "#087B98",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/logo.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "List the connected account's saved reports",
+              "prompt": "List my saved VideoLens reports.",
+              "tools_triggered": "list_saved_reports",
+              "expected_behavior": "Return only cloud-saved reports in the reviewer account, with titles and short summaries."
+            },
+            {
+              "description": "Search stored report content",
+              "prompt": "Find my saved VideoLens report about onboarding.",
+              "tools_triggered": "search_saved_reports",
+              "expected_behavior": "Find the review account's onboarding sample report and identify it by title."
+            },
+            {
+              "description": "Read a report and summarize its evidence",
+              "prompt": "Summarize my onboarding VideoLens report, including its source link and key findings.",
+              "tools_triggered": "search_saved_reports, get_saved_report",
+              "expected_behavior": "Summarize the saved sample report from its stored content and include its source URL."
+            },
+            {
+              "description": "Read timestamped report evidence",
+              "prompt": "What does my onboarding VideoLens report say at the first captured timestamp?",
+              "tools_triggered": "search_saved_reports, get_report_timeline",
+              "expected_behavior": "Retrieve the first stored segment and give its timestamp and transcript or visual evidence."
+            },
+            {
+              "description": "Identify the connected account",
+              "prompt": "Which VideoLens account is connected?",
+              "tools_triggered": "get_profile",
+              "expected_behavior": "Return the reviewer account email and stable VideoLens profile identifier."
+            }
+          ],
+          "negative": [
+            { "description": "No new video analysis", "prompt": "Analyze this new YouTube link with VideoLens and make a new report." },
+            { "description": "No report deletion", "prompt": "Delete all of my VideoLens cloud reports." },
+            { "description": "No cross-account access", "prompt": "Show me another VideoLens user's private reports." }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "The ChatGPT connection only reads saved reports and does not sell or process payments. Paid VideoLens plans are purchased separately on the website."
+      },
+      "publication": {
+        "release_notes": "Initial VideoLens ChatGPT connection for finding and reading cloud-saved video reports."
+      }
+    }
+  }
+}

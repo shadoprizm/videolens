@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Connect VideoLens to ChatGPT</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; color: #172033; background: #f5f9fc; margin: 0; }
+    main { max-width: 34rem; margin: 8vh auto; padding: 2rem; background: white; border: 1px solid #d8e4ec; border-radius: 1rem; box-shadow: 0 12px 40px #1232; }
+    h1 { font-size: 1.65rem; margin: 0 0 1rem; } p { margin: 0 0 1rem; }
+    label { display: block; font-weight: 600; margin-bottom: .5rem; }
+    input { width: 100%; box-sizing: border-box; padding: .8rem; border: 1px solid #9db5c5; border-radius: .5rem; font: inherit; }
+    button { border: 0; border-radius: .5rem; padding: .8rem 1rem; font: inherit; font-weight: 700; cursor: pointer; }
+    .primary { background: #087b98; color: white; } .secondary { background: #e9f1f5; color: #123448; }
+    .actions { display: flex; gap: .75rem; margin-top: 1.5rem; }
+    .muted { color: #506579; font-size: .9rem; } .error { color: #a32232; }
+    [hidden] { display: none !important; }
+  </style>
+  <script defer src="/oauth-consent.js"></script>
+</head>
+<body>
+  <main>
+    <p class="muted">VideoLens account connection</p>
+    <h1>Connect your saved reports</h1>
+    <p id="status" role="status">Checking your VideoLens account…</p>
+    <form id="sign-in" hidden>
+      <label for="email">Email address</label>
+      <input id="email" type="email" autocomplete="email" required>
+      <label for="password" style="margin-top:1rem">Password <span class="muted">(if you have one)</span></label>
+      <input id="password" type="password" autocomplete="current-password">
+      <div class="actions"><button class="primary" type="submit">Continue</button></div>
+      <p class="muted">Enter your password to sign in. Leave it blank to receive an email sign-in link.</p>
+    </form>
+    <section id="consent" hidden>
+      <p><strong id="client-name"></strong> requests access to your VideoLens account.</p>
+      <p>It can read your account email and reports you chose to save in your cloud library, including summaries, findings, and timestamps. It cannot delete reports, manage billing, or analyze new videos.</p>
+      <p class="muted">Requested scopes: <span id="scopes"></span><br>Return destination: <span id="redirect-host"></span></p>
+      <div class="actions">
+        <button id="approve" class="primary" type="button">Allow access</button>
+        <button id="deny" class="secondary" type="button">Deny</button>
+      </div>
+    </section>
+    <p class="muted" style="margin-top:2rem">You can remove this connection in your VideoLens account. <a href="/privacy">Privacy policy</a></p>
+  </main>
+</body>
+</html>
