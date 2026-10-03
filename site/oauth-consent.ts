@@ -9,6 +9,7 @@ const signInButton = document.getElementById("sign-in-button") as HTMLButtonElem
 let captchaToken: string | null = null;
 let turnstileWidgetId: string | null = null;
 let turnstileRetries = 0;
+let alternateAccount = false;
 
 function setStatus(message: string, error = false) {
   status.textContent = message;
@@ -53,7 +54,13 @@ async function boot() {
   if (!response.ok) throw new Error("VideoLens account service is unavailable.");
   const config = await response.json() as Config;
   if (!config.supabaseUrl || !config.supabasePublishableKey || !config.turnstileSiteKey) throw new Error("VideoLens account service is unavailable.");
-  const auth = createClient(config.supabaseUrl, config.supabasePublishableKey).auth;
+  // An alternate OAuth login stays in this consent tab's session storage.
+  // It does not replace the user's normal VideoLens account session.
+  const auth = (alternateAccount
+    ? createClient(config.supabaseUrl, config.supabasePublishableKey, {
+      auth: { storage: window.sessionStorage, storageKey: "videolens-oauth-alternate" },
+    })
+    : createClient(config.supabaseUrl, config.supabasePublishableKey)).auth;
   const { data: userData } = await auth.getUser();
   if (!userData.user) {
     setStatus("Sign in to VideoLens before deciding whether to connect this app.");
@@ -91,6 +98,13 @@ async function boot() {
   document.getElementById("redirect-host")!.textContent = new URL(data.redirect_uri).host;
   setStatus(`Signed in as ${userData.user.email || "your VideoLens account"}.`);
   consent.hidden = false;
+  const switchAccount = document.getElementById("switch-account") as HTMLButtonElement;
+  switchAccount.hidden = alternateAccount;
+  switchAccount.onclick = () => {
+    alternateAccount = true;
+    consent.hidden = true;
+    void boot().catch(reason => setStatus(reason instanceof Error ? reason.message : "Could not switch accounts.", true));
+  };
   async function decide(allow: boolean) {
     (document.getElementById("approve") as HTMLButtonElement).disabled = true;
     (document.getElementById("deny") as HTMLButtonElement).disabled = true;
