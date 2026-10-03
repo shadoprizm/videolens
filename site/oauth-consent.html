@@ -18,6 +18,7 @@
     .muted { color: #506579; font-size: .9rem; } .error { color: #a32232; }
     [hidden] { display: none !important; }
   </style>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
   <script defer src="/oauth-consent.js"></script>
 </head>
 <body>
@@ -30,7 +31,8 @@
       <input id="email" type="email" autocomplete="email" required>
       <label for="password" style="margin-top:1rem">Password <span class="muted">(if you have one)</span></label>
       <input id="password" type="password" autocomplete="current-password">
-      <div class="actions"><button class="primary" type="submit">Continue</button></div>
+      <div id="turnstile-container" style="margin-top:1rem" aria-live="polite"></div>
+      <div class="actions"><button id="sign-in-button" class="primary" type="submit" disabled>Complete the human check</button></div>
       <p class="muted">Enter your password to sign in. Leave it blank to receive an email sign-in link.</p>
     </form>
     <section id="consent" hidden>
