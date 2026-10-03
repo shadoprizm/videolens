@@ -15,13 +15,20 @@ const bundle = await build({
 });
 async function openAccount(options: { signedIn?: boolean; remaining?: number; pro?: boolean; search?: string } = {}) {
   const { window } = parseHTML(html);
+  (window as unknown as { turnstile: unknown }).turnstile = {
+    render: (_container: unknown, settings: { callback: (token: string) => void }) => {
+      settings.callback("captcha-test-token");
+      return "fixture-widget";
+    },
+    reset: () => {},
+  };
   Object.defineProperty(window.HTMLSelectElement.prototype, "add", { configurable: true, value(option: unknown) { this.append(option); } });
   const Option = function(label: string, value: string) { const option = window.document.createElement("option"); option.textContent = label; option.value = value; return option; };
   const session = options.signedIn === false ? null : { user: { id: "member", email: "member@example.invalid" }, access_token: "fixture" };
   const remaining = options.remaining ?? 1;
   const signInWithOtp = vi.fn(async () => ({ error: null }));
   const fetch = vi.fn(async (input: string) => {
-    if (input === "/api/config") return Response.json({ proAvailable: true, checkoutAvailable: true, supabaseUrl: "https://example.invalid", supabasePublishableKey: "fixture" });
+    if (input === "/api/config") return Response.json({ proAvailable: true, checkoutAvailable: true, supabaseUrl: "https://example.invalid", supabasePublishableKey: "fixture", turnstileSiteKey: "public-test-key" });
     if (input === "/api/entitlement") return Response.json({ user: { isAdministrator: false }, entitlement: {
       plan: options.pro ? "pro" : "free", managedReportsRemaining: remaining,
       managedReportsUsed: 1 - remaining, managedReportsLimit: options.pro ? 20 : 1,
@@ -71,6 +78,6 @@ it("email sign-in retains the extension pairing and does not create checkout", a
   const { document, window, signInWithOtp, fetch } = await openAccount({ signedIn: false, search: "?connect=nonce&device=device" });
   document.getElementById("sign-in-form")!.dispatchEvent(new window.Event("submit", { cancelable: true }));
   await vi.waitFor(() => expect(signInWithOtp).toHaveBeenCalled());
-  expect(signInWithOtp.mock.calls[0]).toEqual([{ email: "member@example.invalid", options: { emailRedirectTo: "https://videolens.io/account?connect=nonce&device=device" } }]);
+  expect(signInWithOtp.mock.calls[0]).toEqual([{ email: "member@example.invalid", options: { emailRedirectTo: "https://videolens.io/account?connect=nonce&device=device", captchaToken: "captcha-test-token", shouldCreateUser: true } }]);
   expect(fetch.mock.calls.some(([url]) => url.includes("checkout"))).toBe(false);
 });

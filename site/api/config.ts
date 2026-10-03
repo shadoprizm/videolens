@@ -9,6 +9,7 @@ export async function handler(request: Request): Promise<Response> {
   try {
     const supabaseUrl = optionalEnv("SUPABASE_URL");
     const publishableKey = optionalEnv("SUPABASE_PUBLISHABLE_KEY");
+    const turnstileSiteKey = optionalEnv("TURNSTILE_SITE_KEY");
     const managedAiAvailable = Boolean(
       optionalEnv("OPENAI_API_KEY") ||
       optionalEnv("AI_GATEWAY_API_KEY") ||
@@ -21,6 +22,7 @@ export async function handler(request: Request): Promise<Response> {
         publishableKey &&
         optionalEnv("SUPABASE_SERVICE_ROLE_KEY") &&
         optionalEnv("VIDEOLENS_EXTENSION_JWT_SECRET") &&
+        turnstileSiteKey &&
         managedAiAvailable,
       ),
       checkoutAvailable: Boolean(
@@ -30,6 +32,7 @@ export async function handler(request: Request): Promise<Response> {
       ),
       supabaseUrl,
       supabasePublishableKey: publishableKey,
+      turnstileSiteKey,
       plans: {
         free: { managedReports: planConfig.freeManagedReports },
         pro: {

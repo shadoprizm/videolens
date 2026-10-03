@@ -10,6 +10,23 @@ interface PublicConfig {
   checkoutAvailable: boolean;
   supabaseUrl: string | null;
   supabasePublishableKey: string | null;
+  turnstileSiteKey: string | null;
+}
+
+interface Turnstile {
+  render(container: HTMLElement, options: {
+    sitekey: string;
+    action: string;
+    theme: "light";
+    callback: (token: string) => void;
+    "expired-callback": () => void;
+    "error-callback": () => void;
+  }): string;
+  reset(widgetId?: string): void;
+}
+
+declare global {
+  interface Window { turnstile?: Turnstile }
 }
 
 import type { Entitlement } from "./api/_lib/entitlements.js";
@@ -29,6 +46,9 @@ let renderSequence = 0;
 let reports: CloudReport[] = [];
 let reportSearch = new Map<string, string>();
 let activeReport: CloudReport | null = null;
+let captchaToken: string | null = null;
+let turnstileWidgetId: string | null = null;
+let turnstileRetries = 0;
 const reader = byId<HTMLDialogElement>("report-reader");
 
 void boot();
@@ -86,6 +106,7 @@ async function renderSession(): Promise<void> {
     byId("report-list").replaceChildren();
     showOnly(signedOutView);
     showCheckoutMessage();
+    renderTurnstile();
     return;
   }
   showOnly(signedInView);
@@ -148,6 +169,11 @@ async function sendMagicLink(event: SubmitEvent): Promise<void> {
   if (!supabase) return;
   const form = event.currentTarget as HTMLFormElement;
   const button = form.querySelector<HTMLButtonElement>("button")!;
+  if (!captchaToken) {
+    setMessage("Complete the human check before requesting a sign-in link.", "error");
+    renderTurnstile();
+    return;
+  }
   const email = new FormData(form).get("email")?.toString().trim() || "";
   button.disabled = true;
   try {
@@ -159,15 +185,56 @@ async function sendMagicLink(event: SubmitEvent): Promise<void> {
     }
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: redirect.toString() },
+      options: { emailRedirectTo: redirect.toString(), captchaToken, shouldCreateUser: true },
     });
     if (error) throw error;
     setMessage("Check your inbox for the secure VideoLens sign-in link.", "success");
   } catch (error) {
     setMessage(asMessage(error), "error");
   } finally {
-    button.disabled = false;
+    resetTurnstile();
   }
+}
+
+function renderTurnstile(): void {
+  if (session || !config?.turnstileSiteKey || turnstileWidgetId) return;
+  const button = byId<HTMLFormElement>("sign-in-form").querySelector<HTMLButtonElement>("button")!;
+  button.disabled = true;
+  if (!window.turnstile) {
+    if (turnstileRetries++ < 10) window.setTimeout(renderTurnstile, 100);
+    else setMessage("The human check did not load. Refresh the page and try again.", "error");
+    return;
+  }
+  turnstileRetries = 0;
+  turnstileWidgetId = window.turnstile.render(byId("turnstile-container"), {
+    sitekey: config.turnstileSiteKey,
+    action: "account_sign_in",
+    theme: "light",
+    callback(token) {
+      captchaToken = token;
+      button.disabled = false;
+      button.textContent = "Email me a sign-in link";
+    },
+    "expired-callback"() {
+      captchaToken = null;
+      button.disabled = true;
+      button.textContent = "Complete the human check to continue";
+    },
+    "error-callback"() {
+      captchaToken = null;
+      button.disabled = true;
+      button.textContent = "Complete the human check to continue";
+      setMessage("The human check could not be verified. Try again.", "error");
+    },
+  });
+}
+
+function resetTurnstile(): void {
+  captchaToken = null;
+  const button = byId<HTMLFormElement>("sign-in-form").querySelector<HTMLButtonElement>("button")!;
+  button.disabled = true;
+  button.textContent = "Complete the human check to continue";
+  if (turnstileWidgetId && window.turnstile) window.turnstile.reset(turnstileWidgetId);
 }
 
 async function signOut(): Promise<void> {

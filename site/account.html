@@ -53,7 +53,8 @@
         <form id="sign-in-form">
           <label for="email">Email address</label>
           <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
-          <button class="button button-primary" type="submit">Continue with email</button>
+          <div id="turnstile-container" aria-live="polite"></div>
+          <button class="button button-primary" type="submit" disabled>Complete the human check to continue</button>
         </form>
         <p class="fine-print">By continuing, you agree to the VideoLens <a href="/privacy">privacy policy</a>. We use your email for account access and billing, not marketing.</p>
       </div>
@@ -164,6 +165,7 @@
   </dialog>
 
   <footer>VideoLens · <a href="/privacy">Privacy</a> · Support: <a href="mailto:astrawebdevservices@gmail.com">astrawebdevservices@gmail.com</a></footer>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
   <script type="module" src="/account.js"></script>
 </body>
 </html>
