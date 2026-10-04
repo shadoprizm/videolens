@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 type Config = { supabaseUrl: string | null; supabasePublishableKey: string | null; turnstileSiteKey: string | null };
 const status = document.getElementById("status")!;
 const signIn = document.getElementById("sign-in") as HTMLFormElement;
+const accountChoice = document.getElementById("account-choice")!;
 const consent = document.getElementById("consent")!;
 const id = new URL(location.href).searchParams.get("authorization_id");
 const signInButton = document.getElementById("sign-in-button") as HTMLButtonElement;
@@ -10,6 +11,7 @@ let captchaToken: string | null = null;
 let turnstileWidgetId: string | null = null;
 let turnstileRetries = 0;
 let alternateAccount = false;
+let currentAccountChosen = false;
 
 function setStatus(message: string, error = false) {
   status.textContent = message;
@@ -63,6 +65,7 @@ async function boot() {
     : createClient(config.supabaseUrl, config.supabasePublishableKey)).auth;
   const { data: userData } = await auth.getUser();
   if (!userData.user) {
+    accountChoice.hidden = true;
     setStatus("Sign in to VideoLens before deciding whether to connect this app.");
     signIn.hidden = false;
     renderTurnstile(config.turnstileSiteKey);
@@ -86,6 +89,28 @@ async function boot() {
     return;
   }
 
+  // getAuthorizationDetails binds a pending request to the current user. Let
+  // people choose their account before calling it so switching cannot strand
+  // a request that was already bound to their usual VideoLens session.
+  if (!alternateAccount && !currentAccountChosen) {
+    setStatus("Choose the VideoLens account to connect.");
+    signIn.hidden = true;
+    consent.hidden = true;
+    accountChoice.hidden = false;
+    document.getElementById("current-email")!.textContent = userData.user.email || "your current account";
+    (document.getElementById("continue-current") as HTMLButtonElement).onclick = () => {
+      currentAccountChosen = true;
+      accountChoice.hidden = true;
+      void boot().catch(reason => setStatus(reason instanceof Error ? reason.message : "Could not connect VideoLens.", true));
+    };
+    (document.getElementById("use-another") as HTMLButtonElement).onclick = () => {
+      alternateAccount = true;
+      accountChoice.hidden = true;
+      void boot().catch(reason => setStatus(reason instanceof Error ? reason.message : "Could not switch accounts.", true));
+    };
+    return;
+  }
+
   const { data, error } = await auth.oauth.getAuthorizationDetails(id);
   if (error || !data) throw new Error(error?.message || "The connection request expired. Start again from ChatGPT.");
   if (!("authorization_id" in data)) {
@@ -98,13 +123,6 @@ async function boot() {
   document.getElementById("redirect-host")!.textContent = new URL(data.redirect_uri).host;
   setStatus(`Signed in as ${userData.user.email || "your VideoLens account"}.`);
   consent.hidden = false;
-  const switchAccount = document.getElementById("switch-account") as HTMLButtonElement;
-  switchAccount.hidden = alternateAccount;
-  switchAccount.onclick = () => {
-    alternateAccount = true;
-    consent.hidden = true;
-    void boot().catch(reason => setStatus(reason instanceof Error ? reason.message : "Could not switch accounts.", true));
-  };
   async function decide(allow: boolean) {
     (document.getElementById("approve") as HTMLButtonElement).disabled = true;
     (document.getElementById("deny") as HTMLButtonElement).disabled = true;

@@ -26,6 +26,13 @@
     <p class="muted">VideoLens account connection</p>
     <h1>Connect your saved reports</h1>
     <p id="status" role="status">Checking your VideoLens account…</p>
+    <section id="account-choice" hidden>
+      <p>Choose the VideoLens account you want to connect.</p>
+      <div class="actions">
+        <button id="continue-current" class="primary" type="button">Continue as <span id="current-email"></span></button>
+      </div>
+      <button id="use-another" class="secondary" type="button" style="margin-top:1rem">Use another VideoLens account</button>
+    </section>
     <form id="sign-in" hidden>
       <label for="email">Email address</label>
       <input id="email" type="email" autocomplete="email" required>
@@ -43,7 +50,6 @@
         <button id="approve" class="primary" type="button">Allow access</button>
         <button id="deny" class="secondary" type="button">Deny</button>
       </div>
-      <button id="switch-account" class="secondary" type="button" style="margin-top:1rem">Use another VideoLens account</button>
     </section>
     <p class="muted" style="margin-top:2rem">You can remove this connection in your VideoLens account. <a href="/privacy">Privacy policy</a></p>
   </main>
