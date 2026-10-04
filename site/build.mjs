@@ -249,6 +249,9 @@ for (const file of staticFiles) {
   cpSync(source, join(out, file));
 }
 
+mkdirSync(join(out, "review"), { recursive: true });
+cpSync(join(root, "review", "videolens-chatgpt-review-demo.mp4"), join(out, "review", "videolens-chatgpt-review-demo.mp4"));
+
 if (!existsSync(extensionPreview)) throw new Error("Missing Chrome extension product preview");
 cpSync(extensionPreview, join(out, "extension-report-setup.png"));
 
