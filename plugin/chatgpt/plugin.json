@@ -35,6 +35,7 @@
         "logo": "./assets/logo.png"
       },
       "review": {
+        "demo_recording_url": "https://videolens.io/review/videolens-chatgpt-review-demo.mp4",
         "test_cases": {
           "positive": [
             {
