@@ -200,8 +200,9 @@ password_requirements = ""
 # rp_origins = ["http://127.0.0.1:3000"]
 
 [auth.rate_limit]
-# Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
-email_sent = 2
+# Production uses the signed Sovereign Mail email hook, with 100 emails/hour.
+# Preserve hosted hook settings when updating Auth; see docs/AUTH_EMAIL.md.
+email_sent = 100
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
 sms_sent = 30
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
@@ -417,3 +418,10 @@ enabled = true
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+[functions.auth-email-sovereign]
+enabled = true
+# Supabase Auth authenticates requests with a Standard Webhooks signature.
+verify_jwt = false
+import_map = "./functions/auth-email-sovereign/deno.json"
+entrypoint = "./functions/auth-email-sovereign/index.ts"
