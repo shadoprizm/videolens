@@ -264,7 +264,7 @@ Or wire it into Cursor / Windsurf / any MCP-aware host the same way as any stdio
 The VideoLens side-panel extension offers two explicit processing modes:
 
 - **Private / BYOK (free forever):** the pipeline runs inside the browser and calls OpenAI directly with the user's key. VideoLens receives no analysis content.
-- **Pro / Managed:** the user connects a passwordless VideoLens account, no OpenAI key is required, and managed calls run through Vercel AI Gateway to the configured provider (currently OpenAI) while counting against the account allowance. Completed reports enter the cloud library only when the user enables cloud saving.
+- **Pro / Managed:** the user connects a VideoLens account, no OpenAI key is required, and managed calls run through Vercel AI Gateway to the configured provider (currently OpenAI) while counting against the account allowance. Completed reports enter the cloud library only when the user enables cloud saving.
 
 Both modes analyze the current tab (YouTube captions + canvas frame sampling) or a local file (in-browser audio decode → transcription). The OpenAI key used by Private mode never leaves the device.
 
@@ -291,7 +291,7 @@ are analyzed frames-only (no audio transcription).
 
 ### Pro service architecture
 
-The static site under [`site/`](site/) also contains Vercel Functions for passwordless Supabase authentication, one-time extension pairing, Stripe Checkout and Customer Portal sessions, signed subscription webhooks, atomic report quotas, managed OpenAI proxy calls, and opt-in report storage. The database migration is under [`supabase/migrations/`](supabase/migrations/).
+The static site under [`site/`](site/) also contains email/password and configurable social sign-in with Supabase, plus Vercel Functions for one-time extension pairing, Stripe Checkout and Customer Portal sessions, signed subscription webhooks, atomic report quotas, managed OpenAI proxy calls, and opt-in report storage. See [`docs/AUTH_SIGN_IN.md`](docs/AUTH_SIGN_IN.md) for provider setup and account recovery. The database migration is under [`supabase/migrations/`](supabase/migrations/).
 
 Required production environment variables are documented in [`site/.env.example`](site/.env.example). Private BYOK mode does not depend on any of these services and continues working if the Pro service is unavailable.
 
