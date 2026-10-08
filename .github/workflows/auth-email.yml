@@ -1,0 +1,19 @@
+name: Authentication email
+
+on:
+  push:
+    paths: ['supabase/functions/auth-email-sovereign/**', 'supabase/config.toml', 'scripts/check-auth-email.mjs', '.github/workflows/auth-email.yml']
+  pull_request:
+    paths: ['supabase/functions/auth-email-sovereign/**', 'supabase/config.toml', 'scripts/check-auth-email.mjs', '.github/workflows/auth-email.yml']
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno fmt --check supabase/functions/auth-email-sovereign
+      - run: deno check --config supabase/functions/auth-email-sovereign/deno.json supabase/functions/auth-email-sovereign/index.ts
+      - run: deno test --config supabase/functions/auth-email-sovereign/deno.json supabase/functions/auth-email-sovereign/handler_test.ts

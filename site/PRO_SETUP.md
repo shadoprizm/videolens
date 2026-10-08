@@ -21,6 +21,11 @@ In Supabase Auth URL Configuration:
 
 Use the project's modern publishable key for `SUPABASE_PUBLISHABLE_KEY`; never put the service-role key in browser or extension code.
 
+Production sign-in emails use the signed Sovereign Mail Auth hook, with 100
+messages/hour and an exact sender grant. Deploy and verify it using
+[AUTH_EMAIL.md](../docs/AUTH_EMAIL.md). Preserve this hook when updating hosted
+Auth settings; local defaults must not restore the two-email built-in provider.
+
 ## 2. Stripe
 
 Use Stripe test mode first:
