@@ -26,8 +26,9 @@ async function openAccount(options: { signedIn?: boolean; remaining?: number; pr
   const Option = function(label: string, value: string) { const option = window.document.createElement("option"); option.textContent = label; option.value = value; return option; };
   const session = options.signedIn === false ? null : { user: { id: "member", email: "member@example.invalid" }, access_token: "fixture" };
   const remaining = options.remaining ?? 1;
-  const signInWithOtp = vi.fn(async () => ({ error: null }));
+  const signInWithPassword = vi.fn(async () => ({ error: null }));
   const fetch = vi.fn(async (input: string) => {
+    if (input.endsWith("/auth/v1/settings")) return Response.json({ external: {} });
     if (input === "/api/config") return Response.json({ proAvailable: true, checkoutAvailable: true, supabaseUrl: "https://example.invalid", supabasePublishableKey: "fixture", turnstileSiteKey: "public-test-key" });
     if (input === "/api/entitlement") return Response.json({ user: { isAdministrator: false }, entitlement: {
       plan: options.pro ? "pro" : "free", managedReportsRemaining: remaining,
@@ -39,15 +40,15 @@ async function openAccount(options: { signedIn?: boolean; remaining?: number; pr
   });
   const url = new URL(`https://videolens.io/account${options.search || ""}`);
   vm.runInNewContext(bundle.outputFiles[0].text, {
-    window, document: window.document, location: url, URL, Headers, fetch, queueMicrotask, console, Option,
-    fixtureAuth: { auth: { onAuthStateChange: () => {}, getSession: async () => ({ data: { session } }), signInWithOtp,
+    window, document: window.document, location: url, URL, URLSearchParams, Headers, AbortSignal, fetch, queueMicrotask, console, Option,
+    fixtureAuth: { auth: { onAuthStateChange: () => {}, getSession: async () => ({ data: { session } }), signInWithPassword,
       oauth: { listGrants: async () => ({ data: [], error: null }) } } },
     FormData: class { get() { return "member@example.invalid"; } },
   });
   const document = window.document;
   await vi.waitFor(() => expect(document.getElementById(options.signedIn === false ? "signed-out-view" : "signed-in-view")!.hidden, document.getElementById("page-message")!.textContent || "page error").toBe(false));
   if (session) await vi.waitFor(() => expect(document.getElementById("usage-note")!.textContent).not.toBe(""));
-  return { document, window, fetch, signInWithOtp };
+  return { document, window, fetch, signInWithPassword };
 }
 
 it("offers the free report before subscription and keeps both browser installs available", async () => {
@@ -74,10 +75,12 @@ it("a pairing link prioritizes connecting the installed extension", async () => 
   await vi.waitFor(() => expect(document.getElementById("extension-connect")!.hidden).toBe(false));
   expect(document.getElementById("first-report-next")!.hidden).toBe(true);
 });
-it("email sign-in retains the extension pairing and does not create checkout", async () => {
-  const { document, window, signInWithOtp, fetch } = await openAccount({ signedIn: false, search: "?connect=nonce&device=device" });
+it("password sign-in does not request an email or create checkout during pairing", async () => {
+  const { document, window, signInWithPassword, fetch } = await openAccount({ signedIn: false, search: "?connect=nonce&device=device" });
+  (document.getElementById("email") as HTMLInputElement).value = "member@example.invalid";
+  (document.getElementById("password") as HTMLInputElement).value = "test-password";
   document.getElementById("sign-in-form")!.dispatchEvent(new window.Event("submit", { cancelable: true }));
-  await vi.waitFor(() => expect(signInWithOtp).toHaveBeenCalled());
-  expect(signInWithOtp.mock.calls[0]).toEqual([{ email: "member@example.invalid", options: { emailRedirectTo: "https://videolens.io/account?connect=nonce&device=device", captchaToken: "captcha-test-token", shouldCreateUser: true } }]);
+  await vi.waitFor(() => expect(signInWithPassword).toHaveBeenCalled());
+  expect(signInWithPassword.mock.calls[0]).toEqual([{ email: "member@example.invalid", password: "test-password", options: { captchaToken: "captcha-test-token" } }]);
   expect(fetch.mock.calls.some(([url]) => url.includes("checkout"))).toBe(false);
 });

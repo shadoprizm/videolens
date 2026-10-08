@@ -1,5 +1,6 @@
 import { bindLessonStudy } from "./shared/lessonStudy.js";
 import { checkoutReady } from "./checkout-return.js";
+import { accountRedirect, mountAccountAuth } from "./shared/account-auth.js";
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { reportBody, reportDate, reportFilename, reportHtml, reportJson, reportMarkdown, reportMode, reportSearchText, reportTitle, type CloudReport } from "./cloud-report.js";
 
@@ -11,22 +12,6 @@ interface PublicConfig {
   supabaseUrl: string | null;
   supabasePublishableKey: string | null;
   turnstileSiteKey: string | null;
-}
-
-interface Turnstile {
-  render(container: HTMLElement, options: {
-    sitekey: string;
-    action: string;
-    theme: "light";
-    callback: (token: string) => void;
-    "expired-callback": () => void;
-    "error-callback": () => void;
-  }): string;
-  reset(widgetId?: string): void;
-}
-
-declare global {
-  interface Window { turnstile?: Turnstile }
 }
 
 import type { Entitlement } from "./api/_lib/entitlements.js";
@@ -46,24 +31,36 @@ let renderSequence = 0;
 let reports: CloudReport[] = [];
 let reportSearch = new Map<string, string>();
 let activeReport: CloudReport | null = null;
-let captchaToken: string | null = null;
-let turnstileWidgetId: string | null = null;
-let turnstileRetries = 0;
+let passwordFlow = new URLSearchParams(location.hash.slice(1)).get("type") === "recovery";
+let authUi: ReturnType<typeof mountAccountAuth>;
 const reader = byId<HTMLDialogElement>("report-reader");
 
 void boot();
 
 async function boot(): Promise<void> {
   try {
+    const callbackError = new URLSearchParams(location.hash.slice(1)).get("error_description");
+    if (callbackError) setMessage(callbackError, "error");
     config = await fetchJson<PublicConfig>("/api/config");
     if (!config.proAvailable || !config.supabaseUrl || !config.supabasePublishableKey) {
       showOnly(unavailableView);
       return;
     }
     supabase = createClient(config.supabaseUrl, config.supabasePublishableKey);
-    supabase.auth.onAuthStateChange((_event, nextSession) => {
+    supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === "PASSWORD_RECOVERY") passwordFlow = true;
       session = nextSession;
       queueMicrotask(() => void renderSession());
+    });
+    const recoveryRedirect = new URL(accountRedirect(location.href));
+    recoveryRedirect.searchParams.set("auth", "password-reset");
+    authUi = mountAccountAuth(byId("account-auth"), {
+      auth: supabase.auth, supabaseUrl: config.supabaseUrl, publishableKey: config.supabasePublishableKey, siteKey: config.turnstileSiteKey!,
+      redirectTo: accountRedirect(location.href), recoveryRedirectTo: recoveryRedirect.toString(),
+      onMessage: (text, error) => setMessage(text, error ? "error" : "success"),
+      onSignedIn: () => void renderSession(),
+      onPasswordUpdated: () => { passwordFlow = false; void renderSession(); },
+      onCancelPassword: () => { passwordFlow = false; void renderSession(); },
     });
     const { data } = await supabase.auth.getSession();
     session = data.session;
@@ -76,7 +73,7 @@ async function boot(): Promise<void> {
 }
 
 function bindEvents(): void {
-  byId<HTMLFormElement>("sign-in-form").addEventListener("submit", (event) => void sendMagicLink(event));
+  byId("set-password").addEventListener("click", () => { passwordFlow = true; void renderSession(); });
   byId("sign-out").addEventListener("click", () => void signOut());
   byId("authorize-extension").addEventListener("click", () => void authorizeExtension());
   byId("refresh-access").addEventListener("click", () => void renderSession());
@@ -98,15 +95,22 @@ function bindEvents(): void {
 
 async function renderSession(): Promise<void> {
   const sequence = ++renderSequence;
+  if (session && passwordFlow) {
+    showOnly(signedOutView);
+    authUi.showPasswordUpdate();
+    return;
+  }
   if (!session) {
+    passwordFlow = false;
+    authUi.leavePasswordUpdate();
     currentEntitlement = null;
     if (reader.open) reader.close();
     reports = [];
     reportSearch.clear();
     byId("report-list").replaceChildren();
     showOnly(signedOutView);
+    authUi.activate();
     showCheckoutMessage();
-    renderTurnstile();
     return;
   }
   showOnly(signedInView);
@@ -164,82 +168,10 @@ function showOnly(view: HTMLElement): void {
   });
 }
 
-async function sendMagicLink(event: SubmitEvent): Promise<void> {
-  event.preventDefault();
-  if (!supabase) return;
-  const form = event.currentTarget as HTMLFormElement;
-  const button = form.querySelector<HTMLButtonElement>("button")!;
-  if (!captchaToken) {
-    setMessage("Complete the human check before requesting a sign-in link.", "error");
-    renderTurnstile();
-    return;
-  }
-  const email = new FormData(form).get("email")?.toString().trim() || "";
-  button.disabled = true;
-  try {
-    const redirect = new URL("/account", location.origin);
-    const current = new URL(location.href);
-    for (const key of ["connect", "device"]) {
-      const value = current.searchParams.get(key);
-      if (value) redirect.searchParams.set(key, value);
-    }
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: redirect.toString(), captchaToken, shouldCreateUser: true },
-    });
-    if (error) throw error;
-    setMessage("Check your inbox for the secure VideoLens sign-in link.", "success");
-  } catch (error) {
-    setMessage(asMessage(error), "error");
-  } finally {
-    resetTurnstile();
-  }
-}
-
-function renderTurnstile(): void {
-  if (session || !config?.turnstileSiteKey || turnstileWidgetId) return;
-  const button = byId<HTMLFormElement>("sign-in-form").querySelector<HTMLButtonElement>("button")!;
-  button.disabled = true;
-  if (!window.turnstile) {
-    if (turnstileRetries++ < 10) window.setTimeout(renderTurnstile, 100);
-    else setMessage("The human check did not load. Refresh the page and try again.", "error");
-    return;
-  }
-  turnstileRetries = 0;
-  turnstileWidgetId = window.turnstile.render(byId("turnstile-container"), {
-    sitekey: config.turnstileSiteKey,
-    action: "account_sign_in",
-    theme: "light",
-    callback(token) {
-      captchaToken = token;
-      button.disabled = false;
-      button.textContent = "Email me a sign-in link";
-    },
-    "expired-callback"() {
-      captchaToken = null;
-      button.disabled = true;
-      button.textContent = "Complete the human check to continue";
-    },
-    "error-callback"() {
-      captchaToken = null;
-      button.disabled = true;
-      button.textContent = "Complete the human check to continue";
-      setMessage("The human check could not be verified. Try again.", "error");
-    },
-  });
-}
-
-function resetTurnstile(): void {
-  captchaToken = null;
-  const button = byId<HTMLFormElement>("sign-in-form").querySelector<HTMLButtonElement>("button")!;
-  button.disabled = true;
-  button.textContent = "Complete the human check to continue";
-  if (turnstileWidgetId && window.turnstile) window.turnstile.reset(turnstileWidgetId);
-}
-
 async function signOut(): Promise<void> {
   await supabase?.auth.signOut();
   session = null;
+  passwordFlow = false;
   showOnly(signedOutView);
   setMessage("Signed out.", "success");
 }

@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["api/**/*.ts", "account.ts", "admin.ts", "lesson-preview.ts", "tests/**/*.ts"]
+  "include": ["api/**/*.ts", "account.ts", "oauth-consent.ts", "admin.ts", "lesson-preview.ts", "tests/**/*.ts"]
 }

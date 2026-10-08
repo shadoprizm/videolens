@@ -197,6 +197,10 @@ Deno.test("signup, recovery, invitation, and email changes match recipient and t
       ...payload,
       email_data: { ...payload.email_data, email_action_type: action },
     }, config.supabaseUrl);
+    if (action === "signup") {
+      assert(result[0].subject === "Confirm your VideoLens account");
+      assert(result[0].text.includes("email and password"));
+    }
     assert(
       new URL(
         result[0].text.match(

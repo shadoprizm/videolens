@@ -91,6 +91,14 @@ export function prepareMessages(
   };
   switch (data.email_action_type) {
     case "signup":
+      return [
+        message(
+          user.email,
+          "Confirm your VideoLens account",
+          "Confirm your email address once. Then sign in to VideoLens with your email and password.",
+          verificationLink(data.token_hash, "signup"),
+        ),
+      ];
     case "magiclink":
       return [
         message(

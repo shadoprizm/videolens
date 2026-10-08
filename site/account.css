@@ -151,3 +151,10 @@ footer a { color: #64748b; }
 #upgrade-options { margin-top: 20px; }
 #upgrade-options summary { cursor: pointer; color: var(--brand-dark); font-weight: 700; }
 #upgrade-options > p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+.social-sign-in { display: grid; gap: 10px; margin: 0 0 24px; }
+.social-button { width: 100%; }
+.auth-options { display: flex; flex-wrap: wrap; gap: 12px 20px; }
+.auth-options .text-button { margin-top: 16px; }
+.auth-panel form > div { display: grid; gap: 8px; }
+#sign-in-button { width: 100%; }
