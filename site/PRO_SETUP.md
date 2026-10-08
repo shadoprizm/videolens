@@ -61,7 +61,7 @@ npx vercel deploy --prebuilt
 
 Verify in this order:
 
-1. Passwordless sign-in at `/account`.
+1. Email/password sign-in and account confirmation at `/account`; configure and verify social providers using [AUTH_SIGN_IN.md](../docs/AUTH_SIGN_IN.md).
 2. One-time extension pairing and 30-day limited extension token.
 3. Free account's single managed starter report.
 4. Monthly and annual Stripe test checkout.

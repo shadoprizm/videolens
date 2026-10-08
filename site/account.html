@@ -48,15 +48,7 @@
     <section id="signed-out-view" class="account-grid" hidden>
       <div class="panel auth-panel">
         <div class="panel-kicker">Start free</div>
-        <h2>Create your account or sign in.</h2>
-        <p>Enter your email and we’ll send a secure one-time sign-in link.</p>
-        <form id="sign-in-form">
-          <label for="email">Email address</label>
-          <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
-          <div id="turnstile-container" aria-live="polite"></div>
-          <button class="button button-primary" type="submit" disabled>Complete the human check to continue</button>
-        </form>
-        <p class="fine-print">By continuing, you agree to the VideoLens <a href="/privacy">privacy policy</a>. We use your email for account access and billing, not marketing.</p>
+        <div id="account-auth"></div>
       </div>
 
       <aside class="panel plan-preview">
@@ -120,6 +112,7 @@
           </details>
           <button id="manage-billing" class="button button-secondary" type="button" hidden>Manage billing</button>
           <a id="admin-link" class="button button-secondary" href="/admin" hidden>Open admin dashboard</a>
+          <button id="set-password" class="text-button" type="button">Set or change password</button>
           <button id="sign-out" class="text-button" type="button">Sign out</button>
         </section>
 

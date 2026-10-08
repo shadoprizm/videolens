@@ -17,6 +17,14 @@
     .actions { display: flex; gap: .75rem; margin-top: 1.5rem; }
     .muted { color: #506579; font-size: .9rem; } .error { color: #a32232; }
     [hidden] { display: none !important; }
+    [hidden] { display:none !important; }
+    #sign-in-form { display:grid; gap:16px; }
+    #sign-in-form > div { display:grid; gap:8px; }
+    .social-sign-in { display:grid; gap:10px; margin:20px 0; }
+    .social-button { width:100%; }
+    .auth-options { display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; }
+    .text-button { background:transparent; color:#0e7490; border:0; padding:4px 0; cursor:pointer; }
+    .fine-print { color:#64748b; font-size:12px; }
   </style>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
   <script defer src="/oauth-consent.js"></script>
@@ -33,15 +41,7 @@
       </div>
       <button id="use-another" class="secondary" type="button" style="margin-top:1rem">Use another VideoLens account</button>
     </section>
-    <form id="sign-in" hidden>
-      <label for="email">Email address</label>
-      <input id="email" type="email" autocomplete="email" required>
-      <label for="password" style="margin-top:1rem">Password <span class="muted">(if you have one)</span></label>
-      <input id="password" type="password" autocomplete="current-password">
-      <div id="turnstile-container" style="margin-top:1rem" aria-live="polite"></div>
-      <div class="actions"><button id="sign-in-button" class="primary" type="submit" disabled>Complete the human check</button></div>
-      <p class="muted">Enter your password to sign in. Leave it blank to receive an email sign-in link.</p>
-    </form>
+    <section id="sign-in" hidden></section>
     <section id="consent" hidden>
       <p><strong id="client-name"></strong> requests access to your VideoLens account.</p>
       <p>It can read your account email and reports you chose to save in your cloud library, including summaries, findings, and timestamps. It cannot delete reports, manage billing, or analyze new videos.</p>
