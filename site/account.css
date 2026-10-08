@@ -30,7 +30,7 @@ nav a:hover { color: var(--ink); }
 .panel { border: 1px solid var(--line); border-radius: 20px; padding: 28px; background: rgba(255,255,255,.94); box-shadow: 0 18px 50px rgba(15,23,42,.055); }
 .panel h2 { margin: 0 0 10px; font-size: 25px; letter-spacing: -.03em; }
 .panel > p { color: var(--muted); line-height: 1.6; }
-.account-grid, .dashboard-grid { display: grid; grid-template-columns: 1.12fr .88fr; gap: 20px; }
+.account-grid, .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); gap: 20px; }
 
 .auth-panel form { display: grid; gap: 10px; margin-top: 24px; }
 label { font-size: 13px; font-weight: 700; }
@@ -139,7 +139,7 @@ footer a { color: #64748b; }
   .account-header { padding: 0 18px; }
   nav a:first-child { display: none; }
   .account-shell { padding-top: 38px; }
-  .account-grid, .dashboard-grid { grid-template-columns: 1fr; }
+  .account-grid, .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
   .connect-banner, .library-head { align-items: stretch; flex-direction: column; }
   .connect-banner { display: flex; }
   .library-head input { max-width: none; }

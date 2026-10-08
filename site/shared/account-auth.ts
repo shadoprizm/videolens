@@ -7,7 +7,7 @@ const providerNames = { google: "Google", apple: "Apple", github: "GitHub", face
 
 interface Turnstile {
   render(container: HTMLElement, options: {
-    sitekey: string; action: string; theme: "light";
+    sitekey: string; action: string; theme: "light"; size: "compact" | "normal";
     callback: (token: string) => void;
     "expired-callback": () => void;
     "error-callback": () => void;
@@ -142,6 +142,7 @@ export function mountAccountAuth(root: HTMLElement, options: {
     }
     widget = window.turnstile.render(get("turnstile-container"), {
       sitekey: options.siteKey, action: "account_sign_in", theme: "light",
+      size: window.innerWidth < 480 ? "compact" : "normal",
       callback(token) { captchaToken = token; refreshButton(); },
       "expired-callback"() { captchaToken = null; refreshButton(); },
       "error-callback"() { captchaToken = null; refreshButton(); options.onMessage("The human check could not be verified. Try again.", true); },
