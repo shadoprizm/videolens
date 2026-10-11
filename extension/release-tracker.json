@@ -432,7 +432,7 @@
     "status": "console_access_pending",
     "publishedVersion": null,
     "checkedAt": "2026-10-11",
-    "blockedReason": "Browser navigation to the Chrome developer console returned Not allowed; console access and upload remain unverified.",
+    "blockedReason": "Browser automation cannot access the Chrome developer console. Native access requires the owner to unlock the Mac manually; file-upload permission is also pending.",
     "sha256": "0fc8e3400d50b335e07ca35c8d60af261290ae3c24a88b3c34902ccc7830e33a"
   },
   "firefox": {
@@ -458,20 +458,22 @@
       "notices": 0
     },
     "database": "Cohort, recovered failure, explicit test exclusion, zero versus positive invoice, paid-then-delayed-failure ordering and service-only access passed in production rollback fixtures.",
-    "browser": "Live owner account and conversion dashboard verified. Synthetic API workflow verified failure allowance recovery, successful retry, bounded journey deduplication and explicit feedback. Both real unpaid Stripe checkout sessions matched USD 12 monthly / USD 99 annual and retained Free access. The synthetic account and its data were removed after validation. Native extension capture and completed-payment acceptance remain pending."
+    "browser": "Live account/admin and full reader verified. Mobile paid-account desktop handoff passed at 390px with no overflow, install links hidden and copy success message; desktop setup restored and compact. Live synthetic API checks verified allowance recovery, retry, event deduplication and explicit feedback; synthetic database data cleaned up. Unpaid monthly/annual checkout totals match advertised USD 12 / USD 99 and retain Free access. Native extension capture, native export receipt and completed-payment acceptance remain pending.",
+    "reviewerSourceRebuild": {
+      "exactMatch": true,
+      "filesCompared": 19,
+      "sourceSha256": "683f64b78511d6381a93e9f3b1ef765181aa8655c48a029353786dd419520db7"
+    }
   },
   "website": {
     "status": "deployed_live_verified",
     "url": "https://videolens.io",
-    "candidateUrl": "https://videolens-site-3ubenfyyt-shadoprizms-projects.vercel.app",
-    "deployment": "dpl_GnvqQL5F9cTgH9P9WfqzLTTnPYcW",
-    "sourceCommit": "f28152eb1bc4f8d08974c7dd3e99de42a8e635f2",
-    "mergedCommit": "eec24005840f7ebe93f623d172acb66160cb83ec"
+    "candidateUrl": "https://videolens-site-ljm6nk9u5-shadoprizms-projects.vercel.app",
+    "deployment": "dpl_2GtaQkE9uFWgdpKHxAYUcUbwY15r",
+    "sourceCommit": "77b9dea9a9c30db8826c82eed2d640a82add017d",
+    "mergedCommit": "15034ded27462a37b8399aa234d61411cfc5ceac"
   },
   "billing": {
-    "customerSessionsInLast30Days": 4,
-    "completedCustomerSessions": 0,
-    "unpaidCustomerSessions": 4,
     "pricesAtLiveCheckoutVerified": true,
     "restrictedKeyAuditMissingPermissions": [
       "Prices: Read",
@@ -479,6 +481,6 @@
     ],
     "webhookEventCoverage": "owner_verification_pending",
     "confirmedPaymentAcceptance": "pending",
-    "note": "Audit/reconciliation matched configured VideoLens prices and known members. Two later synthetic unsubmitted checkout sessions cannot create subscriptions or charges without payment; their test account was cleaned up."
+    "note": "Checkout totals verified without creating a payment or subscription. Full billing and webhook configuration acceptance remain pending owner access."
   }
 }
