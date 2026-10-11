@@ -69,10 +69,12 @@
       <section id="first-report-next" class="panel first-report-next" hidden>
         <div class="panel-kicker">Your free report is ready to create</div>
         <h2>Open a video. Make something useful.</h2>
-        <p>On a desktop computer, add VideoLens to your browser. Open the extension’s Settings and connect this account, then choose your video and create a report, lesson, or guide.</p>
-        <div class="install-actions">
-          <a class="button button-primary" href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl" target="_blank" rel="noopener">Add to Chrome</a>
-          <a class="button button-primary" href="https://addons.mozilla.org/firefox/addon/videolens-video-reports/" target="_blank" rel="noopener">Add to Firefox</a>
+        <p id="desktop-start">1. Add the extension below. 2. Open VideoLens → Settings → Connect account, and approve the connection here. 3. Choose a YouTube video or local video file and create your free report.</p>
+        <p id="mobile-start" hidden>The free managed report runs in the Chrome or Firefox extension on a desktop computer. Copy the link below, open it on your computer, and sign in with this same account. You can read cloud-saved reports on your phone.</p>
+        <button id="copy-desktop-link" class="button button-primary" type="button" hidden>Copy link for my computer</button>
+        <div class="install-actions" id="desktop-install">
+          <a id="install-chrome" class="button button-primary" href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl" target="_blank" rel="noopener" data-track="Account install Chrome clicked" data-destination="chrome">Add to Chrome</a>
+          <a id="install-firefox" class="button button-primary" href="https://addons.mozilla.org/firefox/addon/videolens-video-reports/" target="_blank" rel="noopener" data-track="Account install Firefox clicked" data-destination="firefox">Add to Firefox</a>
         </div>
         <p class="fine-print">Already installed? Return to extension Settings and connect your VideoLens account. No API key needed.</p>
       </section>
@@ -104,10 +106,11 @@
           <p id="complimentary-note" class="fine-print" hidden></p>
           <details id="upgrade-options">
             <summary id="upgrade-summary">Explore Pro after your free report</summary>
-            <p>Pro includes 20 reports per calendar month. Cancel anytime. Your saved reports remain available.</p>
+            <p>Keep turning videos into work you can use: timestamped reports, study lessons, or procedure checklists. Pro includes 20 managed reports per calendar month, with no API key needed. Your saved reports remain available if you cancel.</p>
           <div id="upgrade-actions" class="upgrade-actions">
-            <button class="button button-primary checkout-button" data-billing="annual" type="button">Get Pro annually · $99/year</button>
-            <button class="button button-secondary checkout-button" data-billing="monthly" type="button">Get Pro monthly · $12/month</button>
+            <button class="button button-primary checkout-button" data-billing="monthly" type="button">Continue monthly · US$12/month</button>
+            <button class="button button-secondary checkout-button" data-billing="annual" type="button">Choose annual · US$99/year</button>
+            <p class="fine-print">Monthly renews each month. Annual charges US$99 each year. Cancel future renewals in Manage billing.</p>
           </div>
           </details>
           <button id="manage-billing" class="button button-secondary" type="button" hidden>Manage billing</button>
@@ -159,6 +162,8 @@
 
   <footer>VideoLens · <a href="/privacy">Privacy</a> · Support: <a href="mailto:astrawebdevservices@gmail.com">astrawebdevservices@gmail.com</a></footer>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+  <script defer src="/analytics.js"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
   <script type="module" src="/account.js"></script>
 </body>
 </html>

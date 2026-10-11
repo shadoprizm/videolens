@@ -1,9 +1,9 @@
 import { recordActivation } from "./_lib/activation.js";
 import { authenticate } from "./_lib/auth.js";
-import { optionalEnv, requireEnv, siteUrl } from "./_lib/env.js";
+import { siteUrl } from "./_lib/env.js";
 import { ApiError, errorResponse, json, options, readJson } from "./_lib/http.js";
 import { getEntitlement } from "./_lib/entitlements.js";
-import { stripeClient } from "./_lib/stripe.js";
+import { stripeClient, syncCheckout, verifiedProPrice } from "./_lib/stripe.js";
 import { supabaseAdmin } from "./_lib/supabase.js";
 
 interface CheckoutRequest {
@@ -30,6 +30,7 @@ export async function handler(request: Request): Promise<Response> {
     if (!entitlement.canUpgrade) {
       throw new ApiError(409, "already_subscribed", "Use Manage billing to change your existing subscription.");
     }
+    const priceId = await verifiedProPrice(body.billing);
 
     const { data: profile, error: profileError } = await admin
       .from("profiles")
@@ -50,9 +51,6 @@ export async function handler(request: Request): Promise<Response> {
       if (updateError) throw updateError;
     }
 
-    const priceId = body.billing === "monthly"
-      ? requireEnv("STRIPE_PRO_MONTHLY_PRICE_ID")
-      : requireEnv("STRIPE_PRO_ANNUAL_PRICE_ID");
     // Round upward to whole trial days so every remaining complimentary
     // hour is preserved, even when less than one day remains.
     const remainingMs = entitlement.complimentary?.state === "active"
@@ -65,9 +63,9 @@ export async function handler(request: Request): Promise<Response> {
       client_reference_id: user.id,
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
-      success_url: `${siteUrl()}/account?checkout=success`,
+      success_url: `${siteUrl()}/account?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl()}/account?checkout=cancelled`,
-      metadata: { user_id: user.id, billing: body.billing },
+      metadata: { user_id: user.id, billing: body.billing, product: "videolens" },
       subscription_data: {
         metadata: { user_id: user.id, ...(trialDays ? { complimentary_conversion: "true" } : {}) },
         ...(trialDays ? {
@@ -78,6 +76,9 @@ export async function handler(request: Request): Promise<Response> {
       ...(trialDays ? { custom_text: { submit: { message: `Your paid plan starts after ${trialDays} free days. Today's charge is $0. Cancel in Manage billing before the trial ends to avoid a charge.` } } } : {}),
     });
     if (!session.url) throw new Error("Stripe Checkout did not return a URL.");
+    // Keep checkout usable if observational storage is temporarily unavailable.
+    // Signed webhooks will retry durable reconciliation independently.
+    try { await syncCheckout(session, user.id); } catch { console.warn("Checkout ledger unavailable"); }
     await recordActivation(user.id, "checkout_started", session.id);
     return json(request, { url: session.url });
   } catch (error) {

@@ -3,6 +3,7 @@ import { getEntitlement, reserveReport } from "./_lib/entitlements.js";
 import { ApiError, errorResponse, json, options, readJson } from "./_lib/http.js";
 import { supabaseAdmin } from "./_lib/supabase.js";
 import { libraryUpload } from "./_lib/libraryUpload.js";
+import { FAILURE_CODES, FAILURE_STAGES } from "../../shared/journey.js";
 
 interface ReportRequest {
   action?: "reserve" | "complete" | "upload";
@@ -15,6 +16,8 @@ interface ReportRequest {
   sourceType?: string;
   mode?: string;
   reportData?: unknown;
+  failureStage?: string;
+  failureCode?: string;
 }
 
 function safeText(value: unknown, fallback: string, max: number): string {
@@ -71,6 +74,7 @@ export async function handler(request: Request): Promise<Response> {
     }
 
     if (body.action === "complete") {
+      if ((body.failureStage !== undefined && !FAILURE_STAGES.includes(body.failureStage as typeof FAILURE_STAGES[number])) || (body.failureCode !== undefined && !FAILURE_CODES.includes(body.failureCode as typeof FAILURE_CODES[number]))) throw new ApiError(400, "invalid_diagnostic", "Use a supported failure category.");
       if (!body.reportId || (body.status !== "complete" && body.status !== "failed")) {
         throw new ApiError(400, "invalid_report_completion", "Report completion data is invalid.");
       }
@@ -87,6 +91,8 @@ export async function handler(request: Request): Promise<Response> {
         report_data: cloudSave ? body.reportData : null,
         completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        failure_stage: body.status === "failed" ? body.failureStage || null : null,
+        failure_code: body.status === "failed" ? body.failureCode || null : null,
       };
       const { data, error } = await admin
         .from("reports")

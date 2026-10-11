@@ -59,6 +59,7 @@
     }
   ],
   "functions": {
+    "api/admin-billing.ts": { "maxDuration": 120 },
     "api/ai.ts": {
       "maxDuration": 300
     }

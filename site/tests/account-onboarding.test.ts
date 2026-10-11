@@ -13,7 +13,7 @@ const bundle = await build({
     b.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({ contents: "export const createClient = () => globalThis.fixtureAuth;" }));
   } }],
 });
-async function openAccount(options: { signedIn?: boolean; remaining?: number; pro?: boolean; search?: string } = {}) {
+async function openAccount(options: { signedIn?: boolean; remaining?: number; pro?: boolean; search?: string; mobile?:boolean } = {}) {
   const { window } = parseHTML(html);
   (window as unknown as { turnstile: unknown }).turnstile = {
     render: (_container: unknown, settings: { callback: (token: string) => void }) => {
@@ -36,11 +36,13 @@ async function openAccount(options: { signedIn?: boolean; remaining?: number; pr
       canUseManagedAi: remaining > 0, canUpgrade: !options.pro, hasBillingSubscription: !!options.pro, complimentary: null,
     } });
     if (input.startsWith("/api/reports?")) return Response.json({ reports: [], nextOffset: null });
+    if (input === "/api/journey") return Response.json({recorded:true});
     throw new Error(`Unexpected request ${input}`);
   });
   const url = new URL(`https://videolens.io/account${options.search || ""}`);
   vm.runInNewContext(bundle.outputFiles[0].text, {
     window, document: window.document, location: url, URL, URLSearchParams, Headers, AbortSignal, fetch, queueMicrotask, console, Option,
+    navigator:{userAgent:options.mobile ? "iPhone" : "Chrome",platform:options.mobile ? "iPhone" : "Win32",maxTouchPoints:options.mobile ? 1 : 0},
     fixtureAuth: { auth: { onAuthStateChange: () => {}, getSession: async () => ({ data: { session } }), signInWithPassword,
       oauth: { listGrants: async () => ({ data: [], error: null }) } } },
     FormData: class { get() { return "member@example.invalid"; } },
@@ -50,6 +52,14 @@ async function openAccount(options: { signedIn?: boolean; remaining?: number; pr
   if (session) await vi.waitFor(() => expect(document.getElementById("usage-note")!.textContent).not.toBe(""));
   return { document, window, fetch, signInWithPassword };
 }
+
+it("gives mobile members a desktop handoff rather than an unusable store install step",async()=>{
+  const {document}=await openAccount({mobile:true});
+  expect(document.getElementById("mobile-start")!.hidden).toBe(false);
+  expect(document.getElementById("copy-desktop-link")!.hidden).toBe(false);
+  expect(document.getElementById("desktop-install")!.hidden).toBe(true);
+  expect(document.getElementById("mobile-start")!.textContent).toContain("same account");
+});
 
 it("offers the free report before subscription and keeps both browser installs available", async () => {
   const { document, fetch } = await openAccount();

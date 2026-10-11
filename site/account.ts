@@ -3,6 +3,7 @@ import { checkoutReady } from "./checkout-return.js";
 import { accountRedirect, mountAccountAuth } from "./shared/account-auth.js";
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { reportBody, reportDate, reportFilename, reportHtml, reportJson, reportMarkdown, reportMode, reportSearchText, reportTitle, type CloudReport } from "./cloud-report.js";
+import type { JourneyEvent } from "../shared/journey.js";
 
 declare const __REPORT_CSS__: string;
 
@@ -73,6 +74,17 @@ async function boot(): Promise<void> {
 }
 
 function bindEvents(): void {
+  const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  byId("mobile-start").hidden = !mobile;
+  byId("copy-desktop-link").hidden = !mobile;
+  byId("desktop-start").hidden = mobile;
+  byId("desktop-install").hidden = mobile;
+  byId("copy-desktop-link").addEventListener("click", () => {
+    void navigator.clipboard.writeText("https://videolens.io/account").then(() => { trackJourney("desktop_link_copied"); setMessage("Link copied. Open it on your computer and sign in to the same account.", "success"); }).catch(() => setMessage("Open https://videolens.io/account on your computer and sign in with this account."));
+  });
+  byId("install-chrome").addEventListener("click", () => trackJourney("install_chrome_clicked"));
+  byId("install-firefox").addEventListener("click", () => trackJourney("install_firefox_clicked"));
+  byId<HTMLDetailsElement>("upgrade-options").addEventListener("toggle", () => { if (byId<HTMLDetailsElement>("upgrade-options").open) trackJourney("pricing_viewed"); });
   byId("set-password").addEventListener("click", () => { passwordFlow = true; void renderSession(); });
   byId("sign-out").addEventListener("click", () => void signOut());
   byId("authorize-extension").addEventListener("click", () => void authorizeExtension());
@@ -118,6 +130,7 @@ async function renderSession(): Promise<void> {
   try {
     await Promise.all([loadEntitlement(), loadReports(), loadConnectedApps()]);
     if (sequence !== renderSequence) return;
+    trackJourney("account_opened");
     renderExtensionConnect();
     showCheckoutMessage();
     void confirmCheckout();
@@ -250,6 +263,7 @@ async function startCheckout(billing: "monthly" | "annual", button: HTMLButtonEl
     return;
   }
   button.disabled = true;
+  trackJourney("checkout_clicked");
   try {
     const result = await apiFetch<{ url: string }>("/api/checkout", {
       method: "POST",
@@ -356,6 +370,7 @@ function renderReports(): void {
 }
 
 function openReport(report: CloudReport): void {
+  trackJourney("report_opened", report.id);
   activeReport = report;
   byId("reader-title").textContent = reportTitle(report);
   byId("reader-content").innerHTML = reportBody(report);
@@ -390,6 +405,7 @@ function exportMenu(getReport: () => CloudReport | null): HTMLSelectElement {
     try {
       if (format === "pdf") printReport(report);
       else downloadReport(report, format);
+      trackJourney("report_exported", report.id);
     } catch (error) { setMessage(asMessage(error), "error"); }
   });
   return select;
@@ -461,14 +477,21 @@ async function confirmCheckout(): Promise<void> {
   if (checkoutPolling || !session || new URL(location.href).searchParams.get("checkout") !== "success") return;
   checkoutPolling = true;
   const accountId = session.user.id;
+  const checkoutId = new URL(location.href).searchParams.get("session_id");
+  trackJourney("checkout_returned");
   try {
     for (let attempt = 0; attempt < 12; attempt++) {
       if (session?.user.id !== accountId) return;
+      if (checkoutId) {
+        const result = await apiFetch<{status:string;paymentStatus:string}>(`/api/checkout-status?session=${encodeURIComponent(checkoutId)}`);
+        if (session?.user.id !== accountId) return;
+        if (result.status !== "complete") { setMessage("Checkout has not completed. You can choose a plan below when you’re ready."); return; }
+      }
       await loadEntitlement();
       if (session?.user.id !== accountId) return;
       if (checkoutReady(currentEntitlement)) {
         setMessage("Pro access is ready. Return to the VideoLens extension to continue. Your saved report is in Library.", "success");
-        const url = new URL(location.href); url.searchParams.delete("checkout");
+        const url = new URL(location.href); url.searchParams.delete("checkout"); url.searchParams.delete("session_id");
         history.replaceState(null, "", url.pathname + url.search + url.hash);
         return;
       }
@@ -478,6 +501,11 @@ async function confirmCheckout(): Promise<void> {
   } catch {
     setMessage("We could not confirm your subscription yet. Use Refresh account access to try again.", "error");
   } finally { checkoutPolling = false; }
+}
+
+function trackJourney(event: JourneyEvent, reportId?: string): void {
+  if (!session) return;
+  void apiFetch("/api/journey", { method:"POST", body:JSON.stringify({event,...(reportId ? {reportId}: {})}), keepalive:true }).catch(() => {});
 }
 
 function setMessage(text: string, kind: "success" | "error" | "info" = "info"): void {

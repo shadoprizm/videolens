@@ -15,6 +15,19 @@
     <div id="dashboard" hidden>
       <p class="updated" id="updated"></p>
       <section id="metrics" class="metrics" aria-label="Membership overview"></section>
+      <section class="panel" aria-labelledby="conversion-heading">
+        <div class="section-heading"><h2 id="conversion-heading">Signup cohorts → useful reports → payment</h2><label>Joined in last <select id="cohort-days"><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option></select></label></div>
+        <p class="muted">Distinct members from the same signup cohort. Checkout can happen before a scan; these are separate milestones. Confirmed revenue requires a paid invoice with a positive amount. Administrator and accounts marked as tests are excluded.</p>
+        <div id="conversion-metrics" class="metrics"></div><p id="conversion-note" class="muted"></p>
+        <h3>What members do after signup</h3><div id="journey-metrics" class="metrics"></div>
+        <h3>Sources & outcomes</h3><div id="cohort-sources"></div>
+        <h3>Failures & recovery</h3><div id="cohort-failures"></div>
+        <h3>Recent members in this cohort</h3>
+        <div class="table-scroll"><table><thead><tr><th>Member</th><th>Verified</th><th>Managed reports</th><th>Checkout</th><th>Paid invoice</th><th>Last observed activity</th><th>Test account</th></tr></thead><tbody id="cohort-members"></tbody></table></div>
+        <p class="muted">Last observed activity combines login and recorded product actions. It cannot show tab closure or private/BYOK scans. Mark known review and test accounts explicitly; this only changes analytics.</p>
+        <a href="https://vercel.com/shadoprizms-projects/videolens-site/analytics" target="_blank" rel="noopener">Open anonymous website acquisition analytics →</a>
+        <h3>Billing health</h3><p class="muted">Audit uses the existing server credentials. Reconciliation restores VideoLens checkout and invoice records from Stripe for the last 30 days and enables the required events on the existing VideoLens webhook. It does not create charges or subscriptions.</p><button id="billing-audit">Audit Stripe configuration</button> <button id="billing-reconcile">Reconcile billing records</button><p id="billing-result" role="status" aria-live="polite"></p>
+      </section>
       <section class="insights">
         <article class="panel"><div class="section-heading"><h2>Managed scans</h2><span>Last 14 days · UTC</span></div><div id="chart" class="chart" role="img"></div><p id="scan-summary" class="muted"></p></article>
         <article class="panel"><h2>What’s being scanned</h2><h3>Source types · includes library uploads</h3><div id="sources"></div><h3>Analysis modes</h3><div id="modes"></div></article>
