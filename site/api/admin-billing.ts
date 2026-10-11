@@ -25,6 +25,11 @@ export async function handler(request:Request):Promise<Response> {
     if(configurationValid===false) throw new ApiError(409,"billing_configuration_mismatch","Configured Pro prices do not match the expected product, currency or billing intervals.");
     const {data:profiles,error}=await supabaseAdmin().from("profiles").select("user_id,stripe_customer_id");if(error) throw error;
     const members=new Set((profiles || []).map(p=>p.user_id));
+    const linkedCustomer=profiles?.find(profile=>profile.stripe_customer_id)?.stripe_customer_id;
+    // An unpaid cohort may have no subscription to retrieve. Probe the permissions
+    // with one existing VideoLens customer without retaining any returned records.
+    const subscriptionRead=linkedCustomer ? await read("Subscriptions: Read",async()=>{await stripe.subscriptions.list({customer:linkedCustomer,limit:1});return true;}) : null;
+    const invoiceRead=linkedCustomer ? await read("Invoices: Read",async()=>{await stripe.invoices.list({customer:linkedCustomer,limit:1});return true;}) : null;
     const sessions=[];
     let startingAfter:string|undefined;
     let complete=true;
@@ -62,7 +67,7 @@ export async function handler(request:Request):Promise<Response> {
     const missing=endpoint && !endpoint.enabled_events.includes("*") ? REQUIRED_EVENTS.filter(e=>!endpoint.enabled_events.includes(e)) : [];
     const updated=reconcile && endpoint && missing.length ? Boolean(await read("Webhook Endpoints: Write",()=>stripe.webhookEndpoints.update(endpoint.id,{enabled_events:[...new Set([...endpoint.enabled_events,...REQUIRED_EVENTS])]}))) : false;
     if(!endpoints || endpoints.has_more) complete=false;
-    return json(request,{reconciled:reconcile,complete:complete && permissions.size===0,permissionsNeeded:[...permissions],configurationVerified:configurationValid===true,windowDays:30,liveMode:prices?.[0].livemode ?? null,prices:prices?.map(p=>({amount:p.unit_amount,currency:p.currency,interval:p.recurring?.interval})) ?? [],sessions,webhook:{checked:Boolean(endpoints),found:Boolean(endpoint),missingEvents:updated?[]:missing,updated},checkedAt:new Date().toISOString()});
+    return json(request,{reconciled:reconcile,complete:complete && permissions.size===0,permissionsNeeded:[...permissions],permissionChecks:{customerScoped:Boolean(linkedCustomer),subscriptions:subscriptionRead===true,invoices:invoiceRead===true},configurationVerified:configurationValid===true,windowDays:30,liveMode:prices?.[0].livemode ?? null,prices:prices?.map(p=>({amount:p.unit_amount,currency:p.currency,interval:p.recurring?.interval})) ?? [],sessions,webhook:{checked:Boolean(endpoints),found:Boolean(endpoint),missingEvents:updated?[]:missing,updated},checkedAt:new Date().toISOString()});
   } catch(error) {return errorResponse(request,error);}
 }
 export default {fetch:handler};
