@@ -25,6 +25,11 @@ is used. Existing local reports and settings are preserved.
 - Node.js 20 or newer
 - npm 10 or newer
 
+The submitted build was verified on macOS 26.5 (Apple Silicon), using Node.js
+22.22.3 and npm 10.9.8. Use those Node/npm versions to reproduce the verified
+build. Node.js installers and release archives are available from
+https://nodejs.org/en/download.
+
 No environment variables, credentials, or external services are required to
 build the extension.
 
