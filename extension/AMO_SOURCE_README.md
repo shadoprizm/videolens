@@ -13,7 +13,11 @@ VideoLens service. Failed managed scans now send a fixed stage and error categor
 alongside their existing source category and selected mode. This restores allowance
 and diagnoses failures without raw errors or content. Private/BYOK scans send no
 diagnostics or ratings to VideoLens. The versioned first-run disclosure explains
-this data use before analysis. No background browsing tracking or session replay
+this data use before analysis. Firefox declares `technicalAndInteraction` as
+optional: extra failure categories are omitted when that permission is off,
+without preventing report completion or restoring allowance. A rating button
+requests that optional permission within the user gesture before sending feedback;
+declining it sends no rating. No background browsing tracking or session replay
 is used. Existing local reports and settings are preserved.
 
 ## Requirements

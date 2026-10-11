@@ -147,6 +147,8 @@ footer a { color: #64748b; }
 }
 
 .first-report-next { margin-bottom: 24px; border-color: #67e8f9; }
+#report-setup summary { cursor: pointer; color: var(--brand-dark); }
+#report-setup summary h2 { display: inline; }
 .install-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 #upgrade-options { margin-top: 20px; }
 #upgrade-options summary { cursor: pointer; color: var(--brand-dark); font-weight: 700; }

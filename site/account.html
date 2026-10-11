@@ -67,16 +67,18 @@
 
     <section id="signed-in-view" hidden>
       <section id="first-report-next" class="panel first-report-next" hidden>
-        <div class="panel-kicker">Your free report is ready to create</div>
-        <h2>Open a video. Make something useful.</h2>
+        <div id="report-setup-kicker" class="panel-kicker">Your free report is ready to create</div>
+        <details id="report-setup" open>
+        <summary><h2 id="report-setup-title">Open a video. Make something useful.</h2></summary>
         <p id="desktop-start">1. Add the extension below. 2. Open VideoLens → Settings → Connect account, and approve the connection here. 3. Choose a YouTube video or local video file and create your free report.</p>
-        <p id="mobile-start" hidden>The free managed report runs in the Chrome or Firefox extension on a desktop computer. Copy the link below, open it on your computer, and sign in with this same account. You can read cloud-saved reports on your phone.</p>
+        <p id="mobile-start" hidden>Managed reports run in the Chrome or Firefox extension on a desktop computer. Copy the link below, open it on your computer, and sign in with this same account. You can read cloud-saved reports on your phone.</p>
         <button id="copy-desktop-link" class="button button-primary" type="button" hidden>Copy link for my computer</button>
         <div class="install-actions" id="desktop-install">
           <a id="install-chrome" class="button button-primary" href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl" target="_blank" rel="noopener" data-track="Account install Chrome clicked" data-destination="chrome">Add to Chrome</a>
           <a id="install-firefox" class="button button-primary" href="https://addons.mozilla.org/firefox/addon/videolens-video-reports/" target="_blank" rel="noopener" data-track="Account install Firefox clicked" data-destination="firefox">Add to Firefox</a>
         </div>
         <p class="fine-print">Already installed? Return to extension Settings and connect your VideoLens account. No API key needed.</p>
+        </details>
       </section>
       <button class="button button-secondary" id="refresh-access" type="button">Refresh account access</button>
       <div id="extension-connect" class="connect-banner" hidden>

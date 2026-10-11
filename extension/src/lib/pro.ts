@@ -116,6 +116,9 @@ export async function completeManagedReport(
   failed = false,
   diagnostic?: { stage: FailureStage; code: FailureCategory; sourceType: string; mode: string },
 ): Promise<void> {
+  // Firefox's optional interaction-data choice never blocks report completion
+  // or allowance recovery. Inspect it here; never prompt after a failed scan.
+  const includeDiagnostic=failed && diagnostic && await technicalDataAllowed();
   await proJson("/api/reports", token, {
     method: "POST",
     body: JSON.stringify({
@@ -126,14 +129,23 @@ export async function completeManagedReport(
       title: analysis?.source.title || "Untitled video",
       sourceType: analysis?.source.sourceType || diagnostic?.sourceType || "video",
       mode: analysis?.mode || diagnostic?.mode || "general",
-      ...(failed && diagnostic ? {failureStage:diagnostic.stage,failureCode:diagnostic.code} : {}),
+      ...(includeDiagnostic ? {failureStage:diagnostic!.stage,failureCode:diagnostic!.code} : {}),
       reportData: !failed && cloudSave ? analysis : undefined,
     }),
   });
 }
 
 export async function submitReportFeedback(token: string, reportId: string, rating: "helpful" | "partial" | "unhelpful"): Promise<void> {
+  // Called directly from a rating button so Firefox can display its optional
+  // consent prompt within that user gesture. No prompt during startup/analysis.
+  if(isFirefox() && (!chrome.permissions || !(await chrome.permissions.request({data_collection:["technicalAndInteraction"]} as chrome.permissions.Permissions)))) throw new Error("Optional feedback permission was declined.");
   await proJson("/api/journey", token, {method:"POST",body:JSON.stringify({event:`feedback_${rating}`,reportId})});
+}
+
+function isFirefox():boolean {return Boolean(chrome.runtime?.getURL?.("").startsWith("moz-extension://"));}
+async function technicalDataAllowed():Promise<boolean> {
+  if(!isFirefox()) return true;
+  try {return Boolean(chrome.permissions && await chrome.permissions.contains({data_collection:["technicalAndInteraction"]} as chrome.permissions.Permissions));} catch {return false;}
 }
 
 export function openProAccount(): void {
@@ -189,7 +201,7 @@ function proPermissions(): chrome.permissions.Permissions {
   const permissions: chrome.permissions.Permissions & { data_collection?: string[] } = {
     origins: [PRO_ORIGIN],
   };
-  if (chrome.runtime?.getURL?.("").startsWith("moz-extension://")) {
+  if (isFirefox()) {
     permissions.data_collection = [FIREFOX_PRO_DATA_PERMISSION];
   }
   return permissions;

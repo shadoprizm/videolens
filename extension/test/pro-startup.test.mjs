@@ -99,3 +99,32 @@ test("Firefox requests the optional account data permission with Pro access", as
     globalThis.chrome = originalChrome;
   }
 });
+
+test("Firefox declining optional diagnostics still completes a failed report without prompting", async () => {
+  const originalChrome=globalThis.chrome, originalFetch=globalThis.fetch;
+  let sent, prompts=0;
+  globalThis.chrome={runtime:{getURL:()=>"moz-extension://videolens/"},permissions:{contains:async()=>false,request:async()=>{prompts++;return false;}}};
+  globalThis.fetch=async(_url,init)=>{sent=JSON.parse(init.body);return Response.json({ok:true});};
+  try {
+    await pro.completeManagedReport("fixture","report",null,false,true,{stage:"frames",code:"source",sourceType:"local_file",mode:"tutorial"});
+    assert.equal(sent.status,"failed");assert.equal(sent.sourceType,"local_file");assert.equal(sent.mode,"tutorial");assert.equal(sent.failureStage,undefined);assert.equal(sent.failureCode,undefined);assert.equal(prompts,0);
+  } finally {globalThis.chrome=originalChrome;globalThis.fetch=originalFetch;}
+});
+
+test("Firefox feedback is not transmitted when optional interaction consent is declined", async () => {
+  const originalChrome=globalThis.chrome, originalFetch=globalThis.fetch;
+  let fetches=0, requested;
+  globalThis.chrome={runtime:{getURL:()=>"moz-extension://videolens/"},permissions:{request:async(p)=>{requested=p;return false;}}};
+  globalThis.fetch=async()=>{fetches++;return Response.json({ok:true});};
+  try {await assert.rejects(pro.submitReportFeedback("fixture","report","helpful"),/declined/);assert.equal(fetches,0);assert.deepEqual(requested,{data_collection:["technicalAndInteraction"]});}
+  finally {globalThis.chrome=originalChrome;globalThis.fetch=originalFetch;}
+});
+
+test("Firefox consented diagnostics and feedback are bounded to the managed report", async () => {
+  const originalChrome=globalThis.chrome, originalFetch=globalThis.fetch;
+  const sent=[];
+  globalThis.chrome={runtime:{getURL:()=>"moz-extension://videolens/"},permissions:{contains:async()=>true,request:async()=>true}};
+  globalThis.fetch=async(_url,init)=>{sent.push(JSON.parse(init.body));return Response.json({ok:true});};
+  try {await pro.completeManagedReport("fixture","report",null,false,true,{stage:"frames",code:"source",sourceType:"local_file",mode:"tutorial"});await pro.submitReportFeedback("fixture","report","helpful");assert.equal(sent[0].failureStage,"frames");assert.equal(sent[0].failureCode,"source");assert.deepEqual(sent[1],{event:"feedback_helpful",reportId:"report"});}
+  finally {globalThis.chrome=originalChrome;globalThis.fetch=originalFetch;}
+});

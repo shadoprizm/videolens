@@ -53,7 +53,8 @@
           "websiteContent"
         ],
         "optional": [
-          "personallyIdentifyingInfo"
+          "personallyIdentifyingInfo",
+          "technicalAndInteraction"
         ]
       }
     }
