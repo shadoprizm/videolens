@@ -11,9 +11,19 @@ export function stripeClient(): Stripe {
   return client;
 }
 
+export function stripePermissionDenied(error:unknown):boolean {
+  return Boolean(error && typeof error==="object" && "type" in error && error.type==="StripePermissionError");
+}
 export async function verifiedProPrice(billing:"monthly"|"annual"):Promise<string> {
   const id=requireEnv(billing==="monthly"?"STRIPE_PRO_MONTHLY_PRICE_ID":"STRIPE_PRO_ANNUAL_PRICE_ID");
-  const price=await stripeClient().prices.retrieve(id);
+  let price:Stripe.Price;
+  try {price=await stripeClient().prices.retrieve(id);} catch(error) {
+    // Existing restricted keys can create Checkout with configured immutable
+    // price IDs while lacking Prices Read. Preserve that established flow.
+    // The administrator audit reports this verification gap explicitly.
+    if(stripePermissionDenied(error)) {console.warn("Configured checkout price used; Prices Read unavailable");return id;}
+    throw error;
+  }
   const product=optionalEnv("STRIPE_PRO_PRODUCT_ID");
   if(!price.active || price.currency!=="usd" || price.unit_amount!==(billing==="monthly"?1200:9900) || price.recurring?.interval!==(billing==="monthly"?"month":"year") || price.recurring.interval_count!==1 || (product && asId(price.product)!==product)) throw new ApiError(503,"billing_configuration_mismatch","Checkout is temporarily unavailable while we verify the plan price. Your reports remain available.");
   return id;
@@ -117,11 +127,19 @@ export async function syncInvoice(invoice: Stripe.Invoice): Promise<void> {
   const userId = await syncSubscription(subscription);
   if (!userId) return;
   const paid = invoice.status === "paid";
-  const { error } = await supabaseAdmin().from("payment_receipts").upsert({
-    stripe_invoice_id: invoice.id, user_id: userId, stripe_subscription_id: subscription.id,
-    status: paid ? "paid" : "failed", amount_paid: invoice.amount_paid, currency: invoice.currency,
-    paid_at: paid && invoice.status_transitions.paid_at ? new Date(invoice.status_transitions.paid_at * 1000).toISOString() : null,
-    created_at: new Date(invoice.created * 1000).toISOString(), updated_at: new Date().toISOString(),
-  }, { onConflict: "stripe_invoice_id" });
+  const { error } = await supabaseAdmin().rpc("record_payment_receipt", {
+    p_invoice_id:invoice.id,p_user_id:userId,p_subscription_id:subscription.id,
+    p_status:paid?"paid":"failed",p_amount_paid:invoice.amount_paid,p_currency:invoice.currency,
+    p_paid_at:paid && invoice.status_transitions.paid_at ? new Date(invoice.status_transitions.paid_at*1000).toISOString():null,
+    p_created_at:new Date(invoice.created*1000).toISOString(),
+  });
   if (error) throw error;
+}
+
+export async function syncLatestInvoice(subscription:Stripe.Subscription):Promise<void> {
+  if(!subscription.latest_invoice) return;
+  try {
+    const invoice=typeof subscription.latest_invoice==="string"?await stripeClient().invoices.retrieve(subscription.latest_invoice):subscription.latest_invoice;
+    if(invoice.status==="paid") await syncInvoice(invoice);
+  } catch(error) {if(stripePermissionDenied(error)) {console.warn("Invoice backfill unavailable; signed invoice events remain authoritative");return;}throw error;}
 }
