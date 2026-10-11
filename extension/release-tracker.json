@@ -451,7 +451,7 @@
   "validation": {
     "releaseCheck": "passed",
     "extensionTests": 101,
-    "siteTests": 135,
+    "siteTests": 137,
     "firefoxLint": {
       "errors": 0,
       "warnings": 0,
@@ -468,19 +468,22 @@
   "website": {
     "status": "deployed_live_verified",
     "url": "https://videolens.io",
-    "candidateUrl": "https://videolens-site-ljm6nk9u5-shadoprizms-projects.vercel.app",
-    "deployment": "dpl_2GtaQkE9uFWgdpKHxAYUcUbwY15r",
-    "sourceCommit": "77b9dea9a9c30db8826c82eed2d640a82add017d",
-    "mergedCommit": "15034ded27462a37b8399aa234d61411cfc5ceac"
+    "candidateUrl": "https://videolens-site-qr99sfoqc-shadoprizms-projects.vercel.app",
+    "deployment": "dpl_G62SMLhfLwdozBZhFXtyBgTEyDC7",
+    "sourceCommit": "33619c4b67de73b6e07f57dda461b4bb6bf2dd25",
+    "pullRequest": "https://github.com/shadoprizm/videolens/pull/26",
+    "verification": "Protected candidate account returned 200 and signed-out administrator audit returned 401. The same build was promoted and its live owner audit verified subscription read access and the recorded remaining permission gaps."
   },
   "billing": {
     "pricesAtLiveCheckoutVerified": true,
     "restrictedKeyAuditMissingPermissions": [
       "Prices: Read",
+      "Invoices: Read",
       "Webhook Endpoints: Read"
     ],
     "webhookEventCoverage": "owner_verification_pending",
     "confirmedPaymentAcceptance": "pending",
-    "note": "Checkout totals verified without creating a payment or subscription. Full billing and webhook configuration acceptance remain pending owner access."
+    "note": "Checkout totals verified without creating a payment or subscription. Customer-scoped subscription read succeeded; invoice read, independent price verification and webhook configuration access remain unavailable. Completed-payment acceptance remains pending owner access.",
+    "subscriptionReadVerified": true
   }
 }
