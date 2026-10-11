@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { JOURNEY_EVENTS, type JourneyEvent } from "../../../shared/journey.js";
+import { JOURNEY_EVENTS, type JourneyEvent } from "../../shared/journey.js";
 import { supabaseAdmin } from "./supabase.js";
 
 export { JOURNEY_EVENTS };

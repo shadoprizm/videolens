@@ -1,7 +1,7 @@
 import { authenticate } from "./_lib/auth.js";
 import { ApiError, errorResponse, json, options, readJson } from "./_lib/http.js";
 import { JOURNEY_EVENTS, recordJourney } from "./_lib/journey.js";
-import type { JourneyEvent } from "../../shared/journey.js";
+import type { JourneyEvent } from "../shared/journey.js";
 import { supabaseAdmin } from "./_lib/supabase.js";
 
 export async function handler(request: Request): Promise<Response> {

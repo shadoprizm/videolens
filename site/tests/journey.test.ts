@@ -1,7 +1,7 @@
 import {beforeEach,describe,expect,it,vi} from "vitest";
 const m=vi.hoisted(()=>({auth:vi.fn(),record:vi.fn(),report:vi.fn()}));
 vi.mock("../api/_lib/auth.js",()=>({authenticate:m.auth}));
-vi.mock("../api/_lib/journey.js",async()=>{const events=await import("../../shared/journey.js");return {JOURNEY_EVENTS:events.JOURNEY_EVENTS,recordJourney:m.record};});
+vi.mock("../api/_lib/journey.js",async()=>{const events=await import("../shared/journey.js");return {JOURNEY_EVENTS:events.JOURNEY_EVENTS,recordJourney:m.record};});
 vi.mock("../api/_lib/supabase.js",()=>({supabaseAdmin:()=>({from:()=>({select:()=>({eq:()=>({eq:()=>({eq:()=>({maybeSingle:m.report})})})})})})}));
 import {handler} from "../api/journey.js";
 const reportId="00000000-0000-0000-0000-000000000001";

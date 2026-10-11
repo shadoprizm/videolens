@@ -67,7 +67,6 @@ if (target === "firefox-source") {
     "site/shared",
     "site/cloud-report.ts",
     "site/cloud-report.css",
-    "shared/journey.ts",
     "LICENSE",
   ]);
 } else if (targets[target]) {

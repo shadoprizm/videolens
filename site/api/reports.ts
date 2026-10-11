@@ -3,7 +3,7 @@ import { getEntitlement, reserveReport } from "./_lib/entitlements.js";
 import { ApiError, errorResponse, json, options, readJson } from "./_lib/http.js";
 import { supabaseAdmin } from "./_lib/supabase.js";
 import { libraryUpload } from "./_lib/libraryUpload.js";
-import { FAILURE_CODES, FAILURE_STAGES } from "../../shared/journey.js";
+import { FAILURE_CODES, FAILURE_STAGES } from "../shared/journey.js";
 
 interface ReportRequest {
   action?: "reserve" | "complete" | "upload";

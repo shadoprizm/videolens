@@ -9,7 +9,7 @@ import {
 } from "./storage";
 import type { Analysis } from "./types";
 import type { SavedReport } from "./reportLibrary";
-import type { FailureStage, FailureCategory } from "../../../shared/journey";
+import type { FailureStage, FailureCategory } from "../../../site/shared/journey";
 
 export interface ProEntitlement {
   plan: "free" | "pro";

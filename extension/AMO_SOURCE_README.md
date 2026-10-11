@@ -27,7 +27,7 @@ build the extension.
 ## Build the reviewed Firefox files
 
 The archive contains `extension/`, the shared recipe, procedure and lesson modules under `site/shared/`,
-the two shared reader files under `site/`, and bounded event types in `shared/journey.ts`.
+the two shared reader files under `site/`, and bounded event types in `site/shared/journey.ts`.
 From the root of this source archive:
 
 ```sh

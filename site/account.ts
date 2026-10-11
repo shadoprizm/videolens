@@ -3,7 +3,7 @@ import { checkoutReady } from "./checkout-return.js";
 import { accountRedirect, mountAccountAuth } from "./shared/account-auth.js";
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { reportBody, reportDate, reportFilename, reportHtml, reportJson, reportMarkdown, reportMode, reportSearchText, reportTitle, type CloudReport } from "./cloud-report.js";
-import type { JourneyEvent } from "../shared/journey.js";
+import type { JourneyEvent } from "./shared/journey.js";
 
 declare const __REPORT_CSS__: string;
 

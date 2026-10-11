@@ -7,7 +7,7 @@ import { procedureCopy } from "../lib/procedureCopy";
 import { procedureHtml, procedureChecklist, PROCEDURE_CSS } from "../lib/procedureReport";
 import { describeProcedureFrames } from "../lib/describeProcedureFrames";
 import { failureCode, recoveryHint, needsManagedContinuation } from "../lib/activation";
-import type { FailureStage } from "../../../shared/journey";
+import type { FailureStage } from "../../../site/shared/journey";
 import { analyzeTimeline, askQuestion, estimateCost, fmtTs } from "../lib/analyze";
 import {
   captureTabFrames,
