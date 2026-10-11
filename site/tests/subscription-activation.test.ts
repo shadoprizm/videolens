@@ -8,7 +8,8 @@ beforeEach(() => { vi.resetAllMocks(); vi.stubEnv("STRIPE_PRO_PRODUCT_ID", "prod
 afterEach(() => vi.unstubAllEnvs());
 it.each([ ["active", "prod_pro", true], ["trialing", "prod_pro", false], ["incomplete", "prod_pro", false], ["canceled", "prod_pro", false], ["active", "prod_unrelated", false] ])("records active Pro only for confirmed correct subscription: %s %s", async (status, product, expected) => {
   await syncSubscription({ id: "sub_test", customer: "cus_test", metadata: { user_id: "member" }, status, cancel_at_period_end: false, items: { data: [{ price: { id: "price", product }, current_period_start: 100, current_period_end: 200 }] } } as unknown as Stripe.Subscription);
-  expect(m.upsert).toHaveBeenCalled();
+    if (product === "prod_unrelated") expect(m.upsert).not.toHaveBeenCalled();
+    else expect(m.upsert).toHaveBeenCalled();
   expect(m.record.mock.calls.length).toBe(expected ? 1 : 0);
   if (expected) expect(m.record).toHaveBeenCalledWith("member", "subscription_active", "sub_test");
 });

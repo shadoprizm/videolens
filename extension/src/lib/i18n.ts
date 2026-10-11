@@ -14,6 +14,18 @@ import {
 export type UiLocale = "en" | "zh_CN" | "zh_TW" | "es_419" | "ro" | "hi";
 
 export const EN = {
+  managedDiagnostics: "Managed scans record the source category, chosen mode, and a coarse failure stage to restore allowance and diagnose problems. VideoLens does not receive private/BYOK diagnostics. Sending a usefulness rating is optional and sends only your rating and report ID.",
+  useReportTitle: "Put this report to work",
+  useReport: "Open the full report to check timestamped evidence. Copy the text into your notes, or save a PDF to share. Ask a follow-up below to turn an idea into a concrete next step.",
+  useLesson: "Open the lesson, test yourself with its quiz, and check the video timestamps for ideas you want to revisit. Save the report for your next study session.",
+  useProcedure: "Use the procedure checklist while doing the task. Check its evidence and missing details before running a command or changing a setting.",
+  usefulnessQuestion: "Did this report help you do what you came here for?",
+  feedbackDisclosure: "Optional: send only this rating and the managed report ID to VideoLens. No video or report content is sent.",
+  helpful: "Yes", partlyHelpful: "Partly", notHelpful: "No",
+  feedbackThanks: "Thanks. Your feedback helps us improve the reports.",
+  feedbackRetry: "Feedback could not be sent. You can retry.",
+  followUpAction: "What should I do next, based on this video?",
+  followUpEvidence: "Which claims need checking? Show the timestamps.",
   settings: "Settings",
   libraryNav: "Library",
   startupFailedBadge: "NEEDS ATTENTION",
@@ -35,7 +47,7 @@ export const EN = {
   disclosureLocalBody: "completed reports and follow-up answers are saved automatically in your browser on this device so you can reopen them. Uploading a cloud copy is optional.",
   disclosureCloudTitle: "Cloud reports are optional:",
   disclosureCloudBody: "you can choose to upload existing reports and follow-up answers, including BYOK reports, or enable cloud saving for new reports. Local copies stay on your device.",
-  disclosureNote: "Your OpenAI key always stays in your browser. VideoLens runs no extension analytics and never sells your data. You can use Private mode forever without creating an account.",
+  disclosureNote: "Your OpenAI key stays in your browser. Private scans are not tracked. VideoLens never sells your data. You can use Private mode without an account.",
   disclosureAccept: "I agree to this data use — Continue",
   privacyPolicy: "Read the full privacy policy",
   productKicker: "Video → professional report",
@@ -231,6 +243,9 @@ export const EN = {
 export type UiKey = keyof typeof EN;
 
 const ZH_CN: Record<UiKey, string> = {
+  managedDiagnostics: "托管扫描记录来源类别、所选模式和粗略失败阶段，以恢复额度并排查问题。VideoLens 不接收私密模式诊断。发送实用性评分是可选操作，仅发送评分和报告 ID。",
+  useReportTitle: "用好这份报告", useReport: "打开完整报告，核对带时间戳的证据。复制到笔记或保存 PDF。也可提出后续问题，形成具体行动。", useLesson: "打开课程，用测验自测，并查看视频时间戳。保存报告以便下次复习。", useProcedure: "操作时使用流程清单。执行命令或更改设置之前，请核对证据和缺失信息。",
+  usefulnessQuestion: "这份报告帮助您完成目标了吗？", feedbackDisclosure: "可选：仅将评分和托管报告 ID 发给 VideoLens，不发送视频或报告内容。", helpful: "是", partlyHelpful: "部分", notHelpful: "否", feedbackThanks: "谢谢。您的反馈帮助我们改进报告。", feedbackRetry: "反馈未能发送，可以重试。", followUpAction: "根据这个视频，我接下来应该做什么？", followUpEvidence: "哪些说法需要核实？请提供时间戳。",
   settings: "设置", libraryNav: "资料库", startupFailedBadge: "需要处理", startupFailedTitle: "VideoLens 未能完成加载。",
   startupFailedBody: "浏览器无法读取扩展的已保存设置。请重新加载面板后再试；您的报告和设置未被更改。", reloadExtension: "重新加载 VideoLens",
   privacyFirst: "隐私优先", privateBadge: "隐私模式", beforeAnalyze: "您的视频始终由您掌控",
@@ -240,7 +255,7 @@ const ZH_CN: Record<UiKey, string> = {
   disclosureProTitle: "Pro / 托管模式：", disclosureProBody: "相同的分析内容会经由 VideoLens 发送给 OpenAI，因此您无需提供 API 密钥。原始画面和音频不会被保留。",
   disclosureLocalTitle: "本地报告资料库：", disclosureLocalBody: "完成的报告和后续问答会自动保存在此设备的浏览器中，以便再次打开。上传云端副本为可选操作。",
   disclosureCloudTitle: "云端报告为可选功能：", disclosureCloudBody: "您可以选择上传现有报告和后续问答（包括自备密钥生成的报告），或开启新报告的云端保存。本地副本会保留。",
-  disclosureNote: "您的 OpenAI 密钥始终保存在浏览器中。VideoLens 扩展不含分析追踪，也绝不出售您的数据。您无需创建账户即可一直使用隐私模式。",
+  disclosureNote: "您的 OpenAI 密钥保存在浏览器中。私密扫描不会被跟踪。VideoLens 不出售数据。无需账户即可使用私密模式。",
   disclosureAccept: "我同意上述数据使用方式 — 继续", privacyPolicy: "阅读完整隐私政策",
   productKicker: "视频 → 专业报告", productTitle: "让视频内容真正为您所用。",
   productBody: "VideoLens 结合语音和采样画面生成实用报告，并为每项结论标注准确的视频时刻。", sampleReport: "查看完整示例报告 →",
@@ -325,6 +340,9 @@ const ZH_CN: Record<UiKey, string> = {
 
 const ZH_TW: Record<UiKey, string> = {
   ...ZH_CN,
+  managedDiagnostics: "代管掃描記錄來源類別、所選模式及粗略失敗階段，以恢復額度並排查問題。VideoLens 不接收隱私模式診斷。傳送實用性評分是選用操作，僅傳送評分和報告 ID。",
+  useReportTitle: "用好這份報告", useReport: "開啟完整報告，核對帶時間戳記的證據。複製到筆記或儲存 PDF。也可提出後續問題，形成具體行動。", useLesson: "開啟課程，用測驗自測，並查看影片時間戳記。儲存報告以便下次複習。", useProcedure: "操作時使用流程清單。執行命令或更改設定之前，請核對證據及缺失資訊。",
+  usefulnessQuestion: "這份報告幫助您完成目標了嗎？", feedbackDisclosure: "選用：僅將評分和代管報告 ID 傳送給 VideoLens，不傳送影片或報告內容。", helpful: "是", partlyHelpful: "部分", notHelpful: "否", feedbackThanks: "謝謝。您的回饋幫助我們改進報告。", feedbackRetry: "回饋未能傳送，可以重試。", followUpAction: "根據這個影片，我接下來應該做什麼？", followUpEvidence: "哪些說法需要核實？請提供時間戳記。",
   settings: "設定", libraryNav: "資料庫", startupFailedBadge: "需要處理", startupFailedTitle: "VideoLens 未能完成載入。",
   startupFailedBody: "瀏覽器無法讀取擴充功能的已儲存設定。請重新載入面板後再試；您的報告和設定未被更改。", reloadExtension: "重新載入 VideoLens",
   privateBadge: "隱私模式", beforeAnalyze: "您的影片始終由您掌控",
@@ -334,7 +352,7 @@ const ZH_TW: Record<UiKey, string> = {
   disclosureProTitle: "Pro / 代管模式：", disclosureProBody: "相同的分析內容會經由 VideoLens 傳送給 OpenAI，因此您不需要提供 API 金鑰。原始畫面和音訊不會被保留。",
   disclosureLocalTitle: "本機報告資料庫：", disclosureLocalBody: "完成的報告和後續問答會自動儲存在此裝置的瀏覽器中，方便再次開啟。上傳雲端副本為選用操作。",
   disclosureCloudTitle: "雲端報告為選用功能：", disclosureCloudBody: "您可以選擇上傳現有報告和後續問答（包括自備金鑰產生的報告），或開啟新報告的雲端儲存。本機副本會保留。",
-  disclosureNote: "您的 OpenAI 金鑰始終保存在瀏覽器中。VideoLens 擴充功能不含分析追蹤，也絕不出售您的資料。您不需建立帳戶即可持續使用隱私模式。",
+  disclosureNote: "您的 OpenAI 金鑰保存在瀏覽器中。隱私掃描不會被追蹤。VideoLens 不出售資料。無需帳戶即可使用隱私模式。",
   disclosureAccept: "我同意上述資料使用方式 — 繼續", privacyPolicy: "閱讀完整隱私權政策",
   productKicker: "影片 → 專業報告", productTitle: "讓影片內容真正為您所用。",
   productBody: "VideoLens 結合語音和取樣畫面產生實用報告，並為每項發現標示準確的影片時刻。", sampleReport: "查看完整範例報告 →",

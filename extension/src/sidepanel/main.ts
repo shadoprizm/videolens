@@ -7,6 +7,7 @@ import { procedureCopy } from "../lib/procedureCopy";
 import { procedureHtml, procedureChecklist, PROCEDURE_CSS } from "../lib/procedureReport";
 import { describeProcedureFrames } from "../lib/describeProcedureFrames";
 import { failureCode, recoveryHint, needsManagedContinuation } from "../lib/activation";
+import type { FailureStage } from "../../../site/shared/journey";
 import { analyzeTimeline, askQuestion, estimateCost, fmtTs } from "../lib/analyze";
 import {
   captureTabFrames,
@@ -45,6 +46,7 @@ import { verifyApiKey } from "../lib/openai";
 import type { AiAccess } from "../lib/openai";
 import {
   completeManagedReport,
+  submitReportFeedback,
   disconnectPro,
   fetchProEntitlement,
   openProAccount,
@@ -455,6 +457,8 @@ function renderStartupError(): void {
   root.appendChild(section);
 }
 
+let analysisStage: FailureStage = "source";
+let analysisSourceType = "video";
 function renderPrivacyDisclosure(): void {
   badge.textContent = t("privacyFirst");
   badge.className = "brand-badge";
@@ -475,6 +479,7 @@ function renderPrivacyDisclosure(): void {
           <li><b>${esc(t("disclosureProTitle"))}</b> ${esc(t("disclosureProBody"))}</li>
           <li><b>${esc(t("disclosureLocalTitle"))}</b> ${esc(t("disclosureLocalBody"))}</li>
           <li><b>${esc(t("disclosureCloudTitle"))}</b> ${esc(t("disclosureCloudBody"))}</li>
+          <li>${esc(t("managedDiagnostics"))}</li>
         </ul>
         <div class="privacy-note">${esc(t("disclosureNote"))}</div>
       </details>
@@ -1348,6 +1353,17 @@ function renderResults(): void {
       `<div class="summary-prose">${renderProse(a.summary, t("none"))}</div></section>`,
   );
   root.appendChild(summary);
+  root.appendChild(el(`<section class="card"><h3>${esc(t("useReportTitle"))}</h3><p>${esc(t(a.lesson ? "useLesson" : a.procedure ? "useProcedure" : "useReport"))}</p></section>`));
+  if (state.managedReportId && state.proSession) {
+    const feedback = el(`<section class="card"><h3>${esc(t("usefulnessQuestion"))}</h3><p class="hint">${esc(t("feedbackDisclosure"))}</p><div class="export-row"></div><p role="status" aria-live="polite"></p></section>`);
+    const reportId=state.managedReportId, token=state.proSession.token;
+    for(const [rating,label] of [["helpful","helpful"],["partial","partlyHelpful"],["unhelpful","notHelpful"]] as const) {
+      const button=el(`<button class="btn btn-secondary btn-sm">${esc(t(label))}</button>`) as HTMLButtonElement;
+      button.addEventListener("click",()=>{feedback.querySelectorAll("button").forEach(b=>b.disabled=true);void submitReportFeedback(token,reportId,rating).then(()=>{feedback.querySelector('[role="status"]')!.textContent=t("feedbackThanks");}).catch(()=>{feedback.querySelectorAll("button").forEach(b=>b.disabled=false);feedback.querySelector('[role="status"]')!.textContent=t("feedbackRetry");});});
+      feedback.querySelector(".export-row")!.append(button);
+    }
+    root.appendChild(feedback);
+  }
   if (a.lesson) {
     const card = el(lessonHtml(a.lesson, a.outputLanguage, a.source.url, a.source.durationSeconds));
     root.appendChild(card);
@@ -1408,7 +1424,7 @@ function renderResults(): void {
   }
 
   if (needsManagedContinuation(state.proEntitlement, state.managedReportId)) {
-    const continuation = el(`<section class="card managed-continuation"><h3>Your starter report is ready</h3><p>Create more reports, lessons, and guides with Pro. Get 20 reports per calendar month for $12/month or $99/year. No API key required. Cancel anytime.</p><p class="hint">Your report stays in this browser’s Library while you visit checkout.</p><button class="btn btn-primary" id="continue-managed">Continue with Pro</button><button class="btn btn-ghost" id="continue-private">Use my own key</button></section>`);
+    const continuation = el(`<section class="card managed-continuation"><h3>Your starter report is ready</h3><p>Want to use this workflow for your next video? Pro includes 20 reports per calendar month. Start monthly at US$12/month, or choose US$99/year. No API key required. Cancel future renewals anytime.</p><p class="hint">Your report stays in this browser’s Library while you visit checkout.</p><button class="btn btn-primary" id="continue-managed">Continue with Pro</button><button class="btn btn-ghost" id="continue-private">Use my own key</button></section>`);
     continuation.querySelector("#continue-managed")!.addEventListener("click", () => void continueWithManaged());
     continuation.querySelector("#continue-private")!.addEventListener("click", () => { state.view = "settings"; render(); document.querySelector("#private-key-settings")?.setAttribute("open", ""); });
     root.appendChild(continuation);
@@ -1423,6 +1439,11 @@ function renderResults(): void {
   }
   const qaRow = el(`<div class="row" style="margin-top:8px"></div>`);
   const qaInput = el(`<input type="text" class="grow" placeholder="${esc(t("followUpPlaceholder"))}">`) as HTMLInputElement;
+  const suggested = el(`<div class="export-row"></div>`);
+  for (const key of ["followUpAction", "followUpEvidence"] as const) {
+    const button = el(`<button class="btn btn-ghost btn-sm">${esc(t(key))}</button>`);
+    button.addEventListener("click",()=>{qaInput.value=t(key);qaInput.focus();});suggested.append(button);
+  }
   const qaBtn = el(`<button class="btn btn-secondary btn-sm">${esc(t("ask"))}</button>`) as HTMLButtonElement;
   const qaStatus = el(`<div class="qa-status" aria-live="polite"></div>`);
   let asking = false;
@@ -1468,7 +1489,7 @@ function renderResults(): void {
     if (e.key === "Enter") void ask();
   });
   qaRow.append(qaInput, qaBtn);
-  qaCard.append(history, qaRow, qaStatus);
+  qaCard.append(history, suggested, qaRow, qaStatus);
   root.appendChild(qaCard);
 
   if (state.error) root.prepend(el(`<div class="banner error">${esc(state.error)}</div>`));
@@ -1695,6 +1716,8 @@ async function performAnalysis(): Promise<void> {
   }
 
   try {
+    analysisStage = "source";
+    analysisSourceType = state.sourceKind === "file" ? "local_file" : "video";
     state.savedReportId = null;
     state.analysis = null;
     state.qa = [];
@@ -1708,6 +1731,7 @@ async function performAnalysis(): Promise<void> {
     }
     state.qa = [];
     state.hasCompletedFirstReport = true;
+    analysisStage = "saving";
     await persistCurrentReport(true);
     if (hasExtensionStorage) void markFirstReportCompleted().catch((error) => console.error("first-report state:", error));
     if (managedReportId && state.proSession) {
@@ -1730,7 +1754,7 @@ async function performAnalysis(): Promise<void> {
     let allowanceMessage = "";
     if (managedReportId && state.proSession) {
       try {
-        await completeManagedReport(state.proSession.token, managedReportId, null, false, true);
+        await completeManagedReport(state.proSession.token, managedReportId, null, false, true, {stage:analysisStage,code,sourceType:analysisSourceType,mode:state.mode});
         allowanceMessage = " Your managed allowance has been restored.";
       } catch { allowanceMessage = " We could not confirm allowance recovery. Refresh account access before retrying."; }
       state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => state.proEntitlement);
@@ -1754,11 +1778,13 @@ async function runTabAnalysis(access: AiAccess, prompt: string): Promise<void> {
   steps.set(0, "active");
   const tabId = await getActiveTabId();
   const probe = await probeTabVideo(tabId);
+  analysisSourceType = probe.isYouTube ? "youtube" : "video";
   if (state.mode === "tutorial" && !probe.isYouTube) throw new Error(procedureCopy(documentLanguage()).unsupported);
   if (state.mode === "recipe" && !probe.isYouTube) throw new Error("Recipe preview currently supports YouTube videos and local video files.");
   steps.set(0, "done", t("foundVideo", { duration: fmtTs(probe.duration) }));
 
   steps.set(1, "active");
+  analysisStage = "transcription";
   let transcript: Transcript | null = null;
   if (probe.isYouTube) {
     const captionLanguage = resolveReportLanguage(state.reportLanguage, browserLanguage);
@@ -1777,6 +1803,7 @@ async function runTabAnalysis(access: AiAccess, prompt: string): Promise<void> {
   }
 
   steps.set(2, "active");
+  analysisStage = "frames";
   const maxFrames = state.analysisProvider === "pro" ? Math.min(state.setupMaxFrames, 40) : state.setupMaxFrames;
   const timestamps = state.mode === "recipe" ? recipeFrameTimestamps(probe.duration) : state.mode === "tutorial" ? procedureFrameTimestamps(probe.duration, transcript) : planFrameTimestamps(probe.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
   const frames = await captureTabFrames(tabId, timestamps, DEFAULTS.frameJpegQuality, DEFAULTS.maxFrameEdgePx);
@@ -1807,11 +1834,13 @@ async function runFileAnalysis(access: AiAccess, prompt: string): Promise<void> 
 
   let earlyTranscript: Awaited<ReturnType<typeof transcribeLocalFile>> | null = null;
   if (state.mode === "tutorial") {
+    analysisStage = "transcription";
     steps.set(transcriptStep, "active");
     earlyTranscript = await transcribeLocalFile(access, local, (done, total) => steps.set(transcriptStep, "active", t("transcribingProgress", { done, total })));
     steps.set(transcriptStep, "done", earlyTranscript.transcript ? t("transcribedChunks", { count: earlyTranscript.transcript.segments.length }) : t("audioSkipped"));
   }
   steps.set(frameStep, "active");
+  analysisStage = "frames";
   const maxFrames = state.analysisProvider === "pro" ? Math.min(state.setupMaxFrames, 40) : state.setupMaxFrames;
   const timestamps = state.mode === "recipe" ? recipeFrameTimestamps(local.duration) : state.mode === "tutorial" ? procedureFrameTimestamps(local.duration, earlyTranscript?.transcript) : planFrameTimestamps(local.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
   const frames = await captureLocalFrames(local, timestamps, (done, total) =>
@@ -1820,6 +1849,7 @@ async function runFileAnalysis(access: AiAccess, prompt: string): Promise<void> 
   steps.set(frameStep, "done", t("sampledFrames", { count: frames.length }));
 
   if (!earlyTranscript) steps.set(transcriptStep, "active");
+  analysisStage = "transcription";
   const { transcript, limitation } = earlyTranscript ?? await transcribeLocalFile(access, local, (done, total) =>
     steps.set(transcriptStep, "active", t("transcribingProgress", { done, total })),
   );
@@ -1842,6 +1872,7 @@ async function describeAndSynthesize(
   stepOffset = 3,
   recipeContext: RecipeContext = { creatorText: "", sources: [], researchText: "", research: "not_requested" },
 ): Promise<void> {
+  analysisStage = "analysis";
   steps.set(stepOffset, "active");
   const summaries = await (state.mode === "recipe" ? describeRecipeFrames : state.mode === "tutorial" ? describeProcedureFrames : state.mode === "lesson" ? describeLessonFrames : describeFrames)(access, frames, (done, total) =>
     steps.set(stepOffset, "active", t("describingProgress", { done, total })),

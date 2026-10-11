@@ -6,6 +6,9 @@ import type { UiKey } from "./i18n";
 type ModeDefaults = Record<AnalysisMode, { label: string; prompt: string }>;
 
 export const ES_419: Record<UiKey, string> = {
+  managedDiagnostics: "Los análisis administrados registran la categoría de origen, el modo y una etapa general del fallo para restaurar el cupo y diagnosticar problemas. No recibimos diagnósticos privados. La valoración opcional envía solo tu respuesta y el ID del informe.",
+  useReportTitle: "Usa este informe", useReport: "Abre el informe completo y revisa la evidencia con marcas de tiempo. Copia el texto a tus notas o guarda un PDF. Haz una pregunta para definir el siguiente paso.", useLesson: "Abre la lección, prueba el cuestionario y revisa las marcas de tiempo. Guarda el informe para repasar.", useProcedure: "Usa la lista de pasos al realizar la tarea. Revisa la evidencia y los datos faltantes antes de ejecutar comandos o cambiar ajustes.",
+  usefulnessQuestion: "¿Este informe te ayudó a lograr lo que buscabas?", feedbackDisclosure: "Opcional: envía solo tu valoración y el ID del informe administrado a VideoLens. No se envía el contenido.", helpful: "Sí", partlyHelpful: "En parte", notHelpful: "No", feedbackThanks: "Gracias. Tu valoración nos ayuda a mejorar los informes.", feedbackRetry: "No se pudo enviar. Puedes intentarlo de nuevo.", followUpAction: "¿Qué debería hacer ahora, según este video?", followUpEvidence: "¿Qué afirmaciones necesitan comprobarse? Muestra las marcas de tiempo.",
   settings: "Configuración", libraryNav: "Biblioteca", startupFailedBadge: "REQUIERE ATENCIÓN", startupFailedTitle: "VideoLens no pudo terminar de cargar.",
   startupFailedBody: "El navegador no pudo leer la configuración guardada de la extensión. Vuelve a cargar el panel para intentarlo de nuevo; tus informes y ajustes no se modificaron.", reloadExtension: "Volver a cargar VideoLens",
   privacyFirst: "Privacidad primero", privateBadge: "PRIVADO", beforeAnalyze: "Tu video permanece bajo tu control.",
@@ -15,7 +18,7 @@ export const ES_419: Record<UiKey, string> = {
   disclosureProTitle: "Modo Pro / administrado:", disclosureProBody: "el mismo contenido de análisis pasa por VideoLens hacia OpenAI para que no necesites una clave de API. Los fotogramas y el audio originales no se conservan.",
   disclosureLocalTitle: "Biblioteca local de informes:", disclosureLocalBody: "los informes terminados y las respuestas se guardan automáticamente en el navegador de este dispositivo. Subir una copia a la nube es opcional.",
   disclosureCloudTitle: "Los informes en la nube son opcionales:", disclosureCloudBody: "puedes subir informes existentes y respuestas, incluidos los creados con tu propia clave, o activar el guardado en la nube para nuevos informes. Las copias locales se conservan.",
-  disclosureNote: "Tu clave de OpenAI siempre permanece en tu navegador. VideoLens no usa analítica en la extensión y nunca vende tus datos. Puedes usar el modo Privado indefinidamente sin crear una cuenta.",
+  disclosureNote: "Tu clave de OpenAI permanece en tu navegador. Los análisis privados no se rastrean. VideoLens no vende tus datos. Puedes usar el modo Privado sin una cuenta.",
   disclosureAccept: "Acepto este uso de datos — Continuar", privacyPolicy: "Leer la política de privacidad completa",
   productKicker: "Video → informe profesional", productTitle: "Convierte el video en algo útil.",
   productBody: "VideoLens combina la voz y fotogramas de muestra en un informe útil, con los momentos exactos del video detrás de cada hallazgo.", sampleReport: "Ver un informe de muestra completo →",
@@ -105,6 +108,9 @@ export const ES_419_MODE_DEFAULTS: ModeDefaults = {
 };
 
 export const RO: Record<UiKey, string> = {
+  managedDiagnostics: "Analizele gestionate înregistrează categoria sursei, modul și etapa generală a erorii pentru a restabili cota și a diagnostica probleme. Nu primim diagnostice private. Evaluarea opțională trimite doar răspunsul și ID-ul raportului.",
+  useReportTitle: "Folosește acest raport", useReport: "Deschide raportul complet și verifică dovezile cu marcaje temporale. Copiază textul în notițe sau salvează un PDF. Pune o întrebare pentru a stabili pasul următor.", useLesson: "Deschide lecția, rezolvă testul și verifică marcajele temporale. Salvează raportul pentru recapitulare.", useProcedure: "Folosește lista de pași în timpul sarcinii. Verifică dovezile și informațiile lipsă înainte de a executa comenzi sau a modifica setări.",
+  usefulnessQuestion: "Acest raport te-a ajutat să îți atingi scopul?", feedbackDisclosure: "Opțional: trimite doar evaluarea și ID-ul raportului gestionat către VideoLens. Conținutul nu este trimis.", helpful: "Da", partlyHelpful: "Parțial", notHelpful: "Nu", feedbackThanks: "Mulțumim. Evaluarea ta ne ajută să îmbunătățim rapoartele.", feedbackRetry: "Evaluarea nu a fost trimisă. Poți reîncerca.", followUpAction: "Ce ar trebui să fac în continuare, pe baza acestui videoclip?", followUpEvidence: "Ce afirmații trebuie verificate? Arată marcajele temporale.",
   settings: "Setări", libraryNav: "Bibliotecă", startupFailedBadge: "NECESITĂ ATENȚIE", startupFailedTitle: "VideoLens nu a putut finaliza încărcarea.",
   startupFailedBody: "Browserul nu a putut citi setările salvate ale extensiei. Reîncarcă panoul pentru a încerca din nou; rapoartele și setările tale nu au fost modificate.", reloadExtension: "Reîncarcă VideoLens",
   privacyFirst: "Confidențialitatea pe primul loc", privateBadge: "PRIVAT", beforeAnalyze: "Videoclipul tău rămâne sub controlul tău.",
@@ -114,7 +120,7 @@ export const RO: Record<UiKey, string> = {
   disclosureProTitle: "Mod Pro / gestionat:", disclosureProBody: "același conținut pentru analiză trece prin VideoLens către OpenAI, astfel încât nu ai nevoie de o cheie API. Cadrele și sunetul originale nu sunt păstrate.",
   disclosureLocalTitle: "Biblioteca locală de rapoarte:", disclosureLocalBody: "rapoartele finalizate și răspunsurile se salvează automat în browser pe acest dispozitiv. Încărcarea unei copii în cloud este opțională.",
   disclosureCloudTitle: "Rapoartele în cloud sunt opționale:", disclosureCloudBody: "poți încărca rapoarte existente și răspunsuri, inclusiv cele create cu cheia ta, sau activa salvarea în cloud pentru rapoarte noi. Copiile locale se păstrează.",
-  disclosureNote: "Cheia ta OpenAI rămâne întotdeauna în browser. VideoLens nu folosește analize de utilizare în extensie și nu îți vinde niciodată datele. Poți folosi permanent modul Privat fără să creezi un cont.",
+  disclosureNote: "Cheia OpenAI rămâne în browser. Analizele private nu sunt urmărite. VideoLens nu vinde datele tale. Poți folosi modul Privat fără un cont.",
   disclosureAccept: "Sunt de acord cu această utilizare a datelor — Continuă", privacyPolicy: "Citește politica de confidențialitate completă",
   productKicker: "Video → raport profesional", productTitle: "Transformă videoclipul în ceva util.",
   productBody: "VideoLens combină vocea și cadrele eșantionate într-un raport util, cu momentele exacte din videoclip pentru fiecare constatare.", sampleReport: "Vezi un raport demonstrativ complet →",
@@ -204,6 +210,9 @@ export const RO_MODE_DEFAULTS: ModeDefaults = {
 };
 
 export const HI: Record<UiKey, string> = {
+  managedDiagnostics: "प्रबंधित स्कैन स्रोत की श्रेणी, चुना गया मोड और विफलता का सामान्य चरण दर्ज करते हैं ताकि कोटा बहाल हो और समस्याओं का पता चले। निजी स्कैन के निदान नहीं भेजे जाते। वैकल्पिक रेटिंग में केवल आपका उत्तर और रिपोर्ट ID भेजा जाता है।",
+  useReportTitle: "इस रिपोर्ट का उपयोग करें", useReport: "पूरी रिपोर्ट खोलकर टाइमस्टैम्प वाले प्रमाण देखें। टेक्स्ट को नोट्स में कॉपी करें या PDF सहेजें। अगला कदम तय करने के लिए प्रश्न पूछें।", useLesson: "पाठ खोलें, प्रश्नोत्तरी से खुद को परखें और वीडियो के टाइमस्टैम्प देखें। दोहराने के लिए रिपोर्ट सहेजें।", useProcedure: "काम करते समय चरणों की सूची इस्तेमाल करें। आदेश चलाने या सेटिंग बदलने से पहले प्रमाण और अनुपलब्ध विवरण जाँचें।",
+  usefulnessQuestion: "क्या इस रिपोर्ट ने आपका उद्देश्य पूरा करने में मदद की?", feedbackDisclosure: "वैकल्पिक: केवल रेटिंग और प्रबंधित रिपोर्ट ID VideoLens को भेजें। वीडियो या रिपोर्ट की सामग्री नहीं भेजी जाती।", helpful: "हाँ", partlyHelpful: "कुछ हद तक", notHelpful: "नहीं", feedbackThanks: "धन्यवाद। आपकी प्रतिक्रिया रिपोर्ट सुधारने में मदद करती है।", feedbackRetry: "प्रतिक्रिया नहीं भेजी जा सकी। फिर कोशिश करें।", followUpAction: "इस वीडियो के आधार पर मुझे आगे क्या करना चाहिए?", followUpEvidence: "किन दावों की जाँच करनी चाहिए? टाइमस्टैम्प दिखाएँ।",
   settings: "सेटिंग", libraryNav: "लाइब्रेरी", startupFailedBadge: "ध्यान देना आवश्यक", startupFailedTitle: "VideoLens पूरी तरह लोड नहीं हो सका।",
   startupFailedBody: "ब्राउज़र एक्सटेंशन की सहेजी गई सेटिंग नहीं पढ़ सका। फिर से प्रयास करने के लिए पैनल रीलोड करें; आपकी रिपोर्ट और सेटिंग में कोई बदलाव नहीं हुआ है।", reloadExtension: "VideoLens रीलोड करें",
   privacyFirst: "गोपनीयता सबसे पहले", privateBadge: "निजी", beforeAnalyze: "आपका वीडियो आपके नियंत्रण में रहता है।",
@@ -213,7 +222,7 @@ export const HI: Record<UiKey, string> = {
   disclosureProTitle: "Pro / प्रबंधित मोड:", disclosureProBody: "यही विश्लेषण सामग्री VideoLens के माध्यम से OpenAI तक जाती है, इसलिए आपको API कुंजी की आवश्यकता नहीं होती। मूल फ़्रेम और ऑडियो रखे नहीं जाते।",
   disclosureLocalTitle: "स्थानीय रिपोर्ट लाइब्रेरी:", disclosureLocalBody: "पूरी रिपोर्ट और अनुवर्ती उत्तर इस डिवाइस के ब्राउज़र में अपने-आप सहेजे जाते हैं। क्लाउड प्रति अपलोड करना वैकल्पिक है।",
   disclosureCloudTitle: "क्लाउड रिपोर्ट वैकल्पिक हैं:", disclosureCloudBody: "आप मौजूदा रिपोर्ट और उत्तर अपलोड कर सकते हैं, जिनमें अपनी कुंजी से बनी रिपोर्ट भी शामिल हैं, या नई रिपोर्ट के लिए क्लाउड सेविंग चालू कर सकते हैं। स्थानीय प्रतियाँ सुरक्षित रहती हैं।",
-  disclosureNote: "आपकी OpenAI कुंजी हमेशा आपके ब्राउज़र में रहती है। VideoLens एक्सटेंशन में उपयोग विश्लेषिकी नहीं चलाता और आपका डेटा कभी नहीं बेचता। आप बिना खाता बनाए हमेशा निजी मोड इस्तेमाल कर सकते हैं।",
+  disclosureNote: "आपकी OpenAI कुंजी ब्राउज़र में रहती है। निजी स्कैन ट्रैक नहीं किए जाते। VideoLens आपका डेटा नहीं बेचता। निजी मोड बिना खाते के इस्तेमाल करें।",
   disclosureAccept: "मैं इस डेटा उपयोग से सहमत हूँ — जारी रखें", privacyPolicy: "पूरी गोपनीयता नीति पढ़ें",
   productKicker: "वीडियो → पेशेवर रिपोर्ट", productTitle: "वीडियो को उपयोगी जानकारी में बदलें।",
   productBody: "VideoLens आवाज़ और नमूना फ़्रेम को एक उपयोगी रिपोर्ट में जोड़ता है, जिसमें हर निष्कर्ष के सटीक वीडियो क्षण होते हैं।", sampleReport: "पूरी नमूना रिपोर्ट देखें →",

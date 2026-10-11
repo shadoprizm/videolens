@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const m = vi.hoisted(() => ({ authenticate: vi.fn(), entitlement: vi.fn(), create: vi.fn(), single: vi.fn() }));
 vi.mock("../api/_lib/auth.js", () => ({ authenticate: m.authenticate }));
 vi.mock("../api/_lib/entitlements.js", () => ({ getEntitlement: m.entitlement }));
-vi.mock("../api/_lib/stripe.js", () => ({ stripeClient: () => ({ checkout: { sessions: { create: m.create } } }) }));
+vi.mock("../api/_lib/stripe.js", () => ({ stripeClient: () => ({ checkout: { sessions: { create: m.create } } }),verifiedProPrice:async (billing:string)=>`price_${billing}`,syncCheckout:async()=>{} }));
 vi.mock("../api/_lib/supabase.js", () => ({ supabaseAdmin: () => ({ from: () => ({ select: () => ({ eq: () => ({ single: m.single }) }) }) }) }));
 import { handler } from "../api/checkout.js";
 const now = new Date("2026-09-14T12:00:00Z");

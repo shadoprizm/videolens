@@ -1,4 +1,4 @@
-# VideoLens Firefox 0.7.2 — reviewer build instructions
+# VideoLens Firefox 0.8.0 — reviewer build instructions
 
 This source archive reproduces the packaged Firefox extension build. The
 extension is written in TypeScript and bundled as minified ES modules with
@@ -6,12 +6,15 @@ esbuild. It does not download or execute remote code.
 
 ## Changes in this release
 
-The sidebar reads only the settings needed for its first screen. Saved reports load
-when the Library is opened, and specialized report styles load when those results
-are shown. The bundled JavaScript is minified to reduce parsing work. Chrome and
-Firefox use the same UI source. Saved reports, account choices, and consent are
-preserved. No new permissions, data collection, AI providers, or payment behavior
-are introduced.
+Chrome and Firefox share the same UI. This release adds mode-specific next steps,
+suggested follow-up questions, and optional usefulness feedback on managed reports.
+Clicking a rating sends only the rating and managed report ID to the authenticated
+VideoLens service. Failed managed scans now send a fixed stage and error category,
+alongside their existing source category and selected mode. This restores allowance
+and diagnoses failures without raw errors or content. Private/BYOK scans send no
+diagnostics or ratings to VideoLens. The versioned first-run disclosure explains
+this data use before analysis. No background browsing tracking or session replay
+is used. Existing local reports and settings are preserved.
 
 ## Requirements
 
@@ -24,7 +27,7 @@ build the extension.
 ## Build the reviewed Firefox files
 
 The archive contains `extension/`, the shared recipe, procedure and lesson modules under `site/shared/`,
-and the two shared reader files under `site/`.
+the two shared reader files under `site/`, and bounded event types in `site/shared/journey.ts`.
 From the root of this source archive:
 
 ```sh

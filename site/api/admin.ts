@@ -17,6 +17,13 @@ export async function handler(request: Request): Promise<Response> {
   try {
     await requireAdministrator(request);
     const params = new URL(request.url).searchParams;
+    if (params.get("view") === "conversion") {
+      const days = Number(params.get("days") || 7);
+      if (![7,14,30].includes(days)) throw new ApiError(400, "invalid_cohort", "Choose 7, 14 or 30 days.");
+      const { data, error } = await supabaseAdmin().rpc("administrator_conversion_dashboard", { p_days: days });
+      if (error) throw error;
+      return json(request, data);
+    }
     if (params.get("view") === "funnel") {
       const { data, error } = await supabaseAdmin().rpc("activation_funnel");
       if (error) throw error;

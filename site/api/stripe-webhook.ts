@@ -1,10 +1,10 @@
 import type Stripe from "stripe";
 import { requireEnv } from "./_lib/env.js";
 import { errorResponse, json } from "./_lib/http.js";
-import { stripeClient, syncSubscription } from "./_lib/stripe.js";
+import { stripeClient, syncSubscription, syncCheckout, syncInvoice } from "./_lib/stripe.js";
 import { supabaseAdmin } from "./_lib/supabase.js";
 
-async function processEvent(event: Stripe.Event): Promise<void> {
+export async function processEvent(event: Stripe.Event): Promise<void> {
   const stripe = stripeClient();
   if (
     event.type === "customer.subscription.created" ||
@@ -15,21 +15,28 @@ async function processEvent(event: Stripe.Event): Promise<void> {
     return;
   }
 
-  if (event.type === "checkout.session.completed") {
+  if (event.type === "invoice.paid" || event.type === "invoice.payment_failed") {
+    // Retrieve current state so an older failure delivered after payment cannot
+    // overwrite a paid receipt.
+    await syncInvoice(await stripe.invoices.retrieve((event.data.object as Stripe.Invoice).id));
+    return;
+  }
+  if (event.type === "checkout.session.completed" || event.type === "checkout.session.expired") {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.client_reference_id || session.metadata?.user_id;
-    const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
-    if (userId && customerId) {
-      await supabaseAdmin()
-        .from("profiles")
-        .update({ stripe_customer_id: customerId, updated_at: new Date().toISOString() })
-        .eq("user_id", userId);
-    }
     if (session.subscription) {
       const subscription = typeof session.subscription === "string"
         ? await stripe.subscriptions.retrieve(session.subscription)
         : session.subscription;
-      await syncSubscription(subscription);
+      const linkedUser = await syncSubscription(subscription);
+      if (linkedUser) await syncCheckout(session, linkedUser);
+      if (linkedUser && subscription.latest_invoice) {
+        const invoice = typeof subscription.latest_invoice === "string" ? await stripe.invoices.retrieve(subscription.latest_invoice) : subscription.latest_invoice;
+        if (invoice.status === "paid") await syncInvoice(invoice);
+      }
+    } else if (userId && session.metadata?.product === "videolens") {
+      // Sessions created by this endpoint carry an explicit product marker.
+      await syncCheckout(session, userId);
     }
   }
 }

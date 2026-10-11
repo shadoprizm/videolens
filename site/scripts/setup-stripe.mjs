@@ -45,6 +45,7 @@ if (webhookUrl) {
     const created = await stripe.webhookEndpoints.create({
       url: webhookUrl,
       enabled_events: [
+        "checkout.session.expired", "invoice.paid", "invoice.payment_failed",
         "checkout.session.completed",
         "customer.subscription.created",
         "customer.subscription.updated",

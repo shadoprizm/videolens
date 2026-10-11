@@ -11,6 +11,7 @@ let memberId = "";
 let memberEmail = "";
 let query = "";
 let membership = "all";
+let cohortDays = 7;
 let sequence = 0;
 let pending: AbortController | undefined;
 const labels: Record<string, string> = { paid: "Paid Pro", free: "Free", trial: "Pro trial", complimentary: "Complimentary Pro" };
@@ -37,7 +38,7 @@ function clearSensitiveData(): void {
   pending?.abort();
   sequence++;
   el("dashboard").hidden = true;
-  for (const id of ["members", "activity", "metrics", "sources", "modes", "chart", "activation-funnel"]) el(id).replaceChildren();
+  for (const id of ["members", "activity", "metrics", "sources", "modes", "chart", "activation-funnel", "conversion-metrics", "conversion-note", "journey-metrics", "cohort-sources", "cohort-failures", "cohort-members", "billing-result"]) el(id).replaceChildren();
   el("updated").textContent = "";
   el("scan-summary").textContent = "";
   memberId = "";
@@ -72,6 +73,7 @@ async function load(): Promise<void> {
     }
     render(result as Snapshot);
     void loadFunnel(data.session.access_token, current, controller.signal);
+    void loadConversion(data.session.access_token, current, controller.signal);
     el("dashboard").hidden = false; el("access").hidden = true; el("refresh").hidden = false;
     showMessage("");
   } catch (error) {
@@ -85,7 +87,7 @@ async function load(): Promise<void> {
   }
 }
 async function loadFunnel(token: string, current: number, signal: AbortSignal): Promise<void> {
-  const labels: Record<string,string> = { account_connected: "Account connected", starter_started: "Starter started", starter_completed: "Starter completed", starter_failed: "Starter failed", checkout_started: "Checkout opened", subscription_active: "Subscription active", pro_started: "Pro report started", pro_completed: "Pro report completed", pro_failed: "Pro report failed" };
+  const labels: Record<string,string> = { account_connected: "Account connected", starter_started: "Starter started", starter_completed: "Starter completed", starter_failed: "Starter failed", checkout_started: "Checkout session created", subscription_active: "Subscription active", pro_started: "Pro report started", pro_completed: "Pro report completed", pro_failed: "Pro report failed" };
   try {
     const response = await fetch("/api/admin?view=funnel", { headers: { Authorization: `Bearer ${token}` }, signal });
     if (!response.ok) throw new Error("Unavailable");
@@ -98,6 +100,32 @@ async function loadFunnel(token: string, current: number, signal: AbortSignal): 
       return card;
     }));
   } catch { if (current === sequence) el("activation-funnel").replaceChildren(text("p","Activation metrics are temporarily unavailable.")); }
+}
+
+type Cohort = { measurementStartedAt:string|null; summary:Record<string,number|null>; revenue:{currency:string;amount_paid:number;invoices:number}[]; events:{event:string;members:number}[]; sources:{source_type:string;mode:string;status:string;count:number}[]; failures:{email:string;source_type:string;mode:string;failure_stage:string|null;failure_code:string|null;recovered:boolean;created_at:string}[]; members:{id:string;email:string;verified:boolean;attempts:number;completed:number;failed:number;checkout_created:boolean;paid:boolean;last_observed_at:string|null;excluded:boolean}[] };
+async function loadConversion(token:string, current:number, signal:AbortSignal):Promise<void> {
+  try {
+    const response = await fetch(`/api/admin?view=conversion&days=${cohortDays}`,{headers:{Authorization:`Bearer ${token}`},signal});
+    if (!response.ok) throw new Error("Unavailable");
+    const data = await response.json() as Cohort;
+    if (current !== sequence) return;
+    const labels:Record<string,string> = {signups:"Signups",verified:"Verified",connected:"Extension connected",attempted:"Tried managed scan",completed:"Successful report",failedOnly:"Failed without recovery",verifiedWithoutAttempt:"Verified · no managed attempt",checkoutCreated:"Checkout created",reportThenCheckout:"Report then checkout",paidMembers:"Confirmed paying members"};
+    el("conversion-metrics").replaceChildren(...Object.entries(labels).map(([key,label])=>{
+      const card=text("article","","metric"); card.append(text("span",label,"label"),text("strong",String(data.summary[key] || 0))); return card;
+    }));
+    const amounts = data.revenue.map(r=>new Intl.NumberFormat(undefined,{style:"currency",currency:r.currency.toUpperCase()}).format(r.amount_paid/100)).join(" + ") || "No positive paid invoices recorded";
+    el("conversion-note").textContent = `Revenue for these members: ${amounts}. Median signup → first report: ${data.summary.medianMinutesToReport == null ? "not available" : `${Number(data.summary.medianMinutesToReport).toFixed(1)} minutes`}. Returned on days 2–7: ${data.summary.returnedWeek || 0} of ${data.summary.retentionEligible || 0} eligible members. Journey measurement began ${data.measurementStartedAt ? date(data.measurementStartedAt) : "with this release; no events yet"}. Historical payments need reconciliation; missing records do not establish non-payment.`;
+    const actionLabels:Record<string,string> = {account_opened:"Account opened",install_chrome_clicked:"Chrome install clicked",install_firefox_clicked:"Firefox install clicked",desktop_link_copied:"Desktop link copied",pricing_viewed:"Pricing viewed",checkout_clicked:"Checkout clicked",checkout_returned:"Returned from checkout",report_opened:"Cloud report opened",report_exported:"Cloud report export used",feedback_helpful:"Report helpful",feedback_partial:"Partly helpful",feedback_unhelpful:"Not helpful"};
+    el("journey-metrics").replaceChildren(...Object.entries(actionLabels).map(([event,label])=>{const card=text("article","","metric");card.append(text("span",label,"label"),text("strong",String(data.events.find(e=>e.event===event)?.members || 0)));return card;}));
+    el("cohort-sources").replaceChildren(...(data.sources.length ? data.sources.map(r=>text("p",`${r.source_type} · ${r.mode} · ${r.status}: ${r.count}`)) : [text("p","No managed reports in this cohort.","muted")]));
+    el("cohort-failures").replaceChildren(...(data.failures.length ? data.failures.map(r=>text("p",`${r.email} · ${r.source_type} / ${r.mode} · ${r.failure_stage || "historical stage unavailable"} / ${r.failure_code || "category unavailable"} · ${r.recovered ? "later successful report" : "no later success recorded"} · ${date(r.created_at)}`)) : [text("p","No failures recorded in this cohort.","muted")]));
+    el("cohort-members").replaceChildren(...data.members.map(member=>{
+      const row=document.createElement("tr"); const test=document.createElement("td"); const label=document.createElement("label");const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.checked=member.excluded;checkbox.setAttribute("aria-label",`Exclude ${member.email} from conversion analytics`);
+      checkbox.addEventListener("change",()=>{checkbox.disabled=true;void fetch("/api/analytics-exclusion",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({userId:member.id,excluded:checkbox.checked})}).then(async response=>{if(!response.ok) throw new Error("Could not update analytics exclusion."); await load();}).catch(error=>{checkbox.checked=member.excluded;checkbox.disabled=false;showMessage(error.message,true);});});
+      label.append(checkbox,document.createTextNode("Exclude"));test.append(label);
+      row.append(text("td",member.email),text("td",member.verified?"Yes":"No"),text("td",`${member.completed} complete / ${member.failed} failed / ${member.attempts} attempted`),text("td",member.checkout_created?"Created":"None recorded"),text("td",member.paid?"Confirmed":"None recorded"),text("td",date(member.last_observed_at)),test);return row;
+    }));
+  } catch {if (current===sequence) el("conversion-metrics").replaceChildren(text("p","Conversion analytics are temporarily unavailable. Refresh to retry."));}
 }
 
 function render(data: Snapshot): void {
@@ -183,6 +211,19 @@ async function boot(): Promise<void> {
       else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") queueMicrotask(() => void load());
     });
     el("refresh").addEventListener("click", () => void load());
+    for(const action of ["audit","reconcile"] as const) el(`billing-${action}`).addEventListener("click",()=>{
+      const current=sequence;
+      el<HTMLButtonElement>("billing-audit").disabled=true;el<HTMLButtonElement>("billing-reconcile").disabled=true;el("billing-result").textContent="Checking Stripe…";
+      void client.auth.getSession().then(async ({data})=>{
+        if (!data.session) throw new Error("Sign in again.");
+        const response=await fetch("/api/admin-billing",{method:"POST",headers:{Authorization:`Bearer ${data.session.access_token}`,"Content-Type":"application/json"},body:JSON.stringify({action})});
+        const result=await response.json(); if(!response.ok) throw new Error(result.message || "Billing audit failed.");
+        if(current!==sequence) return;
+        el("billing-result").textContent=`${result.liveMode ? "Live" : "Test"} Stripe configuration verified: ${result.prices.map((p:{amount:number;currency:string;interval:string})=>`${p.currency.toUpperCase()} ${(p.amount/100).toFixed(2)}/${p.interval}`).join("; ")}. ${result.sessions.length} VideoLens checkout sessions found in 30 days: ${result.sessions.map((s:{status:string;paymentStatus:string})=>`${s.status} (${s.paymentStatus})`).join(", ") || "none"}. ${result.complete ? "Scan complete." : "Scan capped; more records remain."} ${result.webhook.found ? result.webhook.missingEvents.length ? `Webhook missing ${result.webhook.missingEvents.length} required events; run reconciliation.` : "Webhook event coverage verified." : "Expected webhook was not found; owner review required."} ${result.reconciled ? "Billing records reconciled." : "Read-only audit."}`;
+        if(action==="reconcile") {const {data}=await client.auth.getSession();if(data.session) void loadConversion(data.session.access_token,current,new AbortController().signal);}
+      }).catch(error=>{if(current===sequence)el("billing-result").textContent=error.message;}).finally(()=>{el<HTMLButtonElement>("billing-audit").disabled=false;el<HTMLButtonElement>("billing-reconcile").disabled=false;});
+    });
+    el<HTMLSelectElement>("cohort-days").addEventListener("change",()=>{cohortDays=Number(el<HTMLSelectElement>("cohort-days").value);void load();});
     el("sign-out").addEventListener("click", () => {
       clearSensitiveData();
       void client.auth.signOut().then(({ error }) => { if (error) showMessage(error.message, true); });

@@ -9,6 +9,7 @@ import {
 } from "./storage";
 import type { Analysis } from "./types";
 import type { SavedReport } from "./reportLibrary";
+import type { FailureStage, FailureCategory } from "../../../site/shared/journey";
 
 export interface ProEntitlement {
   plan: "free" | "pro";
@@ -113,6 +114,7 @@ export async function completeManagedReport(
   analysis: Analysis | null,
   cloudSave: boolean,
   failed = false,
+  diagnostic?: { stage: FailureStage; code: FailureCategory; sourceType: string; mode: string },
 ): Promise<void> {
   await proJson("/api/reports", token, {
     method: "POST",
@@ -122,11 +124,16 @@ export async function completeManagedReport(
       status: failed ? "failed" : "complete",
       cloudSave: !failed && cloudSave,
       title: analysis?.source.title || "Untitled video",
-      sourceType: analysis?.source.sourceType || "video",
-      mode: analysis?.mode || "general",
+      sourceType: analysis?.source.sourceType || diagnostic?.sourceType || "video",
+      mode: analysis?.mode || diagnostic?.mode || "general",
+      ...(failed && diagnostic ? {failureStage:diagnostic.stage,failureCode:diagnostic.code} : {}),
       reportData: !failed && cloudSave ? analysis : undefined,
     }),
   });
+}
+
+export async function submitReportFeedback(token: string, reportId: string, rating: "helpful" | "partial" | "unhelpful"): Promise<void> {
+  await proJson("/api/journey", token, {method:"POST",body:JSON.stringify({event:`feedback_${rating}`,reportId})});
 }
 
 export function openProAccount(): void {
