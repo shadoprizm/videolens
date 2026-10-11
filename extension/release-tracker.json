@@ -429,24 +429,30 @@
   "chrome": {
     "artifact": "releases/chrome/videolens-chrome-v0.8.0.zip",
     "packageVersion": "0.8.0",
-    "status": "console_access_pending",
+    "status": "publisher_authentication_pending",
     "publishedVersion": null,
-    "checkedAt": "2026-10-11",
-    "blockedReason": "Browser automation cannot access the Chrome developer console. Native access requires the owner to unlock the Mac manually; file-upload permission is also pending.",
+    "checkedAt": "2026-10-11T20:06:03Z",
+    "blockedReason": "Native Mac access is working. The existing publisher passkey attempt failed; a refreshed Touch ID check for the existing Google publisher account is pending. The Chrome 0.8.0 package has not been uploaded or submitted.",
     "sha256": "0fc8e3400d50b335e07ca35c8d60af261290ae3c24a88b3c34902ccc7830e33a"
   },
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.8.0.zip",
     "packageVersion": "0.8.0",
-    "status": "upload_requires_browser_file_permission",
-    "publishedVersion": "0.7.2",
+    "status": "published",
+    "publishedVersion": "0.8.0",
     "checkedAt": "2026-10-11",
-    "blockedReason": "Browser upload requires the owner to enable Allow access to file URLs on the ChatGPT browser extension.",
+    "blockedReason": null,
     "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.0.zip",
-    "sourceSubmitted": false,
+    "sourceSubmitted": true,
     "sha256": "b71b2d0d106dd5b68e8602fbf0259299d46ca4fbb9bdb62b4fb96e7996fdf12d",
-    "sourceSha256": "683f64b78511d6381a93e9f3b1ef765181aa8655c48a029353786dd419520db7",
-    "publishedVersionCheckedAt": "2026-10-11"
+    "sourceSha256": "c93729095d5d4a9e7623222fa279f90e9663a0954a7401c3a33173efd036a4e8",
+    "publishedVersionCheckedAt": "2026-10-11T20:06:03Z",
+    "submittedAt": "2026-10-11T20:06:03Z",
+    "versionId": 6565914,
+    "fileId": 5110051,
+    "reviewUrl": "https://addons.mozilla.org/en-US/developers/addon/videolens-video-reports/versions/6565914",
+    "publicVersionHistoryUrl": "https://addons.mozilla.org/en-US/firefox/addon/videolens-video-reports/versions/",
+    "note": "Native Mac file picker uploaded the verified package and reviewer source. Mozilla validation had no errors or warnings. Approved and listed as latest version 0.8.0 on the public version-history page."
   },
   "validation": {
     "releaseCheck": "passed",
@@ -462,7 +468,9 @@
     "reviewerSourceRebuild": {
       "exactMatch": true,
       "filesCompared": 19,
-      "sourceSha256": "683f64b78511d6381a93e9f3b1ef765181aa8655c48a029353786dd419520db7"
+      "sourceSha256": "c93729095d5d4a9e7623222fa279f90e9663a0954a7401c3a33173efd036a4e8",
+      "originalVerifiedSourceSha256": "683f64b78511d6381a93e9f3b1ef765181aa8655c48a029353786dd419520db7",
+      "note": "Source archive was updated only in extension/AMO_SOURCE_README.md to specify the verified macOS 26.5, Node.js 22.22.3 and npm 10.9.8 build environment. All build inputs match the clean archive that reproduced all 19 packaged files byte for byte; extension package ZIPs are unchanged."
     }
   },
   "website": {
