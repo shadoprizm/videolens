@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 import { requireEnv } from "./_lib/env.js";
 import { errorResponse, json } from "./_lib/http.js";
-import { stripeClient, syncSubscription, syncCheckout, syncInvoice } from "./_lib/stripe.js";
+import { stripeClient, syncSubscription, syncCheckout, syncInvoice, syncLatestInvoice } from "./_lib/stripe.js";
 import { supabaseAdmin } from "./_lib/supabase.js";
 
 export async function processEvent(event: Stripe.Event): Promise<void> {
@@ -16,9 +16,9 @@ export async function processEvent(event: Stripe.Event): Promise<void> {
   }
 
   if (event.type === "invoice.paid" || event.type === "invoice.payment_failed") {
-    // Retrieve current state so an older failure delivered after payment cannot
-    // overwrite a paid receipt.
-    await syncInvoice(await stripe.invoices.retrieve((event.data.object as Stripe.Invoice).id));
+    // Signature-verified payloads need no new invoice-read permission. The
+    // durable ledger prevents an older failure overwriting a paid invoice.
+    await syncInvoice(event.data.object as Stripe.Invoice);
     return;
   }
   if (event.type === "checkout.session.completed" || event.type === "checkout.session.expired") {
@@ -30,10 +30,7 @@ export async function processEvent(event: Stripe.Event): Promise<void> {
         : session.subscription;
       const linkedUser = await syncSubscription(subscription);
       if (linkedUser) await syncCheckout(session, linkedUser);
-      if (linkedUser && subscription.latest_invoice) {
-        const invoice = typeof subscription.latest_invoice === "string" ? await stripe.invoices.retrieve(subscription.latest_invoice) : subscription.latest_invoice;
-        if (invoice.status === "paid") await syncInvoice(invoice);
-      }
+      if (linkedUser) await syncLatestInvoice(subscription);
     } else if (userId && session.metadata?.product === "videolens") {
       // Sessions created by this endpoint carry an explicit product marker.
       await syncCheckout(session, userId);

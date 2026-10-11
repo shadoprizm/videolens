@@ -3,7 +3,7 @@ import { authenticate } from "./_lib/auth.js";
 import { getEntitlement } from "./_lib/entitlements.js";
 import { optionalEnv } from "./_lib/env.js";
 import { ApiError, errorResponse, json, options } from "./_lib/http.js";
-import { proItem, stripeClient, syncCheckout, syncInvoice, syncSubscription } from "./_lib/stripe.js";
+import { proItem, stripeClient, syncCheckout, syncLatestInvoice, syncSubscription } from "./_lib/stripe.js";
 
 export async function handler(request: Request): Promise<Response> {
   const preflight = options(request); if (preflight) return preflight;
@@ -28,10 +28,7 @@ export async function handler(request: Request): Promise<Response> {
     if (subscription) {
       const linked = await syncSubscription(subscription);
       if (linked !== user.id) throw new ApiError(404, "checkout_not_found", "Checkout not found.");
-      if (subscription.latest_invoice) {
-        const invoice = typeof subscription.latest_invoice === "string" ? await stripe.invoices.retrieve(subscription.latest_invoice) : subscription.latest_invoice;
-        if (invoice.status === "paid") await syncInvoice(invoice);
-      }
+      await syncLatestInvoice(subscription);
     }
     await syncCheckout(checkout, user.id);
     return json(request, { status: checkout.status, paymentStatus: checkout.payment_status, entitlement: await getEntitlement(user.id) });

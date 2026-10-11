@@ -24,6 +24,8 @@ begin
  if snapshot->'summary'->>'reportThenCheckout'<>before_snapshot->'summary'->>'reportThenCheckout' then raise exception 'Checkout before report treated as report conversion'; end if;
  if snapshot->'summary'->>'paidMembers'<>before_snapshot->'summary'->>'paidMembers' then raise exception 'Zero-dollar invoice counted as payment'; end if;
  update public.payment_receipts set amount_paid=1200 where stripe_invoice_id='in_regression';
+ perform public.record_payment_receipt('in_regression',u,'sub_regression','failed',0,'usd',null,now());
+ if (select status <> 'paid' or amount_paid <> 1200 from public.payment_receipts where stripe_invoice_id='in_regression') then raise exception 'Delayed failure erased payment'; end if;
  snapshot:=public.administrator_conversion_dashboard(7);
  if (snapshot->'summary'->>'paidMembers')::bigint<>(before_snapshot->'summary'->>'paidMembers')::bigint+1 then raise exception 'Positive paid invoice not counted'; end if;
  insert into public.analytics_exclusions(user_id) values(u);
