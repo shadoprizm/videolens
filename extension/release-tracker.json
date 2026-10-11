@@ -429,34 +429,56 @@
   "chrome": {
     "artifact": "releases/chrome/videolens-chrome-v0.8.0.zip",
     "packageVersion": "0.8.0",
-    "status": "ready_to_submit",
+    "status": "console_access_pending",
     "publishedVersion": null,
     "checkedAt": "2026-10-11",
-    "blockedReason": null,
-    "sha256": "db3e377144bd23ec54b9a34cf1ad038da6af48d880a835fcd078d824ea7af00d"
+    "blockedReason": "Browser navigation to the Chrome developer console returned Not allowed; console access and upload remain unverified.",
+    "sha256": "0fc8e3400d50b335e07ca35c8d60af261290ae3c24a88b3c34902ccc7830e33a"
   },
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.8.0.zip",
     "packageVersion": "0.8.0",
-    "status": "ready_to_submit",
-    "publishedVersion": null,
+    "status": "upload_requires_browser_file_permission",
+    "publishedVersion": "0.7.2",
     "checkedAt": "2026-10-11",
-    "blockedReason": null,
+    "blockedReason": "Browser upload requires the owner to enable Allow access to file URLs on the ChatGPT browser extension.",
     "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.0.zip",
     "sourceSubmitted": false,
-    "sha256": "acb31727842b1ed1327be792160ce372b28fd2f9a9e34d208d19a95b8ad5937b",
-    "sourceSha256": "f51519d91f2e91b3a07a47a3e4b4a45fed93b482eed3c1969f68963f7e4342de"
+    "sha256": "b71b2d0d106dd5b68e8602fbf0259299d46ca4fbb9bdb62b4fb96e7996fdf12d",
+    "sourceSha256": "683f64b78511d6381a93e9f3b1ef765181aa8655c48a029353786dd419520db7",
+    "publishedVersionCheckedAt": "2026-10-11"
   },
   "validation": {
     "releaseCheck": "passed",
-    "extensionTests": 98,
-    "siteTests": 129,
+    "extensionTests": 101,
+    "siteTests": 135,
     "firefoxLint": {
       "errors": 0,
       "warnings": 0,
       "notices": 0
     },
-    "database": "Cohort, recovered failure, test exclusion, zero versus positive invoice, and service-only access checks passed in rollback fixtures.",
-    "browser": "Native account, payment and source capture validation pending."
+    "database": "Cohort, recovered failure, explicit test exclusion, zero versus positive invoice, paid-then-delayed-failure ordering and service-only access passed in production rollback fixtures.",
+    "browser": "Live owner account and conversion dashboard verified. Synthetic API workflow verified failure allowance recovery, successful retry, bounded journey deduplication and explicit feedback. Both real unpaid Stripe checkout sessions matched USD 12 monthly / USD 99 annual and retained Free access. The synthetic account and its data were removed after validation. Native extension capture and completed-payment acceptance remain pending."
+  },
+  "website": {
+    "status": "deployed_live_verified",
+    "url": "https://videolens.io",
+    "candidateUrl": "https://videolens-site-3ubenfyyt-shadoprizms-projects.vercel.app",
+    "deployment": "dpl_GnvqQL5F9cTgH9P9WfqzLTTnPYcW",
+    "sourceCommit": "f28152eb1bc4f8d08974c7dd3e99de42a8e635f2",
+    "mergedCommit": "eec24005840f7ebe93f623d172acb66160cb83ec"
+  },
+  "billing": {
+    "customerSessionsInLast30Days": 4,
+    "completedCustomerSessions": 0,
+    "unpaidCustomerSessions": 4,
+    "pricesAtLiveCheckoutVerified": true,
+    "restrictedKeyAuditMissingPermissions": [
+      "Prices: Read",
+      "Webhook Endpoints: Read"
+    ],
+    "webhookEventCoverage": "owner_verification_pending",
+    "confirmedPaymentAcceptance": "pending",
+    "note": "Audit/reconciliation matched configured VideoLens prices and known members. Two later synthetic unsubmitted checkout sessions cannot create subscriptions or charges without payment; their test account was cleaned up."
   }
 }

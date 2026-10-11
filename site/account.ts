@@ -208,7 +208,11 @@ async function loadEntitlement(): Promise<void> {
       : "Your free report is used. Continue with Pro for 20 reports per calendar month. Your saved reports remain available.";
   const hasStarter = !isPro && entitlement.canUseManagedAi && entitlement.managedReportsRemaining > 0;
   const pairing = new URL(location.href).searchParams;
-  byId("first-report-next").hidden = !hasStarter || Boolean(pairing.get("connect") && pairing.get("device"));
+  byId("first-report-next").hidden = !(hasStarter || isPro) || Boolean(pairing.get("connect") && pairing.get("device"));
+  byId("report-setup-kicker").textContent = isPro ? "Your desktop workspace" : "Your free report is ready to create";
+  byId("report-setup-title").textContent = isPro ? "Create reports on your computer" : "Open a video. Make something useful.";
+  byId<HTMLDetailsElement>("report-setup").open = !isPro || !byId("mobile-start").hidden;
+  byId("desktop-start").textContent = `1. Add the extension below. 2. Open VideoLens → Settings → Connect account, and approve the connection here. 3. Choose a YouTube video or local video file and create ${isPro ? "a report" : "your free report"}.`;
   byId("upgrade-options").hidden = !entitlement.canUpgrade;
   byId<HTMLDetailsElement>("upgrade-options").open = entitlement.canUpgrade && !hasStarter;
   byId("upgrade-summary").textContent = hasStarter ? "Explore Pro after your free report" : "Keep creating with VideoLens Pro";

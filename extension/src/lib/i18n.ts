@@ -14,7 +14,7 @@ import {
 export type UiLocale = "en" | "zh_CN" | "zh_TW" | "es_419" | "ro" | "hi";
 
 export const EN = {
-  managedDiagnostics: "Managed scans record the source category, chosen mode, and a coarse failure stage to restore allowance and diagnose problems. VideoLens does not receive private/BYOK diagnostics. Sending a usefulness rating is optional and sends only your rating and report ID.",
+  managedDiagnostics: "Managed scans record source category, chosen mode and outcome to manage allowance. Where permitted, fixed failure categories help diagnose problems. Private/BYOK diagnostics are not sent. Ratings are optional and send only your rating and report ID. In Firefox, extra diagnostics and ratings require optional interaction-data permission.",
   useReportTitle: "Put this report to work",
   useReport: "Open the full report to check timestamped evidence. Copy the text into your notes, or save a PDF to share. Ask a follow-up below to turn an idea into a concrete next step.",
   useLesson: "Open the lesson, test yourself with its quiz, and check the video timestamps for ideas you want to revisit. Save the report for your next study session.",
@@ -23,7 +23,7 @@ export const EN = {
   feedbackDisclosure: "Optional: send only this rating and the managed report ID to VideoLens. No video or report content is sent.",
   helpful: "Yes", partlyHelpful: "Partly", notHelpful: "No",
   feedbackThanks: "Thanks. Your feedback helps us improve the reports.",
-  feedbackRetry: "Feedback could not be sent. You can retry.",
+  feedbackRetry: "Your rating was not sent. Check your connection and, in Firefox, the optional interaction-data permission, then retry.",
   followUpAction: "What should I do next, based on this video?",
   followUpEvidence: "Which claims need checking? Show the timestamps.",
   settings: "Settings",
@@ -243,9 +243,9 @@ export const EN = {
 export type UiKey = keyof typeof EN;
 
 const ZH_CN: Record<UiKey, string> = {
-  managedDiagnostics: "托管扫描记录来源类别、所选模式和粗略失败阶段，以恢复额度并排查问题。VideoLens 不接收私密模式诊断。发送实用性评分是可选操作，仅发送评分和报告 ID。",
+  managedDiagnostics: "托管扫描记录来源类别、所选模式和结果，以管理额度。在获得许可时，固定的失败类别帮助排查问题。私密模式不发送诊断。评分是可选的，仅发送评分和报告 ID。在 Firefox 中，额外诊断和评分需要可选的交互数据权限。",
   useReportTitle: "用好这份报告", useReport: "打开完整报告，核对带时间戳的证据。复制到笔记或保存 PDF。也可提出后续问题，形成具体行动。", useLesson: "打开课程，用测验自测，并查看视频时间戳。保存报告以便下次复习。", useProcedure: "操作时使用流程清单。执行命令或更改设置之前，请核对证据和缺失信息。",
-  usefulnessQuestion: "这份报告帮助您完成目标了吗？", feedbackDisclosure: "可选：仅将评分和托管报告 ID 发给 VideoLens，不发送视频或报告内容。", helpful: "是", partlyHelpful: "部分", notHelpful: "否", feedbackThanks: "谢谢。您的反馈帮助我们改进报告。", feedbackRetry: "反馈未能发送，可以重试。", followUpAction: "根据这个视频，我接下来应该做什么？", followUpEvidence: "哪些说法需要核实？请提供时间戳。",
+  usefulnessQuestion: "这份报告帮助您完成目标了吗？", feedbackDisclosure: "可选：仅将评分和托管报告 ID 发给 VideoLens，不发送视频或报告内容。", helpful: "是", partlyHelpful: "部分", notHelpful: "否", feedbackThanks: "谢谢。您的反馈帮助我们改进报告。", feedbackRetry: "评分未发送。请检查网络连接及 Firefox 的可选交互数据权限，然后重试。", followUpAction: "根据这个视频，我接下来应该做什么？", followUpEvidence: "哪些说法需要核实？请提供时间戳。",
   settings: "设置", libraryNav: "资料库", startupFailedBadge: "需要处理", startupFailedTitle: "VideoLens 未能完成加载。",
   startupFailedBody: "浏览器无法读取扩展的已保存设置。请重新加载面板后再试；您的报告和设置未被更改。", reloadExtension: "重新加载 VideoLens",
   privacyFirst: "隐私优先", privateBadge: "隐私模式", beforeAnalyze: "您的视频始终由您掌控",
@@ -340,9 +340,9 @@ const ZH_CN: Record<UiKey, string> = {
 
 const ZH_TW: Record<UiKey, string> = {
   ...ZH_CN,
-  managedDiagnostics: "代管掃描記錄來源類別、所選模式及粗略失敗階段，以恢復額度並排查問題。VideoLens 不接收隱私模式診斷。傳送實用性評分是選用操作，僅傳送評分和報告 ID。",
+  managedDiagnostics: "代管掃描記錄來源類別、所選模式及結果，以管理額度。在取得許可時，固定的失敗類別協助排查問題。隱私模式不傳送診斷。評分是選用操作，僅傳送評分及報告 ID。在 Firefox 中，額外診斷及評分需要選用的互動資料權限。",
   useReportTitle: "用好這份報告", useReport: "開啟完整報告，核對帶時間戳記的證據。複製到筆記或儲存 PDF。也可提出後續問題，形成具體行動。", useLesson: "開啟課程，用測驗自測，並查看影片時間戳記。儲存報告以便下次複習。", useProcedure: "操作時使用流程清單。執行命令或更改設定之前，請核對證據及缺失資訊。",
-  usefulnessQuestion: "這份報告幫助您完成目標了嗎？", feedbackDisclosure: "選用：僅將評分和代管報告 ID 傳送給 VideoLens，不傳送影片或報告內容。", helpful: "是", partlyHelpful: "部分", notHelpful: "否", feedbackThanks: "謝謝。您的回饋幫助我們改進報告。", feedbackRetry: "回饋未能傳送，可以重試。", followUpAction: "根據這個影片，我接下來應該做什麼？", followUpEvidence: "哪些說法需要核實？請提供時間戳記。",
+  usefulnessQuestion: "這份報告幫助您完成目標了嗎？", feedbackDisclosure: "選用：僅將評分和代管報告 ID 傳送給 VideoLens，不傳送影片或報告內容。", helpful: "是", partlyHelpful: "部分", notHelpful: "否", feedbackThanks: "謝謝。您的回饋幫助我們改進報告。", feedbackRetry: "評分未傳送。請檢查網路連線及 Firefox 的選用互動資料權限，再重試。", followUpAction: "根據這個影片，我接下來應該做什麼？", followUpEvidence: "哪些說法需要核實？請提供時間戳記。",
   settings: "設定", libraryNav: "資料庫", startupFailedBadge: "需要處理", startupFailedTitle: "VideoLens 未能完成載入。",
   startupFailedBody: "瀏覽器無法讀取擴充功能的已儲存設定。請重新載入面板後再試；您的報告和設定未被更改。", reloadExtension: "重新載入 VideoLens",
   privateBadge: "隱私模式", beforeAnalyze: "您的影片始終由您掌控",

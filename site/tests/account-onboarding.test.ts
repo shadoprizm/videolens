@@ -76,9 +76,19 @@ it("shows Pro continuation when the starter allowance is exhausted", async () =>
 });
 it("existing subscribers keep billing management without a free-account pitch", async () => {
   const { document } = await openAccount({ pro: true, remaining: 20 });
-  expect(document.getElementById("first-report-next")!.hidden).toBe(true);
+  expect(document.getElementById("first-report-next")!.hidden).toBe(false);
+  expect((document.getElementById("report-setup") as unknown as HTMLDetailsElement).open).toBe(false);
+  expect(document.getElementById("first-report-next")!.textContent).not.toContain("your free report");
   expect(document.getElementById("upgrade-options")!.hidden).toBe(true);
   expect(document.getElementById("manage-billing")!.hidden).toBe(false);
+});
+it("paid mobile members can still move to their desktop and find the extension",async()=>{
+  const {document}=await openAccount({mobile:true,pro:true,remaining:20});
+  expect(document.getElementById("first-report-next")!.hidden).toBe(false);
+  expect((document.getElementById("report-setup") as unknown as HTMLDetailsElement).open).toBe(true);
+  expect(document.getElementById("copy-desktop-link")!.hidden).toBe(false);
+  expect(document.getElementById("desktop-install")!.hidden).toBe(true);
+  expect(document.getElementById("report-setup-kicker")!.textContent).toBe("Your desktop workspace");
 });
 it("a pairing link prioritizes connecting the installed extension", async () => {
   const { document } = await openAccount({ search: "?connect=nonce&device=device" });

@@ -45,7 +45,8 @@ test("the actual side-panel bundle renders first-run privacy UI", async () => {
     assert.match(document.querySelector("#view-root").textContent, /Your video stays under your control/);
     assert.equal(document.querySelector(".privacy-details").hasAttribute("open"), false);
     assert.equal(document.querySelectorAll(".privacy-details .privacy-list li").length, 5);
-    assert.match(document.querySelector(".privacy-details").textContent, /coarse failure stage/);
+    assert.match(document.querySelector(".privacy-details").textContent, /fixed failure categories/);
+    assert.match(document.querySelector(".privacy-details").textContent, /optional interaction-data permission/);
     assert.ok(document.querySelector("#accept-privacy"));
   } finally {
     globalThis.fetch = originalFetch;
