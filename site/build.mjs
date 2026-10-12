@@ -39,6 +39,7 @@ const faqSchema = (faqs) => faqs.map(([name, text]) => ({
 
 const renderPage = (page) => {
   const canonical = `${siteUrl}/${page.slug}`;
+  const pageLastmod = page.lastmod || lastmod;
   const workflow = workflowBySlug[page.slug] || "general";
   const appHref = `https://app.videolens.io/?workflow=${encodeURIComponent(workflow)}`;
   const schema = {
@@ -52,7 +53,7 @@ const renderPage = (page) => {
         description: page.description,
         isPartOf: { "@id": `${siteUrl}/#website` },
         about: { "@id": `${siteUrl}/#software` },
-        dateModified: lastmod,
+        dateModified: pageLastmod,
         inLanguage: "en"
       },
       {
@@ -97,6 +98,28 @@ const renderPage = (page) => {
     return `<a href="/${slug}">${escapeHtml(relatedPage.h1)}<span>Read the guide →</span></a>`;
   }).join("");
   const summary = page.summary.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("\n          ");
+  const proof = page.proof ? `
+    <section class="section alt" id="sample-report">
+      <div class="wrap prose">
+        <div class="eyebrow">Evidence, not a black box</div>
+        <h2>${escapeHtml(page.proof.title)}</h2>
+        <p>${escapeHtml(page.proof.intro)}</p>
+        <ol class="checklist">${page.proof.findings.map(([timestamp, detail]) => `<li><strong>${escapeHtml(timestamp)}</strong> — ${escapeHtml(detail)}</li>`).join("")}</ol>
+        <p><a class="button button-secondary" href="${escapeHtml(page.proof.href)}"${page.proof.href.startsWith("http") ? ' target="_blank" rel="noopener"' : ""}>${escapeHtml(page.proof.linkText)} →</a></p>
+      </div>
+    </section>` : "";
+  const setup = page.setup ? `
+    <section class="section alt" id="mcp-setup">
+      <div class="wrap prose">
+        <div class="eyebrow">Get started</div>
+        <h2>${escapeHtml(page.setup.title)}</h2>
+        <p>${escapeHtml(page.setup.intro)}</p>
+        <pre><code>${escapeHtml(page.setup.command)}</code></pre>
+        <p>Or use this client configuration:</p>
+        <pre><code>${escapeHtml(page.setup.config)}</code></pre>
+        <div class="note"><strong>Important:</strong> ${escapeHtml(page.setup.note)}</div>
+      </div>
+    </section>` : "";
 
   return `<!doctype html>
 <html lang="en">
@@ -158,7 +181,7 @@ const renderPage = (page) => {
           <a class="button button-secondary" data-track="Start ${escapeHtml(workflow)} workflow" data-destination="hosted-app-${escapeHtml(workflow)}" href="${appHref}" target="_blank" rel="noopener">Use the BYOK web app</a>
           <a class="button button-secondary" href="#how-it-works">How it works</a>
         </div>
-        <div class="meta-line">Updated ${lastmod} · First report free · No API key or credit card · Optional Pro</div>
+        <div class="meta-line">Updated ${pageLastmod} · First report free · No API key or credit card · Optional Pro</div>
       </div>
     </section>
 
@@ -173,6 +196,7 @@ const renderPage = (page) => {
         ${summary}
       </div>
     </section>
+    ${proof}
 
     <section class="section alt">
       <div class="wrap">
@@ -188,6 +212,7 @@ const renderPage = (page) => {
         <div class="steps">${steps}</div>
       </div>
     </section>
+    ${setup}
 
     <section class="section alt">
       <div class="wrap">
@@ -292,9 +317,9 @@ for (const page of pages) {
 }
 
 const urls = [
-  { path: "/", modified: lastmod },
+  { path: "/", modified: "2026-10-12" },
   { path: "/privacy", modified: lastmod },
-  ...pages.map((page) => ({ path: `/${page.slug}`, modified: lastmod }))
+  ...pages.map((page) => ({ path: `/${page.slug}`, modified: page.lastmod || lastmod }))
 ];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(({ path, modified }) => `  <url>\n    <loc>${siteUrl}${path}</loc>\n    <lastmod>${modified}</lastmod>\n  </url>`).join("\n")}\n</urlset>\n`;
 writeFileSync(join(out, "sitemap.xml"), sitemap);
