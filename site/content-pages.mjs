@@ -3,6 +3,7 @@ export const lastmod = "2026-08-18";
 export const pages = [
   {
     slug: "ai-video-analyzer",
+    lastmod: "2026-10-12",
     title: "AI Video Analyzer with Timestamped Evidence | VideoLens",
     description: "Analyze video with transcription, frame-level vision, OCR, and timestamp citations. VideoLens turns local files and video links into structured, evidence-grounded reports.",
     eyebrow: "Multimodal AI video analysis",
@@ -12,6 +13,17 @@ export const pages = [
       "Most AI video tools rely mainly on a transcript. That misses silent interactions, interface state, diagrams, error messages, and other visual evidence. VideoLens combines transcript segments with sampled-frame descriptions and on-screen text recognition before it writes the report.",
       "The result is useful for both review and automation: a human-readable explanation, timestamped findings, recommendations, and machine-readable JSON that an AI agent can consume."
     ],
+    proof: {
+      title: "See what timestamped evidence looks like",
+      intro: "This public sample is a product demonstration, not a customer report. It shows the actual VideoLens report structure: a claim, the moments that support it, and clear limits on what the report does and does not establish.",
+      href: "/sample-video-report",
+      linkText: "Read the complete sample report",
+      findings: [
+        ["00:18", "The speaker frames a product around a recurring problem rather than a pricing model."],
+        ["02:34", "A slide presents the product loop: Activation → Value → Return."],
+        ["06:28", "A session replay shows a user pausing where the next action was expected to be obvious."]
+      ]
+    },
     benefits: [
       ["Multimodal context", "Combines speech, visual changes, OCR, scene type, and your prompt in a time-windowed timeline."],
       ["Verifiable findings", "Important claims cite timestamps so reviewers can jump back to the source instead of trusting a generic summary."],
@@ -30,7 +42,7 @@ export const pages = [
       ["Does VideoLens work with local video files?", "Yes. Local files are supported by the CLI, web UI, and Chrome and Firefox extensions. Remote sources are supported when the video can be accessed by the resolver or browser capture pipeline."],
       ["Can I ask more questions after the first report?", "Yes. Follow-up questions reuse the cached timeline, making repeated analysis faster and typically much cheaper than extracting the video again."]
     ],
-    related: ["screen-recording-analyzer", "video-analysis-mcp", "youtube-video-analyzer"]
+    related: ["sample-video-report", "screen-recording-analyzer", "video-analysis-mcp", "youtube-video-analyzer"]
   },
   {
     slug: "screen-recording-analyzer",
@@ -96,6 +108,7 @@ export const pages = [
   },
   {
     slug: "video-analysis-mcp",
+    lastmod: "2026-10-12",
     title: "Video Analysis MCP Server for AI Agents | VideoLens",
     description: "Give Claude Code, Cursor, Windsurf, and other MCP clients timestamped video analysis tools with structured JSON, evidence citations, and cached follow-up Q&A.",
     eyebrow: "Video tools for AI agents",
@@ -116,6 +129,13 @@ export const pages = [
       "Ask the agent to analyze a local file or supported URL with a mode and prompt.",
       "Let the agent inspect the structured result, ask follow-ups, and use validated findings downstream."
     ],
+    setup: {
+      title: "Minimal local MCP configuration",
+      intro: "Install the optional MCP extra, set your own OpenAI API key in your local environment, then point an MCP-compatible client at the `videolens-mcp` command. Keep the key out of committed configuration files.",
+      command: "uv sync --extra mcp\nclaude mcp add videolens -- videolens-mcp",
+      config: "{\n  \"mcpServers\": {\n    \"videolens\": {\n      \"command\": \"videolens-mcp\"\n    }\n  }\n}",
+      note: "The server is local and stdio-based. It does not bypass video permissions, source restrictions, or the need to verify consequential findings against the cited timestamps."
+    },
     deliverables: ["Source metadata and processing status", "Cached timestamped timeline", "Structured analysis with evidence", "Follow-up answers grounded in the same timeline"],
     limitation: "MCP gives an agent tool access; it does not remove the need for permissions, cost controls, source validation, or human review. Treat video content as untrusted input and scope agent capabilities appropriately.",
     faqs: [
@@ -123,7 +143,51 @@ export const pages = [
       ["Does the MCP server upload my videos to VideoLens?", "No VideoLens account or central video store is involved. The local pipeline processes the source and calls OpenAI with your API key for transcription and vision tasks."],
       ["Can an agent ask follow-up questions without reprocessing the video?", "Yes. Follow-up Q&A operates on the cached timeline, so the expensive extraction work does not need to be repeated."]
     ],
-    related: ["ai-video-analyzer", "screen-recording-analyzer", "youtube-video-analyzer"]
+    related: ["ai-video-analyzer", "sample-video-report", "screen-recording-analyzer", "youtube-video-analyzer"]
+  },
+  {
+    slug: "sample-video-report",
+    lastmod: "2026-10-12",
+    title: "Sample Timestamped Video Report | VideoLens",
+    description: "Read a transparent VideoLens sample report with timestamped findings, visual context, recommendations, and limitations. See how video evidence becomes a reviewable report.",
+    eyebrow: "A transparent report example",
+    h1: "A sample report where every claim points back to the video.",
+    lead: "This public product demonstration shows how VideoLens turns a source timeline into claims, timestamped evidence, recommendations, and limits a reviewer can check.",
+    summary: [
+      "The sample analyzes a short product-strategy talk titled “Building products people actually use.” Its central conclusion is that early product teams should look for repeated use before premature monetization.",
+      "It is intentionally labelled as a demonstration: it shows the report structure and export quality, not a live analysis of the page you are viewing or a customer case study. The evidence below comes from the sample timeline and is presented so a reader can see exactly why a finding was made."
+    ],
+    proof: {
+      title: "Excerpt from the sample report",
+      intro: "Finding: repeated use is a stronger early product signal than stated interest. The report pairs that conclusion with source moments rather than asking the reader to accept an unsupported summary.",
+      href: "https://app.videolens.io/?demo=report",
+      linkText: "Open the interactive sample report",
+      findings: [
+        ["00:18", "The speaker says a product starts with a repeated problem, not a pricing page."],
+        ["02:34", "The presentation names return usage as the clearest early signal and shows the Activation → Value → Return framework."],
+        ["06:28", "The session-replay example shows a user stopping where the team expected the next step to be obvious."],
+        ["11:56", "The closing framework orders the stages as Useful → Repeated → Paid."]
+      ]
+    },
+    benefits: [
+      ["Claim and support together", "Each important conclusion carries the timestamps and evidence details that support it."],
+      ["Visual context included", "A report can preserve a slide, interface state, chart label, or other visible information that a transcript alone omits."],
+      ["Limits stay visible", "The sample calls out what it demonstrates and what it does not prove, so readers can apply the same caution to real reports."]
+    ],
+    workflow: [
+      "Provide an accessible local file or supported video URL.",
+      "Choose a report style and ask a specific question.",
+      "VideoLens builds a transcript, sampled-frame, and OCR timeline.",
+      "Review the written findings with their timestamps, then export HTML, PDF, Markdown, or JSON."
+    ],
+    deliverables: ["Summary and findings", "Timestamped transcript, visual, and OCR evidence", "Recommendations and practical tasks", "Explicit limitations and confidence context"],
+    limitation: "This is a demonstrative sample rather than a customer case study or independent benchmark. A timestamp identifies the supplied source moment; reviewers should still assess whether the interpretation is warranted for their decision.",
+    faqs: [
+      ["Is this a real customer report?", "No. It is VideoLens’s transparent product demonstration based on its included sample timeline. It is published to show report structure and evidence handling without exposing customer video."],
+      ["Can I export a report like this?", "Yes. VideoLens supports standalone HTML, print-quality PDF, Markdown, and JSON exports for supported analysis workflows."],
+      ["Why show limitations in the report?", "Video analysis depends on source access, frame sampling, audio quality, visible text, and the clarity of the prompt. Keeping those limits explicit makes the report more reviewable." ]
+    ],
+    related: ["ai-video-analyzer", "youtube-video-analyzer", "screen-recording-analyzer", "video-analysis-mcp"]
   },
   {
     slug: "youtube-video-analyzer",
