@@ -509,7 +509,7 @@
     "sha256": "a8032e46ad56f885a6dfb1e107bb53bc991576525a27ed287c3a8fe60ec2dfce",
     "submittedAt": "2026-10-25",
     "itemId": "plhohhmnkfidolnjnmdaenhdjkbbledl",
-    "note": "Owner uploaded the Mac-built 0.8.1 package and submitted it for review in the Chrome Web Store console. Publication not yet verified. The live Chrome description still needs its starter-report sentence changed to three; that is only editable in the console."
+    "note": "Owner uploaded the Mac-built 0.8.1 package, updated the listing description to three free starter reports, and submitted for review in the Chrome Web Store console on 2026-10-25. Publication not yet verified."
   },
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.8.1.zip",
