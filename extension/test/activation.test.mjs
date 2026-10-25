@@ -14,5 +14,6 @@ test("continuation is offered only after a managed starter has exhausted free al
   assert.equal(needsManagedContinuation({ plan: "free", managedReportsRemaining: 0 }, "report"), true);
   assert.equal(needsManagedContinuation({ plan: "pro", managedReportsRemaining: 0 }, "report"), false);
   assert.equal(needsManagedContinuation({ plan: "free", managedReportsRemaining: 1 }, "report"), false);
+  assert.equal(needsManagedContinuation({ plan: "free", managedReportsRemaining: 2 }, "report"), false);
   assert.equal(needsManagedContinuation({ plan: "free", managedReportsRemaining: 0 }, null), false);
 });

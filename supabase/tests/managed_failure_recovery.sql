@@ -14,7 +14,10 @@ begin
     (v_user,'managed-recovery-test@example.invalid',now()),
     (v_other,'managed-recovery-other@example.invalid',now());
   select * into v_report from public.reserve_managed_report(v_user,'recovery-test-device',false);
-  if v_report.plan <> 'free' or v_report.used <> 1 then raise exception 'free starter reservation failed'; end if;
+  if v_report.plan <> 'free' or v_report.used <> 1 or v_report.report_limit <> 3 then raise exception 'free starter reservation failed'; end if;
+  -- Pending reports hold allowance: two more reservations exhaust the three starter reports.
+  perform public.reserve_managed_report(v_user,'recovery-test-device',false);
+  perform public.reserve_managed_report(v_user,'recovery-test-device',false);
   begin
     perform public.reserve_managed_report(v_user,'recovery-test-device',false);
     raise exception 'pending report did not hold credit';
@@ -27,7 +30,7 @@ begin
     error_code='model_access_denied', duration_ms=400 where id=v_ai;
   update public.reports set status='failed' where id=v_report.report_id;
   select * into v_retry from public.reserve_managed_report(v_user,'recovery-test-device',false);
-  if v_retry.used <> 1 or v_retry.report_id = v_report.report_id then raise exception 'failed starter was not released'; end if;
+  if v_retry.used <> 3 or v_retry.report_id = v_report.report_id then raise exception 'failed starter was not released'; end if;
   begin
     perform public.begin_managed_ai_request(v_other, v_retry.report_id, 'chat');
     raise exception 'cross-account AI access permitted';
@@ -64,11 +67,11 @@ begin
   exception when sqlstate 'P0001' then
     if sqlerrm <> 'managed_report_retry_limited' then raise; end if;
   end;
-  -- Confirm both original August users can reserve a replacement starter.
+  -- Confirm both original August users can reserve a replacement starter within the three-report allowance.
   for v_historical in select distinct user_id from public.reports
     where status='failed' and created_at >= '2026-08-24' and created_at < '2026-08-27' loop
     select * into v_retry from public.reserve_managed_report(v_historical.user_id,'historical-recovery-test',false);
-    if v_retry.plan <> 'free' or v_retry.used <> 1 then raise exception 'historical starter recovery failed'; end if;
+    if v_retry.plan = 'free' and (v_retry.report_limit <> 3 or v_retry.used > 3) then raise exception 'historical starter recovery failed'; end if;
   end loop;
   if has_function_privilege('authenticated','public.begin_managed_ai_request(uuid,uuid,text)','execute')
     or has_function_privilege('anon','public.reserve_managed_report(uuid,text,boolean)','execute') then

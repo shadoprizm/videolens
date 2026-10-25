@@ -1,4 +1,4 @@
-# VideoLens Firefox 0.8.0 — reviewer build instructions
+# VideoLens Firefox 0.8.1 — reviewer build instructions
 
 This source archive reproduces the packaged Firefox extension build. The
 extension is written in TypeScript and bundled as minified ES modules with

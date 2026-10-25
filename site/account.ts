@@ -172,7 +172,7 @@ async function loadConnectedApps(): Promise<void> {
 }
 
 function showOnly(view: HTMLElement): void {
-  byId("account-title").textContent = view === signedInView ? "Your VideoLens account." : "Your first report is on us.";
+  byId("account-title").textContent = view === signedInView ? "Your VideoLens account." : "Your first three reports are on us.";
   byId("account-intro").textContent = view === signedInView
     ? "Create reports, lessons, and guides. Manage your allowance, subscription, and saved reports here."
     : "Turn videos into reports, lessons, and step-by-step guides. Create a free account—no API key or credit card required.";
@@ -203,19 +203,21 @@ async function loadEntitlement(): Promise<void> {
   byId("usage-meter").style.width = `${percent}%`;
   byId("usage-note").textContent = isPro
     ? `${entitlement.managedReportsRemaining} remaining${entitlement.periodEndsAt ? ` until ${formatDate(entitlement.periodEndsAt)}` : " this calendar month"}.`
-    : entitlement.managedReportsRemaining > 0
-      ? "Your first report is free. Connect the browser extension to create it—no API key required."
-      : "Your free report is used. Continue with Pro for 20 reports per calendar month. Your saved reports remain available.";
+    : entitlement.managedReportsRemaining === entitlement.managedReportsLimit
+      ? `Your first ${entitlement.managedReportsLimit} reports are free. Connect the browser extension to create them—no API key required.`
+      : entitlement.managedReportsRemaining > 0
+        ? `${entitlement.managedReportsRemaining} free ${entitlement.managedReportsRemaining === 1 ? "report" : "reports"} left. Connect the browser extension to keep going—no API key required.`
+        : "Your free reports are used. Continue with Pro for 20 reports per calendar month. Your saved reports remain available.";
   const hasStarter = !isPro && entitlement.canUseManagedAi && entitlement.managedReportsRemaining > 0;
   const pairing = new URL(location.href).searchParams;
   byId("first-report-next").hidden = !(hasStarter || isPro) || Boolean(pairing.get("connect") && pairing.get("device"));
-  byId("report-setup-kicker").textContent = isPro ? "Your desktop workspace" : "Your free report is ready to create";
+  byId("report-setup-kicker").textContent = isPro ? "Your desktop workspace" : "Your free reports are ready to create";
   byId("report-setup-title").textContent = isPro ? "Create reports on your computer" : "Open a video. Make something useful.";
   byId<HTMLDetailsElement>("report-setup").open = !isPro || !byId("mobile-start").hidden;
-  byId("desktop-start").textContent = `1. Add the extension below. 2. Open VideoLens → Settings → Connect account, and approve the connection here. 3. Choose a YouTube video or local video file and create ${isPro ? "a report" : "your free report"}.`;
+  byId("desktop-start").textContent = `1. Add the extension below. 2. Open VideoLens → Settings → Connect account, and approve the connection here. 3. Choose a YouTube video or local video file and create ${isPro ? "a report" : "a free report"}.`;
   byId("upgrade-options").hidden = !entitlement.canUpgrade;
   byId<HTMLDetailsElement>("upgrade-options").open = entitlement.canUpgrade && !hasStarter;
-  byId("upgrade-summary").textContent = hasStarter ? "Explore Pro after your free report" : "Keep creating with VideoLens Pro";
+  byId("upgrade-summary").textContent = hasStarter ? "Explore Pro after your free reports" : "Keep creating with VideoLens Pro";
   byId("upgrade-actions").hidden = !entitlement.canUpgrade;
   byId("manage-billing").hidden = !entitlement.hasBillingSubscription || response.user.isAdministrator;
   const offer = entitlement.complimentary;
@@ -263,7 +265,7 @@ async function authorizeExtension(): Promise<void> {
 
 async function startCheckout(billing: "monthly" | "annual", button: HTMLButtonElement): Promise<void> {
   if (!config?.checkoutAvailable) {
-    setMessage("Checkout is not live yet. Your free starter report and BYOK mode are available now.", "error");
+    setMessage("Checkout is not live yet. Your three free starter reports and BYOK mode are available now.", "error");
     return;
   }
   button.disabled = true;
