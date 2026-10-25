@@ -505,8 +505,8 @@
     "status": "ready_to_submit",
     "publishedVersion": null,
     "checkedAt": "2026-10-25",
-    "blockedReason": "Owner submission required. Chrome 0.8.0 was never uploaded; submit 0.8.1 directly so the published copy matches the three-report allowance.",
-    "sha256": "5df0958da14c7899d25476adebb7490b7e94fe87a239e6b4b8458b70f2fcb883"
+    "blockedReason": "Signed-in publisher session (passkey) required. Package built and verified on the owner Mac (Node 22.22.3, npm 10.9.8); not yet uploaded. Chrome 0.8.0 was never uploaded, so submit 0.8.1 directly.",
+    "sha256": "a8032e46ad56f885a6dfb1e107bb53bc991576525a27ed287c3a8fe60ec2dfce"
   },
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.8.1.zip",
@@ -515,10 +515,10 @@
     "status": "ready_to_submit",
     "publishedVersion": "0.8.0",
     "checkedAt": "2026-10-25",
-    "blockedReason": null,
+    "blockedReason": "Signed-in AMO session required. Package and reviewer source built on the owner Mac; not yet uploaded.",
     "sourceSubmitted": false,
-    "sha256": "31a5300a0fa1c807ec8b997fa4f20ae4d534d2d70618c8099ed7f768160ad36b",
-    "sourceSha256": "e89e74cf3951874ddd525f5ab5b913201cd312fdf51c7a3d85ae0aa01ad12a95"
+    "sha256": "3ea6e3b0df1cbef7e95f7e51ae25a3172d5eb76a44194c641e6d2f1eb2177717",
+    "sourceSha256": "fdac99c80d81f8de7f6b8d5005f44ff82ac19476d10075992db6201df73b82f5"
   },
   "validation": {
     "releaseCheck": "passed",
@@ -530,11 +530,16 @@
       "notices": 0
     },
     "database": "Migration 20261025150000_three_starter_reports.sql applied to the production project on 2026-10-25 (free limit verified 1 -> 3; anon/authenticated still cannot execute get_managed_entitlement). managed_failure_recovery, complimentary_pro_recovery and administrator_dashboard fixtures all passed against production with rollback; no synthetic rows persisted. 72 free accounts have reports remaining, 0 exhausted.",
-    "copy": "English, Spanish, Romanian, Hindi, Simplified and Traditional Chinese extension strings, store listings and site copy now say three free reports. Account page shows remaining free reports while the allowance lasts."
+    "copy": "English, Spanish, Romanian, Hindi, Simplified and Traditional Chinese extension strings, store listings and site copy now say three free reports. Account page shows remaining free reports while the allowance lasts.",
+    "macBuild": "release:check passed on the owner Mac: 101 extension tests, Chrome and Firefox packages, Firefox lint 0 errors/warnings/notices. Submitted hashes are the Mac-built archives."
   },
   "website": {
-    "status": "pending_deploy",
+    "status": "deployed_live_verified",
     "url": "https://videolens.io",
-    "note": "Database already carries the three-report limit. Deploy the site so the account page copy matches."
+    "deployment": "dpl_53fdCMwP9uWDuhmBBEKth8EUTRro",
+    "deploymentUrl": "https://videolens-site-k71fg442w-shadoprizms-projects.vercel.app",
+    "sourceCommit": "06b969350d2e0461d66d49b427fc093a5ea43a19",
+    "deployedAt": "2026-10-25",
+    "verification": "Production aliases videolens.io and www.videolens.io. Home, account and llms.txt return 200 with three-report copy and no one-report copy; unauthenticated entitlement and reports return 401, AI GET returns 405."
   }
 }
