@@ -73,7 +73,7 @@ const renderPage = (page) => {
         description: "Open-source software that turns long videos into professional written reports with transcription, frame vision, OCR, and timestamped evidence.",
         license: "https://github.com/shadoprizm/videolens/blob/main/LICENSE",
         offers: [
-          { "@type": "Offer", name: "VideoLens Free", price: "0", priceCurrency: "USD", description: "One free report with an account. No API key or credit card required." },
+          { "@type": "Offer", name: "VideoLens Free", price: "0", priceCurrency: "USD", description: "Three free reports with an account. No API key or credit card required." },
           { "@type": "Offer", name: "VideoLens Pro monthly", price: "12", priceCurrency: "USD", description: "20 managed reports per calendar month with no API key required." },
           { "@type": "Offer", name: "VideoLens Pro annual", price: "99", priceCurrency: "USD", description: "Annual Pro subscription with 20 managed reports per calendar month." }
         ]

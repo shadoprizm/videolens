@@ -264,7 +264,7 @@ test("an unavailable preferred access method is not silently switched", async ()
       entitlementRequests += 1;
       return jsonResponse({ entitlement: managedEntitlement({
         subscriptionStatus: "expired",
-        managedReportsUsed: 1,
+        managedReportsUsed: 3,
         managedReportsRemaining: 0,
         canUseManagedAi: false,
       }) });
@@ -767,8 +767,8 @@ function managedEntitlement(overrides = {}) {
     plan: "free",
     subscriptionStatus: "active",
     managedReportsUsed: 0,
-    managedReportsLimit: 1,
-    managedReportsRemaining: 1,
+    managedReportsLimit: 3,
+    managedReportsRemaining: 3,
     periodEndsAt: null,
     cancelAtPeriodEnd: false,
     canUseManagedAi: true,

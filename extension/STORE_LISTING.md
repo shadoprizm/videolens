@@ -54,7 +54,7 @@ PRIVATE / YOUR OWN OPENAI API KEY
 Use VideoLens without a VideoLens account or subscription, with no VideoLens analysis-count limit. Video preparation happens in your browser, and selected analysis content goes directly to OpenAI using your key. VideoLens does not receive that content. Your key stays on your device and is sent only to OpenAI. OpenAI bills usage to your account; costs vary by video and processing.
 
 MANAGED / VIDEOLENS PRO
-A free VideoLens account includes one managed starter report, with no API key required. Pro includes 20 managed reports per calendar month for US$12/month or US$99/year.
+A free VideoLens account includes three managed starter reports, with no API key required. Pro includes 20 managed reports per calendar month for US$12/month or US$99/year.
 
 Managed analysis sends the content needed for a report through VideoLens to its AI provider, currently OpenAI. VideoLens does not retain raw frames or audio. Cloud report storage is optional and off by default.
 

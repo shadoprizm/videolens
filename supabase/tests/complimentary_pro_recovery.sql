@@ -19,8 +19,8 @@ begin
     values(u,'transactional-test',now()-interval '1 minute') returning id into g;
   e := public.get_managed_entitlement(u);
   if e->>'plan' <> 'free' or e->'complimentary'->>'state' <> 'pending'
-    or (e->>'canUpgrade')::boolean or (e->>'managedReportsRemaining')::int <> 1 then
-    raise exception 'pending offer must preserve the starter without starting Pro';
+    or (e->>'canUpgrade')::boolean or (e->>'managedReportsRemaining')::int <> 3 then
+    raise exception 'pending offer must preserve the three starter reports without starting Pro';
   end if;
   -- A library upload and an old completed scan cannot activate the offer.
   insert into public.reports(user_id,device_id,status,quota_period_start)

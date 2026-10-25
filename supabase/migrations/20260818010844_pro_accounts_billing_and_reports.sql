@@ -126,9 +126,11 @@ grant select on table public.profiles to authenticated;
 grant select on table public.subscriptions to authenticated;
 grant select, delete on table public.reports to authenticated;
 
--- Quota reservation is atomic. The free account allowance is one managed
--- starter report total; an active or trialing Pro subscription receives 20
--- reservations per UTC calendar month (including annual subscribers).
+-- Quota reservation is atomic. The free account allowance was one managed
+-- starter report total here (later raised to three in
+-- 20261025150000_three_starter_reports.sql); an active or trialing Pro
+-- subscription receives 20 reservations per UTC calendar month (including
+-- annual subscribers).
 create or replace function public.reserve_managed_report(
   p_user_id uuid,
   p_device_id text,

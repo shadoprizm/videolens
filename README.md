@@ -269,7 +269,7 @@ The VideoLens side-panel extension offers two explicit processing modes:
 Both modes analyze the current tab (YouTube captions + canvas frame sampling) or a local file (in-browser audio decode → transcription). The OpenAI key used by Private mode never leaves the device.
 
 - Free and open source Private mode — unlimited analyses and no VideoLens account
-- One managed starter report for signed-in users; Pro includes 20 managed reports per calendar month
+- Three managed starter reports for signed-in users; Pro includes 20 managed reports per calendar month
 - Four reader-focused report styles plus 6 specialized modes and follow-up Q&A
 - Professional, self-contained HTML reports with print-ready PDF output
 - Markdown/JSON export and copyable report text

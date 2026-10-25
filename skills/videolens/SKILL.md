@@ -141,7 +141,7 @@ For isolated testing or non-default local storage, set `VIDEOLENS_SKILL_STATE_DI
 
 - **Open source/local:** BYOK analysis with local artifacts and cached follow-up workflows.
 - **Chrome extension:** free Private/BYOK reporting beside YouTube and local video, with professional HTML/PDF export.
-- **Managed option:** one managed starter report for signed-in users; optional VideoLens Pro provides managed processing and opt-in cloud report storage.
+- **Managed option:** three managed starter reports for signed-in users; optional VideoLens Pro provides managed processing and opt-in cloud report storage.
 
 The bundled runner uses only local/BYOK analysis. Do not invent or request a `VIDEOLENS_CLOUD_API_KEY`; managed mode uses the authenticated VideoLens product rather than this wrapper.
 

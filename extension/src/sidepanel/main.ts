@@ -1424,7 +1424,7 @@ function renderResults(): void {
   }
 
   if (needsManagedContinuation(state.proEntitlement, state.managedReportId)) {
-    const continuation = el(`<section class="card managed-continuation"><h3>Your starter report is ready</h3><p>Want to use this workflow for your next video? Pro includes 20 reports per calendar month. Start monthly at US$12/month, or choose US$99/year. No API key required. Cancel future renewals anytime.</p><p class="hint">Your report stays in this browser’s Library while you visit checkout.</p><button class="btn btn-primary" id="continue-managed">Continue with Pro</button><button class="btn btn-ghost" id="continue-private">Use my own key</button></section>`);
+    const continuation = el(`<section class="card managed-continuation"><h3>Your last free report is ready</h3><p>Want to use this workflow for your next video? Pro includes 20 reports per calendar month. Start monthly at US$12/month, or choose US$99/year. No API key required. Cancel future renewals anytime.</p><p class="hint">Your report stays in this browser’s Library while you visit checkout.</p><button class="btn btn-primary" id="continue-managed">Continue with Pro</button><button class="btn btn-ghost" id="continue-private">Use my own key</button></section>`);
     continuation.querySelector("#continue-managed")!.addEventListener("click", () => void continueWithManaged());
     continuation.querySelector("#continue-private")!.addEventListener("click", () => { state.view = "settings"; render(); document.querySelector("#private-key-settings")?.setAttribute("open", ""); });
     root.appendChild(continuation);
