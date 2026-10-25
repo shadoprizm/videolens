@@ -529,12 +529,12 @@
       "warnings": 0,
       "notices": 0
     },
-    "database": "Migration 20261025150000_three_starter_reports.sql raises the free allowance from one to three managed starter reports. SQL regression fixtures were updated for the new limit but have not yet been run against a database in this release; apply and run supabase/tests before submitting.",
+    "database": "Migration 20261025150000_three_starter_reports.sql applied to the production project on 2026-10-25 (free limit verified 1 -> 3; anon/authenticated still cannot execute get_managed_entitlement). managed_failure_recovery, complimentary_pro_recovery and administrator_dashboard fixtures all passed against production with rollback; no synthetic rows persisted. 72 free accounts have reports remaining, 0 exhausted.",
     "copy": "English, Spanish, Romanian, Hindi, Simplified and Traditional Chinese extension strings, store listings and site copy now say three free reports. Account page shows remaining free reports while the allowance lasts."
   },
   "website": {
     "status": "pending_deploy",
     "url": "https://videolens.io",
-    "note": "Deploy after the Supabase migration is applied so the account page and the entitlement API agree on the three-report limit."
+    "note": "Database already carries the three-report limit. Deploy the site so the account page copy matches."
   }
 }
