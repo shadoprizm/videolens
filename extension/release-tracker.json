@@ -502,11 +502,14 @@
   "chrome": {
     "artifact": "releases/chrome/videolens-chrome-v0.8.1.zip",
     "packageVersion": "0.8.1",
-    "status": "ready_to_submit",
+    "status": "pending_review",
     "publishedVersion": null,
     "checkedAt": "2026-10-25",
-    "blockedReason": "Not submitted. No Chrome Web Store API credentials exist and the console needs a signed-in publisher session (passkey). Upload releases/chrome/videolens-chrome-v0.8.1.zip to item plhohhmnkfidolnjnmdaenhdjkbbledl, or provide API credentials.",
-    "sha256": "a8032e46ad56f885a6dfb1e107bb53bc991576525a27ed287c3a8fe60ec2dfce"
+    "blockedReason": null,
+    "sha256": "a8032e46ad56f885a6dfb1e107bb53bc991576525a27ed287c3a8fe60ec2dfce",
+    "submittedAt": "2026-10-25",
+    "itemId": "plhohhmnkfidolnjnmdaenhdjkbbledl",
+    "note": "Owner uploaded the Mac-built 0.8.1 package and submitted it for review in the Chrome Web Store console. Publication not yet verified. The live Chrome description still needs its starter-report sentence changed to three; that is only editable in the console."
   },
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.8.1.zip",
@@ -525,7 +528,8 @@
     "fileId": 5165007,
     "reviewUrl": "https://addons.mozilla.org/en-US/developers/addon/videolens-video-reports/versions/6620893",
     "publicListingUrl": "https://addons.mozilla.org/en-US/firefox/addon/videolens-video-reports/",
-    "note": "Submitted through the AMO upload API with the Mac-built package and reviewer source. AMO reports 0.8.1 as the current public version (status public). The live file manifest matches dist-firefox and contains the three-report copy. AMO re-signs uploads, so its file hash differs from the local archive hash."
+    "note": "Submitted through the AMO upload API with the Mac-built package and reviewer source. AMO reports 0.8.1 as the current public version (status public). The live file manifest matches dist-firefox and contains the three-report copy. AMO re-signs uploads, so its file hash differs from the local archive hash.",
+    "listingDescription": "2026-10-25: en-US AMO description updated to say a free account includes three managed starter reports. A first PATCH wrote back the rendered (linkified) text and corrupted the GitHub and privacy links for a few minutes; restored to plain URLs and verified (2529 -> 2532 characters, only the intended sentence changed)."
   },
   "validation": {
     "releaseCheck": "passed",
