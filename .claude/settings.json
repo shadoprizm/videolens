@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Edit",
+      "Write",
+      "mcp__Remote_Desktop_Commander",
+      "mcp__Supabase",
+      "mcp__Vercel",
+      "mcp__github"
+    ]
+  }
+}
