@@ -505,20 +505,27 @@
     "status": "ready_to_submit",
     "publishedVersion": null,
     "checkedAt": "2026-10-25",
-    "blockedReason": "Signed-in publisher session (passkey) required. Package built and verified on the owner Mac (Node 22.22.3, npm 10.9.8); not yet uploaded. Chrome 0.8.0 was never uploaded, so submit 0.8.1 directly.",
+    "blockedReason": "Not submitted. No Chrome Web Store API credentials exist and the console needs a signed-in publisher session (passkey). Upload releases/chrome/videolens-chrome-v0.8.1.zip to item plhohhmnkfidolnjnmdaenhdjkbbledl, or provide API credentials.",
     "sha256": "a8032e46ad56f885a6dfb1e107bb53bc991576525a27ed287c3a8fe60ec2dfce"
   },
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.8.1.zip",
     "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.1.zip",
     "packageVersion": "0.8.1",
-    "status": "ready_to_submit",
-    "publishedVersion": "0.8.0",
+    "status": "published",
+    "publishedVersion": "0.8.1",
     "checkedAt": "2026-10-25",
-    "blockedReason": "Signed-in AMO session required. Package and reviewer source built on the owner Mac; not yet uploaded.",
-    "sourceSubmitted": false,
+    "blockedReason": null,
+    "sourceSubmitted": true,
     "sha256": "3ea6e3b0df1cbef7e95f7e51ae25a3172d5eb76a44194c641e6d2f1eb2177717",
-    "sourceSha256": "fdac99c80d81f8de7f6b8d5005f44ff82ac19476d10075992db6201df73b82f5"
+    "sourceSha256": "fdac99c80d81f8de7f6b8d5005f44ff82ac19476d10075992db6201df73b82f5",
+    "submittedAt": "2026-10-25T16:10:42Z",
+    "publishedVersionCheckedAt": "2026-10-25",
+    "versionId": 6620893,
+    "fileId": 5165007,
+    "reviewUrl": "https://addons.mozilla.org/en-US/developers/addon/videolens-video-reports/versions/6620893",
+    "publicListingUrl": "https://addons.mozilla.org/en-US/firefox/addon/videolens-video-reports/",
+    "note": "Submitted through the AMO upload API with the Mac-built package and reviewer source. AMO reports 0.8.1 as the current public version (status public). The live file manifest matches dist-firefox and contains the three-report copy. AMO re-signs uploads, so its file hash differs from the local archive hash."
   },
   "validation": {
     "releaseCheck": "passed",
