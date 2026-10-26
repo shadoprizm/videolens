@@ -37,6 +37,36 @@ const annual = prices.data.find((price) =>
   nickname: "VideoLens Pro Annual",
 });
 
+const packs = await stripe.products.search({ query: "active:'true' AND metadata['videolens_plan']:'credit_pack'" });
+const pack = packs.data[0] || await stripe.products.create({
+  name: "VideoLens Report Pack",
+  description: "5 managed video-to-report analyses, no OpenAI API key required. Purchased reports never expire.",
+  metadata: { videolens_plan: "credit_pack" },
+});
+const packPrices = await stripe.prices.list({ product: pack.id, active: true, limit: 100 });
+const packPrice = packPrices.data.find((price) =>
+  price.currency === "usd" && price.unit_amount === 500 && price.type === "one_time"
+) || await stripe.prices.create({
+  product: pack.id,
+  currency: "usd",
+  unit_amount: 500,
+  nickname: "VideoLens Report Pack (5 reports)",
+});
+
+// Fixed ID so reruns reuse the coupon instead of creating duplicates.
+const foundingCouponId = "videolens-founding-40";
+let founding;
+try { founding = await stripe.coupons.retrieve(foundingCouponId); } catch (error) {
+  if (error?.code !== "resource_missing") throw error;
+  founding = await stripe.coupons.create({
+    id: foundingCouponId,
+    name: "Founding Member (40% off for life)",
+    percent_off: 40,
+    duration: "forever",
+    applies_to: { products: [product.id] },
+  });
+}
+
 let webhookSecret = null;
 if (webhookUrl) {
   const existing = await stripe.webhookEndpoints.list({ limit: 100 });
@@ -46,7 +76,7 @@ if (webhookUrl) {
       url: webhookUrl,
       enabled_events: [
         "checkout.session.expired", "invoice.paid", "invoice.payment_failed",
-        "checkout.session.completed",
+        "checkout.session.completed", "checkout.session.async_payment_succeeded",
         "customer.subscription.created",
         "customer.subscription.updated",
         "customer.subscription.deleted",
@@ -60,6 +90,8 @@ if (webhookUrl) {
 console.log(`STRIPE_PRO_PRODUCT_ID=${product.id}`);
 console.log(`STRIPE_PRO_MONTHLY_PRICE_ID=${monthly.id}`);
 console.log(`STRIPE_PRO_ANNUAL_PRICE_ID=${annual.id}`);
+console.log(`STRIPE_CREDIT_PACK_PRICE_ID=${packPrice.id}`);
+console.log(`STRIPE_FOUNDING_COUPON_ID=${founding.id}`);
 if (webhookSecret) console.log(`STRIPE_WEBHOOK_SECRET=${webhookSecret}`);
 if (webhookUrl && !webhookSecret) {
   console.log("Webhook endpoint already exists. Retrieve or rotate its signing secret in Stripe Workbench.");

@@ -1,6 +1,6 @@
 import { recordActivation } from "./activation.js";
 import Stripe from "stripe";
-import { optionalEnv, requireEnv } from "./env.js";
+import { optionalEnv, planConfig, requireEnv } from "./env.js";
 import { ApiError } from "./http.js";
 import { supabaseAdmin } from "./supabase.js";
 
@@ -27,6 +27,59 @@ export async function verifiedProPrice(billing:"monthly"|"annual"):Promise<strin
   const product=optionalEnv("STRIPE_PRO_PRODUCT_ID");
   if(!price.active || price.currency!=="usd" || price.unit_amount!==(billing==="monthly"?1200:9900) || price.recurring?.interval!==(billing==="monthly"?"month":"year") || price.recurring.interval_count!==1 || (product && asId(price.product)!==product)) throw new ApiError(503,"billing_configuration_mismatch","Checkout is temporarily unavailable while we verify the plan price. Your reports remain available.");
   return id;
+}
+
+const mismatch = () => new ApiError(503,"billing_configuration_mismatch","Checkout is temporarily unavailable while we verify the plan price. Your reports remain available.");
+
+export async function verifiedCreditPackPrice():Promise<string> {
+  const id=requireEnv("STRIPE_CREDIT_PACK_PRICE_ID");
+  let price:Stripe.Price;
+  try {price=await stripeClient().prices.retrieve(id);} catch(error) {
+    if(stripePermissionDenied(error)) {console.warn("Configured credit pack price used; Prices Read unavailable");return id;}
+    throw error;
+  }
+  if(!price.active || price.currency!=="usd" || price.unit_amount!==planConfig.creditPackPriceCents || price.type!=="one_time") throw mismatch();
+  return id;
+}
+
+export interface FoundingOffer { available: boolean; spotsLeft: number; spots: number; percentOff: number; endsAt: string }
+
+// Fails closed: if the spot count cannot be read, the discount is not promised.
+export async function foundingOffer(now = new Date()): Promise<FoundingOffer> {
+  const offer = { available: false, spotsLeft: 0, spots: planConfig.foundingSpots, percentOff: planConfig.foundingPercentOff, endsAt: planConfig.foundingEndsAt };
+  if (!optionalEnv("STRIPE_FOUNDING_COUPON_ID") || now.getTime() >= Date.parse(planConfig.foundingEndsAt)) return offer;
+  const { count, error } = await supabaseAdmin().from("subscriptions").select("user_id", { count: "exact", head: true }).eq("founding_member", true);
+  if (error || count === null) { console.warn("Founding Member count unavailable"); return offer; }
+  const spotsLeft = Math.max(0, planConfig.foundingSpots - count);
+  return { ...offer, available: spotsLeft > 0, spotsLeft };
+}
+
+export async function verifiedFoundingCoupon():Promise<string> {
+  const id=requireEnv("STRIPE_FOUNDING_COUPON_ID");
+  let coupon:Stripe.Coupon;
+  try {coupon=await stripeClient().coupons.retrieve(id);} catch(error) {
+    if(stripePermissionDenied(error)) {console.warn("Configured founding coupon used; Coupons Read unavailable");return id;}
+    throw error;
+  }
+  if(!coupon.valid || coupon.percent_off!==planConfig.foundingPercentOff || coupon.duration!=="forever") throw mismatch();
+  return id;
+}
+
+export function isCreditPackSession(session: Stripe.Checkout.Session): boolean {
+  return session.mode === "payment" && session.metadata?.product === "videolens" && session.metadata?.kind === "credit_pack";
+}
+
+// Grants a paid pack exactly once per Checkout session; replays are no-ops.
+export async function grantCreditPack(session: Stripe.Checkout.Session): Promise<string | null> {
+  if (!isCreditPackSession(session) || session.payment_status !== "paid") return null;
+  const userId = session.client_reference_id || session.metadata?.user_id;
+  if (!userId) return null;
+  const { error } = await supabaseAdmin().from("report_credit_grants").upsert({
+    user_id: userId, stripe_session_id: session.id, credits: planConfig.creditPackReports,
+    amount_total: session.amount_total, currency: session.currency,
+  }, { onConflict: "stripe_session_id", ignoreDuplicates: true });
+  if (error) throw error;
+  return userId;
 }
 
 function asId(value: string | { id: string } | null): string | null {
@@ -91,6 +144,7 @@ export async function syncSubscription(subscription: Stripe.Subscription): Promi
       current_period_start: billingPeriod.start,
       current_period_end: billingPeriod.end,
       cancel_at_period_end: subscription.cancel_at_period_end,
+      founding_member: subscription.metadata.founding_member === "true",
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id" },

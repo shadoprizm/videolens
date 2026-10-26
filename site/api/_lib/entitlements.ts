@@ -7,6 +7,8 @@ export interface Entitlement {
   managedReportsUsed: number;
   managedReportsLimit: number;
   managedReportsRemaining: number;
+  purchasedReports: number;
+  foundingMember: boolean;
   periodEndsAt: string | null;
   cancelAtPeriodEnd: boolean;
   canUseManagedAi: boolean;

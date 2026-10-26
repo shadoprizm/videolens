@@ -40,9 +40,11 @@ The script reuses or creates:
 
 - VideoLens Pro monthly: US$12/month
 - VideoLens Pro annual: US$99/year
-- Webhook events for Checkout completion and subscription create/update/delete
+- VideoLens Report Pack: US$5 one-time for 5 reports that never expire (`STRIPE_CREDIT_PACK_PRICE_ID`)
+- Founding Member coupon `videolens-founding-40`: 40% off Pro forever (`STRIPE_FOUNDING_COUPON_ID`). Checkout applies it automatically to the first 100 paying subscribers until the end of 2026-12-31 (Toronto); see `planConfig` in `api/_lib/env.ts`.
+- Webhook events for Checkout completion (including delayed payments) and subscription create/update/delete
 
-Copy the printed product, price, and webhook IDs into Vercel. Configure Stripe's Customer Portal to let users update payment methods and cancel subscriptions. Repeat deliberately with a live secret only after the complete test-mode purchase, renewal-status, cancellation, and webhook flows pass.
+Leave either optional variable unset to hide that offer. Copy the printed product, price, coupon, and webhook IDs into Vercel. Configure Stripe's Customer Portal to let users update payment methods and cancel subscriptions. Repeat deliberately with a live secret only after the complete test-mode purchase, renewal-status, cancellation, and webhook flows pass.
 
 ## 3. Vercel environment
 
@@ -64,7 +66,8 @@ Verify in this order:
 1. Email/password sign-in and account confirmation at `/account`; configure and verify social providers using [AUTH_SIGN_IN.md](../docs/AUTH_SIGN_IN.md).
 2. One-time extension pairing and 30-day limited extension token.
 3. Free account's three managed starter reports.
-4. Monthly and annual Stripe test checkout.
+4. Monthly and annual Stripe test checkout, at the Founding Member price while spots remain.
+4a. Report pack checkout adds 5 reports to a free account exactly once, even if the webhook is replayed.
 5. Webhook changes entitlement to Pro.
 6. Managed report without an OpenAI key.
 7. Cloud saving off leaves no report JSON in the database.

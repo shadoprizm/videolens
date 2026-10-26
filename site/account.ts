@@ -17,6 +17,11 @@ interface PublicConfig {
 
 import type { Entitlement } from "./api/_lib/entitlements.js";
 
+interface Offers {
+  founding: { available: boolean; spotsLeft: number; spots: number; percentOff: number; endsAt: string };
+  creditPack: { available: boolean; reports: number; priceUsd: number };
+}
+
 const loadingView = byId("loading-view");
 const unavailableView = byId("unavailable-view");
 const signedOutView = byId("signed-out-view");
@@ -27,6 +32,7 @@ let supabase: SupabaseClient | null = null;
 let session: Session | null = null;
 let config: PublicConfig | null = null;
 let currentEntitlement: Entitlement | null = null;
+let currentOffers: Offers | null = null;
 let checkoutPolling = false;
 let renderSequence = 0;
 let reports: CloudReport[] = [];
@@ -93,6 +99,7 @@ function bindEvents(): void {
   document.querySelectorAll<HTMLButtonElement>(".checkout-button").forEach((button) => {
     button.addEventListener("click", () => void startCheckout(button.dataset.billing as "monthly" | "annual", button));
   });
+  byId<HTMLButtonElement>("buy-credits").addEventListener("click", (event) => void startCreditCheckout(event.currentTarget as HTMLButtonElement));
   byId<HTMLInputElement>("report-search").addEventListener("input", renderReports);
   byId("close-report").addEventListener("click", () => reader.close());
   reader.addEventListener("close", () => {
@@ -134,6 +141,7 @@ async function renderSession(): Promise<void> {
     renderExtensionConnect();
     showCheckoutMessage();
     void confirmCheckout();
+    void confirmCreditPack();
   } catch (error) { if (sequence === renderSequence) setMessage(asMessage(error), "error"); }
 }
 
@@ -191,23 +199,32 @@ async function signOut(): Promise<void> {
 
 async function loadEntitlement(): Promise<void> {
   const accountId = session?.user.id;
-  const response = await apiFetch<{ entitlement: Entitlement; user: { isAdministrator: boolean } }>("/api/entitlement");
+  const response = await apiFetch<{ entitlement: Entitlement; user: { isAdministrator: boolean }; offers?: Offers }>("/api/entitlement");
   if (!session || session.user.id !== accountId) return;
   const entitlement = response.entitlement;
   currentEntitlement = entitlement;
+  currentOffers = response.offers || null;
   const isPro = entitlement.plan === "pro";
+  const purchased = entitlement.purchasedReports || 0;
+  const remaining = entitlement.managedReportsRemaining;
+  const packAvailable = Boolean(currentOffers?.creditPack.available);
   byId("plan-name").textContent = isPro ? "VideoLens Pro" : "Free";
-  byId("plan-status").textContent = isPro ? entitlement.subscriptionStatus : "Active";
+  byId("plan-status").textContent = isPro ? (entitlement.foundingMember && entitlement.hasBillingSubscription ? `Founding Member · ${entitlement.subscriptionStatus}` : entitlement.subscriptionStatus) : "Active";
   byId("usage-label").textContent = `${entitlement.managedReportsUsed} of ${entitlement.managedReportsLimit} used`;
   const percent = Math.min(100, (entitlement.managedReportsUsed / Math.max(1, entitlement.managedReportsLimit)) * 100);
   byId("usage-meter").style.width = `${percent}%`;
   byId("usage-note").textContent = isPro
-    ? `${entitlement.managedReportsRemaining} remaining${entitlement.periodEndsAt ? ` until ${formatDate(entitlement.periodEndsAt)}` : " this calendar month"}.`
-    : entitlement.managedReportsRemaining === entitlement.managedReportsLimit
+    ? `${remaining} remaining${entitlement.periodEndsAt ? ` until ${formatDate(entitlement.periodEndsAt)}` : " this calendar month"}.`
+    : remaining === entitlement.managedReportsLimit && purchased === 0
       ? `Your first ${entitlement.managedReportsLimit} reports are free. Connect the browser extension to create them—no API key required.`
-      : entitlement.managedReportsRemaining > 0
-        ? `${entitlement.managedReportsRemaining} free ${entitlement.managedReportsRemaining === 1 ? "report" : "reports"} left. Connect the browser extension to keep going—no API key required.`
-        : "Your free reports are used. Continue with Pro for 20 reports per calendar month. Your saved reports remain available.";
+      : remaining > 0
+        ? purchased > 0
+          ? `${remaining} ${remaining === 1 ? "report" : "reports"} left, including reports you purchased. Purchased reports never expire.`
+          : `${remaining} free ${remaining === 1 ? "report" : "reports"} left. Connect the browser extension to keep going—no API key required.`
+        : packAvailable
+          ? "Your reports are used. Buy 5 more for US$5, or continue with Pro for 20 reports per calendar month. Your saved reports remain available."
+          : "Your free reports are used. Continue with Pro for 20 reports per calendar month. Your saved reports remain available.";
+  renderOffers(entitlement);
   const hasStarter = !isPro && entitlement.canUseManagedAi && entitlement.managedReportsRemaining > 0;
   const pairing = new URL(location.href).searchParams;
   byId("first-report-next").hidden = !(hasStarter || isPro) || Boolean(pairing.get("connect") && pairing.get("device"));
@@ -237,6 +254,49 @@ async function loadEntitlement(): Promise<void> {
   }
   byId("admin-link").hidden = !response.user.isAdministrator;
   if (response.user.isAdministrator) byId("plan-status").textContent = "Administrator · permanent Pro";
+}
+
+const money = (cents: number) => `US$${(cents / 100).toFixed(2).replace(/\.00$/, "")}`;
+
+function renderOffers(entitlement: Entitlement): void {
+  const founding = currentOffers?.founding;
+  const open = Boolean(founding?.available && entitlement.canUpgrade);
+  const factor = open ? (100 - founding!.percentOff) / 100 : 1;
+  const monthly = money(Math.round(1200 * factor)), annual = money(Math.round(9900 * factor));
+  const banner = byId("founding-offer");
+  banner.hidden = !open;
+  if (open) {
+    // endsAt is the exclusive close instant; show the last day the offer is open.
+    const lastDay = new Date(Date.parse(founding!.endsAt) - 1).toLocaleDateString("en-CA", { month: "long", day: "numeric", year: "numeric", timeZone: "America/Toronto" });
+    banner.replaceChildren();
+    const title = document.createElement("strong");
+    title.textContent = `Founding Member: ${founding!.percentOff}% off Pro for life.`;
+    banner.append(title, ` ${monthly}/month or ${annual}/year for as long as you stay subscribed. ${founding!.spotsLeft} of ${founding!.spots} spots left; offer ends ${lastDay}.`);
+  }
+  byId("checkout-monthly").textContent = `Continue monthly · ${monthly}/month`;
+  byId("checkout-annual").textContent = `Choose annual · ${annual}/year`;
+  byId("checkout-fine-print").textContent = open
+    ? `Your founding price is applied at checkout and kept while your subscription stays active. Monthly renews each month; annual charges ${annual} each year. Cancel future renewals in Manage billing.`
+    : "Monthly renews each month. Annual charges US$99 each year. Cancel future renewals in Manage billing.";
+  const pack = currentOffers?.creditPack;
+  byId("credit-pack").hidden = !(pack?.available && !(entitlement.plan === "pro" && entitlement.hasBillingSubscription));
+  if (pack) byId("buy-credits").textContent = `Buy ${pack.reports} reports · ${money(pack.priceUsd * 100)}`;
+}
+
+async function startCreditCheckout(button: HTMLButtonElement): Promise<void> {
+  if (!currentOffers?.creditPack.available) {
+    setMessage("Report packs are not available yet. Your free reports and BYOK mode are available now.", "error");
+    return;
+  }
+  button.disabled = true;
+  try {
+    const result = await apiFetch<{ url: string }>("/api/checkout", { method: "POST", body: JSON.stringify({ kind: "credit_pack" }) });
+    try { if (activeReport) sessionStorage.setItem("videolens.checkoutReport", JSON.stringify({ userId: session?.user.id, reportId: activeReport.id })); } catch { /* Cloud library remains available. */ }
+    location.href = result.url;
+  } catch (error) {
+    button.disabled = false;
+    setMessage(asMessage(error), "error");
+  }
 }
 
 function renderExtensionConnect(): void {
@@ -476,6 +536,7 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 function showCheckoutMessage(): void {
   const checkout = new URL(location.href).searchParams.get("checkout");
   if (checkout === "success") setMessage("Checking your subscription. Your report is still in the extension’s Library.");
+  if (checkout === "credits") setMessage("Confirming your report pack…");
   if (checkout === "cancelled") setMessage("Checkout was cancelled. Your saved report is still available; you can continue with your own key.");
 }
 
@@ -506,6 +567,35 @@ async function confirmCheckout(): Promise<void> {
     setMessage("Your subscription is still being confirmed. Use Refresh account access in a moment. Your saved reports remain available.");
   } catch {
     setMessage("We could not confirm your subscription yet. Use Refresh account access to try again.", "error");
+  } finally { checkoutPolling = false; }
+}
+
+async function confirmCreditPack(): Promise<void> {
+  const params = new URL(location.href).searchParams;
+  if (checkoutPolling || !session || params.get("checkout") !== "credits") return;
+  const checkoutId = params.get("session_id");
+  if (!checkoutId) return;
+  checkoutPolling = true;
+  const accountId = session.user.id;
+  const clear = () => { const url = new URL(location.href); url.searchParams.delete("checkout"); url.searchParams.delete("session_id"); history.replaceState(null, "", url.pathname + url.search + url.hash); };
+  try {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const result = await apiFetch<{ status: string; paymentStatus: string }>(`/api/checkout-status?session=${encodeURIComponent(checkoutId)}`);
+      if (session?.user.id !== accountId) return;
+      if (result.status !== "complete") { setMessage("Your payment has not completed. You can buy a report pack below when you’re ready."); clear(); return; }
+      if (result.paymentStatus === "paid") {
+        await loadEntitlement();
+        if (session?.user.id !== accountId) return;
+        const left = currentEntitlement?.managedReportsRemaining ?? 0;
+        setMessage(`${currentOffers?.creditPack.reports ?? 5} reports added. You now have ${left} ${left === 1 ? "report" : "reports"} left, and purchased reports never expire.`, "success");
+        clear();
+        return;
+      }
+      if (attempt < 7) await new Promise(resolve => setTimeout(resolve, 2500));
+    }
+    setMessage("Your payment is still processing. Your reports are added as soon as it clears; use Refresh account access in a moment.");
+  } catch {
+    setMessage("We could not confirm your report pack yet. Use Refresh account access to try again.", "error");
   } finally { checkoutPolling = false; }
 }
 

@@ -13,8 +13,15 @@ export function siteUrl(): string {
 }
 
 export const planConfig = {
-  freeManagedReports: 1,
+  freeManagedReports: 3,
   proManagedReports: 20,
   monthlyPriceUsd: 12,
   annualPriceUsd: 99,
+  creditPackReports: 5,
+  creditPackPriceCents: 500,
+  // 40% off for life for the first 100 paying subscribers, closing at the end
+  // of 2026-12-31 in Toronto (midnight EST is 05:00 UTC).
+  foundingPercentOff: 40,
+  foundingSpots: 100,
+  foundingEndsAt: "2027-01-01T05:00:00Z",
 } as const;
