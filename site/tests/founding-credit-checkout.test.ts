@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-const m = vi.hoisted(() => ({ authenticate: vi.fn(), entitlement: vi.fn(), create: vi.fn(), single: vi.fn(), founding: vi.fn(), coupon: vi.fn(), pack: vi.fn() }));
+const m = vi.hoisted(() => ({ authenticate: vi.fn(), entitlement: vi.fn(), create: vi.fn(), customer: vi.fn(), update: vi.fn(), single: vi.fn(), founding: vi.fn(), coupon: vi.fn(), pack: vi.fn() }));
 vi.mock("../api/_lib/auth.js", () => ({ authenticate: m.authenticate }));
 vi.mock("../api/_lib/entitlements.js", () => ({ getEntitlement: m.entitlement }));
 vi.mock("../api/_lib/activation.js", () => ({ recordActivation: async () => {} }));
-vi.mock("../api/_lib/stripe.js", () => ({ stripeClient: () => ({ checkout: { sessions: { create: m.create } } }), verifiedProPrice: async (billing: string) => `price_${billing}`, syncCheckout: async () => {}, foundingOffer: m.founding, verifiedFoundingCoupon: m.coupon, verifiedCreditPackPrice: m.pack }));
-vi.mock("../api/_lib/supabase.js", () => ({ supabaseAdmin: () => ({ from: () => ({ select: () => ({ eq: () => ({ single: m.single }) }) }) }) }));
+vi.mock("../api/_lib/stripe.js", () => ({ stripeClient: () => ({ customers: { create: m.customer }, checkout: { sessions: { create: m.create } } }), verifiedProPrice: async (billing: string) => `price_${billing}`, syncCheckout: async () => {}, foundingOffer: m.founding, verifiedFoundingCoupon: m.coupon, verifiedCreditPackPrice: m.pack }));
+vi.mock("../api/_lib/supabase.js", () => ({ supabaseAdmin: () => ({ from: () => ({ select: () => ({ eq: () => ({ single: m.single }) }), update: () => ({ eq: m.update }) }) }) }));
 import { handler } from "../api/checkout.js";
 const req = (body: Record<string, unknown>) => new Request("https://videolens.io/api/checkout", { method: "POST", body: JSON.stringify(body) });
 beforeEach(() => {
@@ -13,11 +13,27 @@ beforeEach(() => {
   m.entitlement.mockResolvedValue({ plan: "free", canUpgrade: true, hasBillingSubscription: false, complimentary: null });
   m.single.mockResolvedValue({ data: { stripe_customer_id: "cus_member", email: "member@example.invalid" }, error: null });
   m.create.mockResolvedValue({ id: "cs_member", url: "https://checkout.stripe.com/test" });
+  m.customer.mockResolvedValue({ id: "cus_new" });
+  m.update.mockResolvedValue({ error: null });
   m.founding.mockResolvedValue({ available: false });
   m.coupon.mockResolvedValue("videolens-founding-40");
   m.pack.mockResolvedValue("price_pack");
 });
 afterEach(() => vi.unstubAllEnvs());
+
+describe("Stripe customer product labels", () => {
+  it.each([{ billing: "monthly" }, { kind: "credit_pack" }])("labels new customers before creating checkout: %j", async body => {
+    m.single.mockResolvedValue({ data: { stripe_customer_id: null, email: "member@example.invalid" }, error: null });
+    expect((await handler(req(body))).status).toBe(200);
+    expect(m.customer).toHaveBeenCalledWith({ email: "member@example.invalid", description: "VideoLens account", metadata: { user_id: "member", product: "videolens", product_name: "VideoLens" } });
+    expect(m.create).toHaveBeenCalledWith(expect.objectContaining({ customer: "cus_new" }));
+  });
+  it("reuses an existing customer without creating a duplicate", async () => {
+    expect((await handler(req({ billing: "monthly" }))).status).toBe(200);
+    expect(m.customer).not.toHaveBeenCalled();
+    expect(m.create).toHaveBeenCalledWith(expect.objectContaining({ customer: "cus_member" }));
+  });
+});
 
 describe("Founding Member checkout", () => {
   it("applies the 40% lifetime coupon and marks the subscription while spots remain", async () => {

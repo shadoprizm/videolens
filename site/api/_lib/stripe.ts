@@ -169,8 +169,31 @@ export async function syncCheckout(session: Stripe.Checkout.Session, userId: str
     status: session.status || "open", payment_status: session.payment_status,
     amount_total: session.amount_total, currency: session.currency,
     created_at: new Date(session.created * 1000).toISOString(), updated_at: new Date().toISOString(),
-  }, { onConflict: "stripe_session_id" });
+  }, {
+    onConflict: "stripe_session_id",
+    // Creation can finish after a terminal webhook has already been stored.
+    // Insert an open session once; never reopen a completed/expired checkout.
+    ...(session.status === "open" || !session.status ? { ignoreDuplicates: true } : {}),
+  });
   if (error) throw error;
+}
+
+export async function legacyCheckoutUser(session: Stripe.Checkout.Session): Promise<string | null> {
+  // Before product markers were added, subscription sessions carried only a
+  // user ID and billing interval. Match both the linked customer and our prices
+  // so another product in this shared Stripe account cannot enter the ledger.
+  if (session.mode !== "subscription" || session.metadata?.product) return null;
+  const userId = session.client_reference_id || session.metadata?.user_id;
+  const customerId = asId(session.customer);
+  if (!userId || !customerId) return null;
+  const { data, error } = await supabaseAdmin().from("profiles")
+    .select("user_id").eq("stripe_customer_id", customerId).maybeSingle<{ user_id: string }>();
+  if (error) throw error;
+  if (data?.user_id !== userId) return null;
+  const prices = [optionalEnv("STRIPE_PRO_MONTHLY_PRICE_ID"), optionalEnv("STRIPE_PRO_ANNUAL_PRICE_ID")].filter(Boolean);
+  if (!prices.length) return null;
+  const items = await stripeClient().checkout.sessions.listLineItems(session.id);
+  return items.data.some(item => item.price && prices.includes(item.price.id)) ? userId : null;
 }
 
 export async function syncInvoice(invoice: Stripe.Invoice): Promise<void> {
