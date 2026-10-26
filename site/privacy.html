@@ -71,7 +71,7 @@
 
   <main class="max-w-3xl mx-auto px-6 py-14 prose-slate">
     <h1 class="text-4xl font-extrabold tracking-tight mb-2">Privacy Policy</h1>
-    <p class="text-sm text-slate-500 mb-10">Last updated: October 3, 2026 · Applies to videolens.io, VideoLens accounts and Pro, the hosted app, the ChatGPT plugin, and the VideoLens Chrome and Firefox extensions.</p>
+    <p class="text-sm text-slate-500 mb-10">Last updated: October 27, 2026 · Applies to videolens.io, VideoLens accounts and Pro, the hosted app, the ChatGPT plugin, and the VideoLens Chrome and Firefox extensions.</p>
 
     <div class="space-y-10 text-slate-700 leading-relaxed">
       <section>
@@ -98,6 +98,7 @@
         <ul class="list-disc pl-5 space-y-2">
           <li><strong>Account data.</strong> We store your email address, account ID, subscription status, sign-in timestamps, managed-report usage, and the technical identifiers needed to connect your extension and Stripe customer. Supabase Auth handles email/password, optional email links, and enabled social sign-in providers. Social sign-in stores the provider identity and basic profile information returned by that provider. Passwords are processed by Supabase Auth and are not stored in VideoLens application tables.</li>
           <li><strong>Service administration.</strong> Authorized administrators can review membership, billing status, sign-in timestamps, and managed-report activity to operate and support VideoLens. Managed-report records include the title, source type, analysis mode, timestamps, and completion status supplied by the client, even when cloud report saving is off. We also retain operational AI diagnostics such as model names, HTTP status, duration, fallback use, and fixed error categories to diagnose failures. These diagnostics contain no prompts, media, raw error text, or AI response contents. The admin dashboard does not expose report contents, source videos, images, or audio. Private / BYOK scans stay on your device unless you choose to upload their reports to your cloud library; uploaded report titles and metadata are then included in administrative activity records.</li>
+          <li><strong>Offer emails.</strong> Besides sign-in and receipt emails, we may email account holders about VideoLens offers, such as the Founding Member price. Each offer email has an unsubscribe link that works without signing in; we record the opt-out and which offer emails were sent so no one receives the same offer twice. Opting out never affects sign-in or receipt emails.</li>
           <li><strong>Pairing data.</strong> Extension pairing challenges are random, single-use, and expire after 10 minutes. They contain no video content.</li>
           <li><strong>Cloud reports.</strong> When cloud saving is enabled, we store the completed structured report, including its title, source details, prompt, summary, findings, timeline text, mode, timestamped evidence, and follow-up questions and answers. Uploads do not consume managed AI report credits. We do not store the source video, sampled image files, or audio files.</li>
           <li><strong>Account workflow measurement.</strong> While signed in, we record a bounded set of account actions: account opened, extension-store link clicked, desktop link copied, pricing viewed, checkout clicked and returned, and cloud report opened or exported. These are associated with your account, action date, and report ID where applicable, to diagnose onboarding and assess usefulness. They contain no arbitrary metadata, browsing history, video content, filenames, video URLs, prompts, exported content, or raw errors. A click is not proof of installation or payment.</li>
@@ -154,6 +155,7 @@
         <ul class="list-disc pl-5 space-y-2">
           <li>Remove your API key or uninstall the extension at any time — all locally stored data, including settings and saved reports, is deleted with it.</li>
           <li>Use Private / BYOK mode without an account, delete local reports inside the extension, disable cloud saving while using Pro, delete cloud reports from the account page, disconnect the extension, or cancel Pro from the Stripe customer portal.</li>
+          <li>Unsubscribe from offer emails at any time with the link at the bottom of any offer email, or by writing to us.</li>
           <li>For privacy questions or an account-deletion request, email <a class="text-cyan-700 font-semibold hover:underline" href="mailto:astrawebdevservices@gmail.com">astrawebdevservices@gmail.com</a>.</li>
         </ul>
       </section>
