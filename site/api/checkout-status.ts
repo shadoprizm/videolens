@@ -3,7 +3,7 @@ import { authenticate } from "./_lib/auth.js";
 import { getEntitlement } from "./_lib/entitlements.js";
 import { optionalEnv } from "./_lib/env.js";
 import { ApiError, errorResponse, json, options } from "./_lib/http.js";
-import { proItem, stripeClient, syncCheckout, syncLatestInvoice, syncSubscription } from "./_lib/stripe.js";
+import { grantCreditPack, isCreditPackSession, proItem, stripeClient, syncCheckout, syncLatestInvoice, syncSubscription } from "./_lib/stripe.js";
 
 export async function handler(request: Request): Promise<Response> {
   const preflight = options(request); if (preflight) return preflight;
@@ -15,7 +15,14 @@ export async function handler(request: Request): Promise<Response> {
     if (!/^cs_[a-zA-Z0-9_]{8,200}$/.test(id)) throw new ApiError(400, "invalid_checkout", "Choose a valid checkout session.");
     const stripe = stripeClient();
     const checkout = await stripe.checkout.sessions.retrieve(id);
-    if (checkout.mode !== "subscription" || (checkout.client_reference_id || checkout.metadata?.user_id) !== user.id) throw new ApiError(404, "checkout_not_found", "Checkout not found.");
+    if ((checkout.client_reference_id || checkout.metadata?.user_id) !== user.id) throw new ApiError(404, "checkout_not_found", "Checkout not found.");
+    if (isCreditPackSession(checkout)) {
+      // Grant on return so credits appear even before the webhook arrives.
+      await grantCreditPack(checkout);
+      await syncCheckout(checkout, user.id);
+      return json(request, { kind: "credit_pack", status: checkout.status, paymentStatus: checkout.payment_status, entitlement: await getEntitlement(user.id) });
+    }
+    if (checkout.mode !== "subscription") throw new ApiError(404, "checkout_not_found", "Checkout not found.");
     let subscription: Stripe.Subscription | null = null;
     if (checkout.subscription) {
       subscription = typeof checkout.subscription === "string" ? await stripe.subscriptions.retrieve(checkout.subscription) : checkout.subscription;

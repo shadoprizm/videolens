@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 import { requireEnv } from "./_lib/env.js";
 import { errorResponse, json } from "./_lib/http.js";
-import { stripeClient, syncSubscription, syncCheckout, syncInvoice, syncLatestInvoice } from "./_lib/stripe.js";
+import { grantCreditPack, isCreditPackSession, stripeClient, syncSubscription, syncCheckout, syncInvoice, syncLatestInvoice } from "./_lib/stripe.js";
 import { supabaseAdmin } from "./_lib/supabase.js";
 
 export async function processEvent(event: Stripe.Event): Promise<void> {
@@ -21,10 +21,18 @@ export async function processEvent(event: Stripe.Event): Promise<void> {
     await syncInvoice(event.data.object as Stripe.Invoice);
     return;
   }
-  if (event.type === "checkout.session.completed" || event.type === "checkout.session.expired") {
+  if (
+    event.type === "checkout.session.completed" ||
+    event.type === "checkout.session.expired" ||
+    event.type === "checkout.session.async_payment_succeeded"
+  ) {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.client_reference_id || session.metadata?.user_id;
-    if (session.subscription) {
+    if (isCreditPackSession(session)) {
+      // Only paid sessions grant credits; expired or unpaid ones are ledgered.
+      await grantCreditPack(session);
+      if (userId) await syncCheckout(session, userId);
+    } else if (session.subscription) {
       const subscription = typeof session.subscription === "string"
         ? await stripe.subscriptions.retrieve(session.subscription)
         : session.subscription;

@@ -7,6 +7,17 @@ const migrationPath = fileURLToPath(
 );
 const migration = readFileSync(migrationPath, "utf8");
 
+describe("report pack ledger migration", () => {
+  const packs = readFileSync(fileURLToPath(new URL("../../supabase/migrations/20261026120000_founding_members_and_credit_packs.sql", import.meta.url)), "utf8");
+  it("keeps purchased credits server-only and idempotent per Checkout session", () => {
+    expect(packs).toContain("alter table public.report_credit_grants enable row level security");
+    expect(packs).toContain("revoke all on public.report_credit_grants from public, anon, authenticated");
+    expect(packs).toContain("stripe_session_id text not null unique");
+    expect(packs).toContain("revoke all on function public.get_managed_entitlement(uuid) from public, anon, authenticated");
+    expect(packs).toContain("v_limit := 3 + v_purchased");
+  });
+});
+
 describe("Pro database security migration", () => {
   it("enables RLS on every exposed table", () => {
     for (const table of ["profiles", "subscriptions", "reports", "ai_requests", "extension_pairings", "stripe_events"]) {

@@ -101,7 +101,7 @@
           </div>
           <p id="account-email" class="account-email"></p>
           <div class="usage-block">
-            <div class="usage-row"><span>Reports</span><strong id="usage-label">0 of 1 used</strong></div>
+            <div class="usage-row"><span>Reports</span><strong id="usage-label">0 of 3 used</strong></div>
             <div class="meter"><span id="usage-meter"></span></div>
             <p id="usage-note" class="fine-print"></p>
           </div>
@@ -109,10 +109,15 @@
           <details id="upgrade-options">
             <summary id="upgrade-summary">Explore Pro after your free reports</summary>
             <p>Keep turning videos into work you can use: timestamped reports, study lessons, or procedure checklists. Pro includes 20 managed reports per calendar month, with no API key needed. Your saved reports remain available if you cancel.</p>
+          <p id="founding-offer" class="founding-offer" hidden></p>
           <div id="upgrade-actions" class="upgrade-actions">
-            <button class="button button-primary checkout-button" data-billing="monthly" type="button">Continue monthly · US$12/month</button>
-            <button class="button button-secondary checkout-button" data-billing="annual" type="button">Choose annual · US$99/year</button>
-            <p class="fine-print">Monthly renews each month. Annual charges US$99 each year. Cancel future renewals in Manage billing.</p>
+            <button id="checkout-monthly" class="button button-primary checkout-button" data-billing="monthly" type="button">Continue monthly · US$12/month</button>
+            <button id="checkout-annual" class="button button-secondary checkout-button" data-billing="annual" type="button">Choose annual · US$99/year</button>
+            <p id="checkout-fine-print" class="fine-print">Monthly renews each month. Annual charges US$99 each year. Cancel future renewals in Manage billing.</p>
+          </div>
+          <div id="credit-pack" class="credit-pack" hidden>
+            <button id="buy-credits" class="button button-secondary" type="button">Buy 5 reports · US$5</button>
+            <p class="fine-print">One-time payment, no subscription. Purchased reports never expire.</p>
           </div>
           </details>
           <button id="manage-billing" class="button button-secondary" type="button" hidden>Manage billing</button>
