@@ -94,6 +94,8 @@ describe("scheduled sender", () => {
     const result = await (await send(cron(), { spacingMs: 0 })).json();
     expect(result.sent).toEqual({ founding_announcement: 1 });
     expect(m.fetch.mock.calls[0][1].headers["Idempotency-Key"]).toBe("videolens.marketing.founding_announcement.u1");
+    const sentBody = JSON.parse(m.fetch.mock.calls[0][1].body);
+    expect(sentBody.headers).toEqual({ "List-Unsubscribe": "<https://videolens.io/unsubscribe?token=11111111-2222-3333-4444-555555555555>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" });
     expect(m.upsert).toHaveBeenCalledWith({ user_id: "u1", campaign: "founding_announcement", message_id: "msg_1" }, { onConflict: "user_id,campaign", ignoreDuplicates: true });
   });
   it("stops at the first provider rejection without recording the failed send", async () => {

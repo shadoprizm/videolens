@@ -36,7 +36,7 @@ export function marketingConfig(): MarketingConfig {
   return Object.fromEntries(Object.entries(CONFIG_ENV).map(([key, name]) => [key, optionalEnv(name)!])) as unknown as MarketingConfig;
 }
 
-export interface RenderedEmail { subject: string; preheader: string; html: string; text: string }
+export interface RenderedEmail { subject: string; preheader: string; html: string; text: string; unsubscribeUrl: string }
 
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 const money = (cents: number) => `US$${(cents / 100).toFixed(2).replace(/\.00$/, "")}`;
@@ -147,7 +147,7 @@ VideoLens · ${h(address)} · support@astradevs.io
 </td></tr>
 </table></td></tr></table></body></html>`;
 
-  return { subject: copy.subject, preheader: copy.preheader, html, text };
+  return { subject: copy.subject, preheader: copy.preheader, html, text, unsubscribeUrl: unsubscribe };
 }
 
 export async function sendMarketingEmail(config: MarketingConfig, to: string, email: RenderedEmail, idempotencyKey: string, campaign: Campaign): Promise<string> {
@@ -158,6 +158,9 @@ export async function sendMarketingEmail(config: MarketingConfig, to: string, em
       from: { email: config.fromEmail, name: "VideoLens" },
       to: [{ email: to }],
       subject: email.subject, text: email.text, html: email.html,
+      // Gives Gmail and Apple Mail their built-in unsubscribe button; the
+      // endpoint accepts the RFC 8058 one-click POST.
+      headers: { "List-Unsubscribe": `<${email.unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
       metadata: { messageType: "marketing", campaign },
     }),
     signal: AbortSignal.timeout(10_000),
