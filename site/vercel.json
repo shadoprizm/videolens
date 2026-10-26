@@ -26,10 +26,22 @@
     }
   ],
   "rewrites": [
-    { "source": "/.well-known/oauth-protected-resource", "destination": "/api/oauth-protected-resource" },
-    { "source": "/.well-known/openai-apps-challenge", "destination": "/api/openai-apps-challenge" },
-    { "source": "/lesson-preview", "destination": "/lesson-preview.html" },
-    { "source": "/procedure-preview", "destination": "/procedure-preview.html" },
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "/api/oauth-protected-resource"
+    },
+    {
+      "source": "/.well-known/openai-apps-challenge",
+      "destination": "/api/openai-apps-challenge"
+    },
+    {
+      "source": "/lesson-preview",
+      "destination": "/lesson-preview.html"
+    },
+    {
+      "source": "/procedure-preview",
+      "destination": "/procedure-preview.html"
+    },
     {
       "source": "/recipe-preview",
       "destination": "/recipe-preview.html"
@@ -38,13 +50,22 @@
       "source": "/admin",
       "destination": "/admin.html"
     },
-    { "source": "/oauth/consent", "destination": "/oauth-consent.html" },
+    {
+      "source": "/oauth/consent",
+      "destination": "/oauth-consent.html"
+    },
     {
       "source": "/privacy",
       "destination": "/privacy.html"
     },
-    { "source": "/support", "destination": "/support.html" },
-    { "source": "/terms", "destination": "/terms.html" },
+    {
+      "source": "/support",
+      "destination": "/support.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms.html"
+    },
     {
       "source": "/account",
       "destination": "/account.html"
@@ -56,11 +77,20 @@
     {
       "source": "/firefox",
       "destination": "/firefox.html"
+    },
+    {
+      "source": "/unsubscribe",
+      "destination": "/api/unsubscribe"
     }
   ],
   "functions": {
-    "api/admin-billing.ts": { "maxDuration": 120 },
+    "api/admin-billing.ts": {
+      "maxDuration": 120
+    },
     "api/ai.ts": {
+      "maxDuration": 300
+    },
+    "api/marketing-email.ts": {
       "maxDuration": 300
     }
   },
@@ -85,6 +115,12 @@
           "value": "interest-cohort=()"
         }
       ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/marketing-email",
+      "schedule": "17 14 * * *"
     }
   ]
 }
