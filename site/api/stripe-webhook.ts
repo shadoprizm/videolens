@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 import { requireEnv } from "./_lib/env.js";
 import { errorResponse, json } from "./_lib/http.js";
-import { grantCreditPack, isCreditPackSession, stripeClient, syncSubscription, syncCheckout, syncInvoice, syncLatestInvoice } from "./_lib/stripe.js";
+import { grantCreditPack, isCreditPackSession, legacyCheckoutUser, stripeClient, syncSubscription, syncCheckout, syncInvoice, syncLatestInvoice } from "./_lib/stripe.js";
 import { supabaseAdmin } from "./_lib/supabase.js";
 
 export async function processEvent(event: Stripe.Event): Promise<void> {
@@ -42,6 +42,9 @@ export async function processEvent(event: Stripe.Event): Promise<void> {
     } else if (userId && session.metadata?.product === "videolens") {
       // Sessions created by this endpoint carry an explicit product marker.
       await syncCheckout(session, userId);
+    } else {
+      const legacyUserId = await legacyCheckoutUser(session);
+      if (legacyUserId) await syncCheckout(session, legacyUserId);
     }
   }
 }

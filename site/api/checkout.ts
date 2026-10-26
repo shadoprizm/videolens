@@ -20,7 +20,11 @@ async function customerFor(userId: string): Promise<string> {
     .single<{ stripe_customer_id: string | null; email: string }>();
   if (profileError || !profile) throw profileError || new Error("Profile missing.");
   if (profile.stripe_customer_id) return profile.stripe_customer_id;
-  const customer = await stripeClient().customers.create({ email: profile.email, metadata: { user_id: userId } });
+  const customer = await stripeClient().customers.create({
+    email: profile.email,
+    description: "VideoLens account",
+    metadata: { user_id: userId, product: "videolens", product_name: "VideoLens" },
+  });
   const { error: updateError } = await admin
     .from("profiles")
     .update({ stripe_customer_id: customer.id, updated_at: new Date().toISOString() })
