@@ -67,6 +67,13 @@ try { founding = await stripe.coupons.retrieve(foundingCouponId); } catch (error
   });
 }
 
+const webhookEvents = [
+  "checkout.session.expired", "invoice.paid", "invoice.payment_failed",
+  "checkout.session.completed", "checkout.session.async_payment_succeeded",
+  "customer.subscription.created",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+];
 let webhookSecret = null;
 if (webhookUrl) {
   const existing = await stripe.webhookEndpoints.list({ limit: 100 });
@@ -74,16 +81,18 @@ if (webhookUrl) {
   if (!endpoint) {
     const created = await stripe.webhookEndpoints.create({
       url: webhookUrl,
-      enabled_events: [
-        "checkout.session.expired", "invoice.paid", "invoice.payment_failed",
-        "checkout.session.completed", "checkout.session.async_payment_succeeded",
-        "customer.subscription.created",
-        "customer.subscription.updated",
-        "customer.subscription.deleted",
-      ],
+      enabled_events: webhookEvents,
       description: "VideoLens Pro subscription entitlements",
     });
     webhookSecret = created.secret;
+  } else if (!endpoint.enabled_events.includes("*")) {
+    // Existing endpoints keep their signing secret; add any newly required
+    // events so delayed report-pack payments still grant credits.
+    const missing = webhookEvents.filter((event) => !endpoint.enabled_events.includes(event));
+    if (missing.length) {
+      await stripe.webhookEndpoints.update(endpoint.id, { enabled_events: [...endpoint.enabled_events, ...missing] });
+      console.log(`Added webhook events: ${missing.join(", ")}`);
+    }
   }
 }
 
