@@ -271,7 +271,7 @@ function renderOffers(entitlement: Entitlement): void {
     banner.replaceChildren();
     const title = document.createElement("strong");
     title.textContent = `Founding Member: ${founding!.percentOff}% off Pro for life.`;
-    banner.append(title, ` ${monthly}/month or ${annual}/year for as long as you stay subscribed. ${founding!.spotsLeft} of ${founding!.spots} spots left; offer ends ${lastDay}.`);
+    banner.append(title, ` ${monthly}/month or ${annual}/year for as long as you stay subscribed. ${founding!.spots - founding!.spotsLeft < 10 ? `Limited to the first ${founding!.spots} members` : `${founding!.spotsLeft} of ${founding!.spots} spots left`}; offer ends ${lastDay}.`);
   }
   byId("checkout-monthly").textContent = `Continue monthly · ${monthly}/month`;
   byId("checkout-annual").textContent = `Choose annual · ${annual}/year`;

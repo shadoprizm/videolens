@@ -101,6 +101,12 @@ it("shows the Founding Member price and remaining spots while the offer is open"
   expect(document.getElementById("checkout-monthly")!.textContent).toBe("Continue monthly · US$7.20/month");
   expect(document.getElementById("checkout-annual")!.textContent).toBe("Choose annual · US$59.40/year");
 });
+it("shows the spot limit instead of a full counter until claims start", async () => {
+  const { document } = await openAccount({ remaining: 0, offers: { founding: { available: true, spotsLeft: 100 } } });
+  const banner = document.getElementById("founding-offer")!;
+  expect(banner.textContent).toContain("Limited to the first 100 members");
+  expect(banner.textContent).not.toContain("100 of 100");
+});
 it("keeps regular prices when the founding offer is closed", async () => {
   const { document } = await openAccount({ remaining: 0, offers: { founding: { available: false, spotsLeft: 0 } } });
   expect(document.getElementById("founding-offer")!.hidden).toBe(true);

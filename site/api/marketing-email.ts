@@ -31,10 +31,11 @@ export async function handler(request: Request, options: { spacingMs?: number } 
       // Preview every due campaign to the owner only; nothing is recorded.
       const recipient = optionalEnv("VIDEOLENS_MARKETING_TEST_RECIPIENT");
       if (!recipient) return json(request, { error: "test_recipient_missing" }, 503);
-      const day = new Date().toISOString().slice(0, 10);
+      // Per-minute keys let a re-run after a copy change send a fresh preview.
+      const stamp = new Date().toISOString().slice(0, 16);
       for (const campaign of campaigns) {
         const email = renderCampaign(campaign, { spotsLeft: offer.spotsLeft, unsubscribeToken: "preview", mailingAddress: config.mailingAddress });
-        await sendMarketingEmail(config, recipient, { ...email, subject: `[Preview] ${email.subject}` }, `videolens.marketing.test.${campaign}.${day}`);
+        await sendMarketingEmail(config, recipient, { ...email, subject: `[Preview] ${email.subject}` }, `videolens.marketing.test.${campaign}.${stamp}`);
         sent[campaign] = 1;
         await pause(spacing);
       }
