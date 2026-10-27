@@ -150,7 +150,7 @@ VideoLens · ${h(address)} · support@astradevs.io
   return { subject: copy.subject, preheader: copy.preheader, html, text, unsubscribeUrl: unsubscribe };
 }
 
-export async function sendMarketingEmail(config: MarketingConfig, to: string, email: RenderedEmail, idempotencyKey: string, campaign: Campaign): Promise<string> {
+export async function sendMarketingEmail(config: MarketingConfig, to: string, email: RenderedEmail, idempotencyKey: string): Promise<string> {
   const response = await fetch(config.url, {
     method: "POST",
     headers: { Authorization: `Bearer ${config.apiKey}`, "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
@@ -161,7 +161,8 @@ export async function sendMarketingEmail(config: MarketingConfig, to: string, em
       // Gives Gmail and Apple Mail their built-in unsubscribe button; the
       // endpoint accepts the RFC 8058 one-click POST.
       headers: { "List-Unsubscribe": `<${email.unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
-      metadata: { messageType: "marketing", campaign },
+      // Sovereign Mail accepts only these two metadata keys and rejects others.
+      metadata: { messageType: "marketing", applicationMessageId: idempotencyKey },
     }),
     signal: AbortSignal.timeout(10_000),
   });
