@@ -34,7 +34,7 @@ export async function handler(request: Request, options: { spacingMs?: number } 
       const day = new Date().toISOString().slice(0, 10);
       for (const campaign of campaigns) {
         const email = renderCampaign(campaign, { spotsLeft: offer.spotsLeft, unsubscribeToken: "preview", mailingAddress: config.mailingAddress });
-        await sendMarketingEmail(config, recipient, { ...email, subject: `[Preview] ${email.subject}` }, `videolens.marketing.test.${campaign}.${day}`, campaign);
+        await sendMarketingEmail(config, recipient, { ...email, subject: `[Preview] ${email.subject}` }, `videolens.marketing.test.${campaign}.${day}`);
         sent[campaign] = 1;
         await pause(spacing);
       }
@@ -50,7 +50,7 @@ export async function handler(request: Request, options: { spacingMs?: number } 
         const email = renderCampaign(campaign, { spotsLeft: offer.spotsLeft, unsubscribeToken: member.unsubscribe_token, mailingAddress: config.mailingAddress });
         // The provider deduplicates on this key, so a crash between sending
         // and recording cannot deliver the same campaign twice.
-        const messageId = await sendMarketingEmail(config, member.email, email, `videolens.marketing.${campaign}.${member.user_id}`, campaign);
+        const messageId = await sendMarketingEmail(config, member.email, email, `videolens.marketing.${campaign}.${member.user_id}`);
         const { error: recordError } = await supabaseAdmin().from("marketing_email_sends")
           .upsert({ user_id: member.user_id, campaign, message_id: messageId }, { onConflict: "user_id,campaign", ignoreDuplicates: true });
         if (recordError) throw recordError;
