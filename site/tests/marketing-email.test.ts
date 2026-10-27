@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const m = vi.hoisted(() => ({ offer: vi.fn(), rpc: vi.fn(), upsert: vi.fn(), update: vi.fn(), fetch: vi.fn() }));
-vi.mock("../api/_lib/stripe.js", () => ({ foundingOffer: m.offer }));
+vi.mock("../api/_lib/stripe.js", async (actual) => ({ ...(await actual<typeof import("../api/_lib/stripe.js")>()), foundingOffer: m.offer }));
 vi.mock("../api/_lib/supabase.js", () => ({ supabaseAdmin: () => ({
   rpc: m.rpc,
   from: () => ({
@@ -12,7 +12,7 @@ import { dueCampaigns, marketingConfig, renderCampaign, spotsLine } from "../api
 import { handler as send } from "../api/marketing-email.js";
 import { handler as unsubscribe } from "../api/unsubscribe.js";
 
-const open = { available: true, spotsLeft: 100, spots: 100, percentOff: 40, endsAt: "2027-01-01T05:00:00Z" };
+const open = { available: true, spotsLeft: 100, spots: 100, percentOff: 40, endsAt: "2027-01-01T05:00:00Z", showCount: false };
 const cron = (secret = "cron-secret") => new Request("https://videolens.io/api/marketing-email", { headers: { authorization: `Bearer ${secret}` } });
 const accepted = (id = "msg_1") => new Response(JSON.stringify({ status: "accepted", id }), { status: 200 });
 const configure = (mode: string) => {

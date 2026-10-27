@@ -13,7 +13,7 @@ const bundle = await build({
     b.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({ contents: "export const createClient = () => globalThis.fixtureAuth;" }));
   } }],
 });
-type Offers = { founding?: { available: boolean; spotsLeft: number }; pack?: boolean };
+type Offers = { founding?: { available: boolean; spotsLeft: number; showCount?: boolean }; pack?: boolean };
 async function openAccount(options: { signedIn?: boolean; remaining?: number; pro?: boolean; search?: string; mobile?:boolean; purchased?: number; offers?: Offers; checkoutStatus?: { status: string; paymentStatus: string } } = {}) {
   const { window } = parseHTML(html);
   (window as unknown as { turnstile: unknown }).turnstile = {
@@ -92,7 +92,7 @@ it("shows Pro continuation when the starter allowance is exhausted", async () =>
   expect(document.getElementById("upgrade-options")!.textContent).toContain("$12/month");
 });
 it("shows the Founding Member price and remaining spots while the offer is open", async () => {
-  const { document } = await openAccount({ remaining: 0, offers: { founding: { available: true, spotsLeft: 37 }, pack: true } });
+  const { document } = await openAccount({ remaining: 0, offers: { founding: { available: true, spotsLeft: 37, showCount: true }, pack: true } });
   const banner = document.getElementById("founding-offer")!;
   expect(banner.hidden).toBe(false);
   expect(banner.textContent).toContain("40% off Pro for life");
@@ -102,7 +102,7 @@ it("shows the Founding Member price and remaining spots while the offer is open"
   expect(document.getElementById("checkout-annual")!.textContent).toBe("Choose annual · US$59.40/year");
 });
 it("shows the spot limit instead of a full counter until claims start", async () => {
-  const { document } = await openAccount({ remaining: 0, offers: { founding: { available: true, spotsLeft: 100 } } });
+  const { document } = await openAccount({ remaining: 0, offers: { founding: { available: true, spotsLeft: 100, showCount: false } } });
   const banner = document.getElementById("founding-offer")!;
   expect(banner.textContent).toContain("Limited to the first 100 members");
   expect(banner.textContent).not.toContain("100 of 100");

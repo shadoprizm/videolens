@@ -1,6 +1,6 @@
 import { optionalEnv, planConfig, siteUrl } from "./env.js";
 import { ApiError } from "./http.js";
-import type { FoundingOffer } from "./stripe.js";
+import { showFoundingCount, type FoundingOffer } from "./stripe.js";
 
 export const CAMPAIGNS = ["founding_announcement", "founding_welcome", "founding_25_left", "founding_last_week"] as const;
 export type Campaign = typeof CAMPAIGNS[number];
@@ -9,15 +9,10 @@ export type Campaign = typeof CAMPAIGNS[number];
 // announcement; later accounts receive the welcome once they are a day old.
 export const ANNOUNCEMENT_CUTOFF = "2026-10-27T04:00:00Z";
 const REMINDER_SPOTS = 25;
-// A full counter ("100 of 100 left") reads as no demand, so the live count
-// appears only once this many spots are claimed. Never show invented numbers.
-const COUNT_AFTER_CLAIMED = 10;
 
 export function spotsLine(spotsLeft: number): string {
   const spots = planConfig.foundingSpots;
-  return spots - spotsLeft < COUNT_AFTER_CLAIMED
-    ? `Limited to the first ${spots} Pro members`
-    : `${spotsLeft} of ${spots} founding spots left`;
+  return showFoundingCount(spotsLeft) ? `${spotsLeft} of ${spots} founding spots left` : `Limited to the first ${spots} Pro members`;
 }
 const LAST_WEEK_MS = 7 * 86_400_000;
 
