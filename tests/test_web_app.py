@@ -109,3 +109,13 @@ def test_sample_report_opens_without_external_services() -> None:
     download_labels = [button.label for button in app.get("download_button")]
     assert {"Download HTML", "Download PDF", "Download Markdown"} <= set(download_labels)
     assert "Analyze a YouTube video" in [button.label for button in app.button]
+
+
+def test_failed_reports_use_resolver_source_vocabulary(tmp_path) -> None:
+    from videolens.web import app as web_app
+
+    upload = tmp_path / "clip.mp4"
+    upload.write_bytes(b"")
+    assert web_app._source_type(str(upload)) == "local_file"
+    assert web_app._source_type("https://www.youtube.com/watch?v=dQw4w9WgXcQ") == "youtube"
+    assert web_app._source_type("https://www.loom.com/share/abc123") != "youtube"

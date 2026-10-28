@@ -32,6 +32,7 @@ from videolens.managed import (
 )
 from videolens.outputs import render_html, render_pdf
 from videolens.pipeline import ExtractionResult, run_extraction
+from videolens.resolvers.resolve_source import resolve_source
 from videolens.product import (
     PRIMARY_WORKFLOWS,
     WORKFLOW_PRESETS,
@@ -1010,6 +1011,14 @@ def _start_report(
     _run_pipeline(source_path, prompt, mode, max_frames, frame_interval, force, access)
 
 
+def _source_type(source_path: str) -> str:
+    """Label a failed source with the same vocabulary successful reports use."""
+    try:
+        return resolve_source(source_path).source_type.value
+    except Exception:
+        return "video"
+
+
 def _failure_category(exc: Exception) -> tuple[str, str]:
     """Map a failure to the account's privacy-safe diagnostic stage and code."""
     if isinstance(exc, ManagedError):
@@ -1122,7 +1131,7 @@ def _run_pipeline(
                     report_id,
                     failed=True,
                     title="Untitled video",
-                    source_type="upload" if source_path.startswith("/") else "youtube",
+                    source_type=_source_type(source_path),
                     mode=mode,
                     failure_stage=stage,
                     failure_code=code,
