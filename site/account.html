@@ -77,15 +77,22 @@
           <a id="install-chrome" class="button button-primary" href="https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl" target="_blank" rel="noopener" data-track="Account install Chrome clicked" data-destination="chrome">Add to Chrome</a>
           <a id="install-firefox" class="button button-primary" href="https://addons.mozilla.org/firefox/addon/videolens-video-reports/" target="_blank" rel="noopener" data-track="Account install Firefox clicked" data-destination="firefox">Add to Firefox</a>
         </div>
+        <div id="web-app-option" class="web-app-option" hidden>
+          <div>
+            <strong>Create a report in your browser — no install</strong>
+            <p>Use the VideoLens web app on any device, including your phone. Connect it to this account and use the reports included with it.</p>
+          </div>
+          <a id="open-web-app" class="button button-secondary" href="https://app.videolens.io/?utm_source=account&amp;utm_medium=web&amp;utm_campaign=first_report" target="_blank" rel="noopener" data-track="Account web app clicked" data-destination="web-app">Open the web app</a>
+        </div>
         <p class="fine-print">Already installed? Return to extension Settings and connect your VideoLens account. No API key needed.</p>
         </details>
       </section>
       <button class="button button-secondary" id="refresh-access" type="button">Refresh account access</button>
       <div id="extension-connect" class="connect-banner" hidden>
         <div>
-          <div class="panel-kicker">Extension connection</div>
-          <h2>Connect this browser to your account?</h2>
-          <p>This authorizes the VideoLens extension on this device. It does not share your Supabase login or billing credentials with the extension.</p>
+          <div id="connect-kicker" class="panel-kicker">Extension connection</div>
+          <h2 id="connect-title">Connect this browser to your account?</h2>
+          <p id="connect-description">This authorizes the VideoLens extension on this device. It does not share your Supabase login or billing credentials with the extension.</p>
         </div>
         <button id="authorize-extension" class="button button-primary" type="button">Connect extension</button>
       </div>

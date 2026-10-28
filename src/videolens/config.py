@@ -26,6 +26,8 @@ class Defaults:
     max_frames: int = 40
     frame_interval_seconds: float = 5.0
     scene_change_threshold: float = 0.3
+    audio_chunk_seconds: float = 30.0
+    structured_frame_limit: int = 120
 
 
 @dataclass

@@ -13,10 +13,12 @@ CUES = re.compile(
 )
 
 
-def sample_times(duration: float, transcript: Transcript | None = None) -> list[float]:
+def sample_times(
+    duration: float, transcript: Transcript | None = None, limit: int = 120
+) -> list[float]:
     if not math.isfinite(duration) or duration <= 0:
         raise ValueError("A structured report needs a video with a readable duration.")
-    count = min(120, max(1, math.ceil(duration / 0.5)))
+    count = min(limit, max(1, math.ceil(duration / 0.5)))
     cues = [
         s
         for s in (transcript.segments if transcript else [])
@@ -42,9 +44,9 @@ def sample_times(duration: float, transcript: Transcript | None = None) -> list[
 
 
 def extract_structured_frames(
-    video_path: Path, cache, duration: float, transcript=None, force=False
+    video_path: Path, cache, duration: float, transcript=None, force=False, limit: int = 120
 ):
-    times = sample_times(duration, transcript)
+    times = sample_times(duration, transcript, limit)
     cached = cache.read_json("structured-frames.json") if not force else None
     if cached:
         frames = [Frame.model_validate(f) for f in cached]

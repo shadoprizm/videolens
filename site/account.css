@@ -153,6 +153,12 @@ footer a { color: #64748b; }
 #report-setup summary { cursor: pointer; color: var(--brand-dark); }
 #report-setup summary h2 { display: inline; }
 .install-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.web-app-option { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 16px; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; background: var(--soft); }
+.web-app-option strong { display: block; font-size: 15px; }
+.web-app-option p { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.web-app-option .button { flex: none; }
+.web-app-option.primary { margin: 16px 0; border-color: #67e8f9; background: linear-gradient(120deg, #ecfeff, white); }
+@media (max-width: 760px) { .web-app-option { align-items: stretch; flex-direction: column; } }
 #upgrade-options { margin-top: 20px; }
 #upgrade-options summary { cursor: pointer; color: var(--brand-dark); font-weight: 700; }
 #upgrade-options > p { color: var(--muted); font-size: 14px; line-height: 1.6; }

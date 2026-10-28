@@ -35,13 +35,41 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("campaign schedule", () => {
-  it("sends nothing once the founding offer closes", () => {
-    expect(dueCampaigns({ ...open, available: false })).toEqual([]);
+  it("sends only the first-report nudge once the founding offer closes", () => {
+    expect(dueCampaigns({ ...open, available: false })).toEqual(["first_report_nudge"]);
   });
   it("adds the 25-left reminder and the final-week reminder only when they apply", () => {
-    expect(dueCampaigns(open, new Date("2026-11-01T12:00:00Z"))).toEqual(["founding_announcement", "founding_welcome"]);
+    expect(dueCampaigns(open, new Date("2026-11-01T12:00:00Z"))).toEqual(["founding_announcement", "founding_welcome", "first_report_nudge"]);
     expect(dueCampaigns({ ...open, spotsLeft: 25 }, new Date("2026-11-01T12:00:00Z"))).toContain("founding_25_left");
     expect(dueCampaigns(open, new Date("2026-12-25T12:00:00Z"))).toContain("founding_last_week");
+  });
+  it("always runs the nudge last so same-run founding sends are seen first", () => {
+    expect(dueCampaigns({ ...open, spotsLeft: 5 }, new Date("2026-12-28T12:00:00Z")).at(-1)).toBe("first_report_nudge");
+  });
+});
+
+describe("first-report nudge content", () => {
+  const nudge = renderCampaign("first_report_nudge", { spotsLeft: 0, unsubscribeToken: "11111111-2222-3333-4444-555555555555", mailingAddress: "100 <Example> St" });
+  it("points to the web app first, with campaign attribution, and keeps the extension as an alternative", () => {
+    expect(nudge.subject).toBe("Your 3 free VideoLens reports are waiting");
+    const webApp = "https://app.videolens.io/?utm_source=email&utm_medium=email&utm_campaign=first_report_nudge";
+    expect(nudge.text).toContain(webApp);
+    expect(nudge.html).toContain(webApp.replaceAll("&", "&amp;"));
+    expect(nudge.text.indexOf(webApp)).toBeLessThan(nudge.text.indexOf("browser extension"));
+    expect(nudge.text).toContain("works on your phone");
+    expect(nudge.text).toContain("https://videolens.io/account?utm_source=email&utm_medium=email&utm_campaign=first_report_nudge");
+  });
+  it("is not a sales email: no prices, founding offer or report pack", () => {
+    for (const body of [nudge.html, nudge.text, nudge.preheader, nudge.subject]) {
+      expect(body).not.toMatch(/US\$|founding|Founding|subscribe to Pro/);
+    }
+  });
+  it("carries the same CASL footer and unsubscribe link", () => {
+    expect(nudge.html).toContain("https://videolens.io/unsubscribe?token=11111111-2222-3333-4444-555555555555");
+    expect(nudge.text).toContain("Unsubscribe from offer emails: https://videolens.io/unsubscribe?token=");
+    expect(nudge.html).toContain("100 &lt;Example&gt; St");
+    expect(nudge.html).toContain("You are receiving this because you created a VideoLens account.");
+    expect(nudge.unsubscribeUrl).toBe("https://videolens.io/unsubscribe?token=11111111-2222-3333-4444-555555555555");
   });
 });
 
@@ -87,8 +115,8 @@ describe("scheduled sender", () => {
   it("previews every due campaign to the owner only, without recording sends", async () => {
     configure("test");
     const result = await (await send(cron(), { spacingMs: 0 })).json();
-    expect(result.sent).toEqual({ founding_announcement: 1, founding_welcome: 1 });
-    expect(m.fetch).toHaveBeenCalledTimes(2);
+    expect(result.sent).toEqual({ founding_announcement: 1, founding_welcome: 1, first_report_nudge: 1 });
+    expect(m.fetch).toHaveBeenCalledTimes(3);
     const body = JSON.parse(m.fetch.mock.calls[0][1].body);
     expect(body.to).toEqual([{ email: "owner@example.invalid" }]);
     expect(body.subject).toMatch(/^\[Preview\]/);
@@ -107,6 +135,18 @@ describe("scheduled sender", () => {
     expect(sentBody.metadata).toEqual({ messageType: "marketing", applicationMessageId: "videolens.marketing.founding_announcement.u1" });
     expect(sentBody.headers).toEqual({ "List-Unsubscribe": "<https://videolens.io/unsubscribe?token=11111111-2222-3333-4444-555555555555>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" });
     expect(m.upsert).toHaveBeenCalledWith({ user_id: "u1", campaign: "founding_announcement", message_id: "msg_1" }, { onConflict: "user_id,campaign", ignoreDuplicates: true });
+  });
+  it("keeps sending the first-report nudge after the founding offer closes", async () => {
+    configure("live");
+    m.offer.mockResolvedValue({ ...open, available: false, spotsLeft: 0 });
+    m.rpc.mockResolvedValue({ error: null, data: [{ user_id: "u2", email: "two@example.com", unsubscribe_token: "11111111-2222-3333-4444-555555555555" }] });
+    const result = await (await send(cron(), { spacingMs: 0 })).json();
+    expect(result.sent).toEqual({ first_report_nudge: 1 });
+    expect(m.rpc).toHaveBeenCalledTimes(1);
+    expect(m.rpc).toHaveBeenCalledWith("marketing_candidates", expect.objectContaining({ p_campaign: "first_report_nudge" }));
+    expect(m.fetch.mock.calls[0][1].headers["Idempotency-Key"]).toBe("videolens.marketing.first_report_nudge.u2");
+    expect(JSON.parse(m.fetch.mock.calls[0][1].body).subject).toBe("Your 3 free VideoLens reports are waiting");
+    expect(m.upsert).toHaveBeenCalledWith({ user_id: "u2", campaign: "first_report_nudge", message_id: "msg_1" }, { onConflict: "user_id,campaign", ignoreDuplicates: true });
   });
   it("stops at the first provider rejection without recording the failed send", async () => {
     configure("live");

@@ -37,3 +37,20 @@ describe("Pro database security migration", () => {
     expect(migration).toContain("grant select, delete on table public.reports to authenticated");
   });
 });
+
+describe("first-report nudge migration", () => {
+  const nudge = readFileSync(fileURLToPath(new URL("../../supabase/migrations/20261028120000_first_report_nudge.sql", import.meta.url)), "utf8");
+  it("keeps the candidate query service-only and able to read auth.users", () => {
+    expect(nudge).toContain("language plpgsql volatile security definer set search_path = ''");
+    expect(nudge).toContain("#variable_conflict use_column");
+    expect(nudge).toContain("revoke all on function public.marketing_candidates(text, timestamptz, integer) from public, anon, authenticated");
+    expect(nudge).toContain("grant execute on function public.marketing_candidates(text, timestamptz, integer) to service_role");
+  });
+  it("targets 48-hour-old members who never reserved a report, and still honours opt-outs", () => {
+    expect(nudge).toContain("p.opted_out_at is null");
+    expect(nudge).toContain("when 'first_report_nudge' then u.created_at <= now() - interval '48 hours'");
+    expect(nudge).toContain("r.quota_period_start is not null");
+    expect(nudge).toMatch(/campaign in \([^)]*'first_report_nudge'\)/);
+    expect(nudge).toMatch(/event in \([^)]*'web_app_clicked'/);
+  });
+});

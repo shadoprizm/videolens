@@ -181,7 +181,7 @@ const renderPage = (page) => {
           <a class="button button-secondary" data-track="Start ${escapeHtml(workflow)} workflow" data-destination="hosted-app-${escapeHtml(workflow)}" href="${appHref}" target="_blank" rel="noopener">Use the BYOK web app</a>
           <a class="button button-secondary" href="#how-it-works">How it works</a>
         </div>
-        <div class="meta-line">Updated ${pageLastmod} · First report free · No API key or credit card · Optional Pro</div>
+        <div class="meta-line">Updated ${pageLastmod} · 3 free reports · No API key or credit card · Optional Pro</div>
       </div>
     </section>
 
