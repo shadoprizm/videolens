@@ -180,7 +180,7 @@
             "name": "Is VideoLens free?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. Private BYOK mode and the MIT-licensed core remain free. A signed-in account includes three managed starter reports. Optional VideoLens Pro costs $12 monthly or $99 annually and includes 20 managed reports per calendar month without requiring an API key."
+              "text": "Yes. Private BYOK mode and the MIT-licensed core remain free. A signed-in account includes three managed starter reports. Optional VideoLens Pro costs $12 monthly or $99 annually and includes 20 managed reports per calendar month without requiring an API key. Until December 31, 2026, the first 100 Pro subscribers become Founding Members and keep 40% off ($7.20 monthly or $59.40 annually) for as long as they stay subscribed."
             }
           },
           {
@@ -634,7 +634,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
       <div class="max-w-2xl mb-12">
         <div class="text-sm font-semibold text-brand-600 mb-3 tracking-wide uppercase">Simple pricing</div>
         <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Start free. Keep creating with Pro.</h2>
-        <p class="text-lg text-slate-600">Try one report before subscribing. No API key to set up, and no credit card to start.</p>
+        <p class="text-lg text-slate-600">Try three free reports before subscribing. No API key to set up, and no credit card to start.</p>
       </div>
       <div class="grid md:grid-cols-2 gap-5 max-w-5xl">
         <article class="bg-white border border-slate-200 rounded-2xl p-8">
@@ -650,8 +650,10 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
           <div class="absolute -right-16 -bottom-24 w-64 h-64 rounded-full bg-cyan-400/10"></div>
           <div class="relative">
             <div class="text-xs font-extrabold tracking-widest text-cyan-300 mb-5">VIDEOLENS PRO</div>
-            <div class="flex items-baseline gap-2 mb-2"><strong class="text-5xl tracking-tight">$12</strong><span class="text-slate-300">/ month</span></div>
-            <p class="text-slate-300 mb-7">Or $99/year. No OpenAI key required. Cancel anytime.</p>
+            <div id="founding-badge" class="hidden mb-4"><span class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-cyan-300/30 text-cyan-200 text-xs font-bold">Founding Member · 40% off for life</span></div>
+            <div class="flex items-baseline gap-2 mb-2"><strong id="pro-price" class="text-5xl tracking-tight">$12</strong><s id="pro-regular-price" class="hidden text-xl text-slate-400">$12</s><span class="text-slate-300">/ month</span></div>
+            <p id="founding-terms" class="hidden text-sm font-semibold text-cyan-200 mb-2"></p>
+            <p id="pro-price-note" class="text-slate-300 mb-7">Or $99/year. No OpenAI key required. Cancel anytime.</p>
             <ul class="space-y-3 text-sm text-slate-100 mb-8">
               <li>✓ 20 reports per calendar month</li><li>✓ Reports, lessons, and step-by-step guides</li><li>✓ Optional searchable cloud report library</li><li>✓ Professional HTML and PDF exports</li>
             </ul>
@@ -746,7 +748,7 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
 
         <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
           <h3 class="text-lg font-bold mb-2">Is VideoLens free?</h3>
-          <p class="text-slate-600 text-[15px] leading-relaxed">Your free account includes three reports with no API key or credit card required. To keep creating, Pro is $12/month or $99/year for 20 reports per calendar month. You can also use your own OpenAI key in Private mode; VideoLens charges no subscription for that option, and you pay OpenAI for usage.</p>
+          <p class="text-slate-600 text-[15px] leading-relaxed">Your free account includes three reports with no API key or credit card required. To keep creating, Pro is $12/month or $99/year for 20 reports per calendar month. Until December 31, 2026, the first 100 Pro subscribers become Founding Members and keep 40% off ($7.20/month or $59.40/year) for as long as they stay subscribed. You can also use your own OpenAI key in Private mode; VideoLens charges no subscription for that option, and you pay OpenAI for usage.</p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-xl p-6 hover-lift">
@@ -805,6 +807,35 @@ uv run videolens analyze "https://youtube.com/watch?v=..." \
     <a href="/account" data-track="Try VideoLens free" data-destination="account" class="ml-auto shrink-0 px-3.5 py-2 rounded-lg bg-cyan-500 text-slate-950 text-xs font-extrabold">Try VideoLens free</a>
   </div>
 
+  <script>
+    // Founding Member pricing comes from /api/config so spot limits and the
+    // closing date are never promised by static copy. Regular prices remain the
+    // no-JavaScript fallback.
+    (function () {
+      var money = function (usd) { return "$" + (usd % 1 ? usd.toFixed(2) : String(usd)); };
+      fetch("/api/config", { headers: { Accept: "application/json" } })
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .then(function (config) {
+          var offer = config && config.founding;
+          var pro = config && config.plans && config.plans.pro;
+          if (!offer || !offer.available || !pro || typeof offer.monthlyPriceUsd !== "number" || typeof offer.annualPriceUsd !== "number") return;
+          // endsAt is the exclusive close instant; show the last day it is open.
+          var lastDay = new Date(Date.parse(offer.endsAt) - 1).toLocaleDateString("en-CA", { month: "long", day: "numeric", year: "numeric", timeZone: "America/Toronto" });
+          var badge = document.getElementById("founding-badge");
+          badge.firstElementChild.textContent = "Founding Member · " + offer.percentOff + "% off for life";
+          badge.classList.remove("hidden");
+          document.getElementById("pro-price").textContent = money(offer.monthlyPriceUsd);
+          var regular = document.getElementById("pro-regular-price");
+          regular.textContent = money(pro.monthlyPriceUsd);
+          regular.classList.remove("hidden");
+          var terms = document.getElementById("founding-terms");
+          terms.textContent = "First " + offer.spots + " members, until " + lastDay + (typeof offer.spotsLeft === "number" ? " · " + offer.spotsLeft + " of " + offer.spots + " spots left" : "");
+          terms.classList.remove("hidden");
+          document.getElementById("pro-price-note").textContent = "Or " + money(offer.annualPriceUsd) + "/year (regularly " + money(pro.annualPriceUsd) + "). Your founding price stays while you remain subscribed. No OpenAI key required. Cancel anytime.";
+        })
+        .catch(function () {});
+    })();
+  </script>
   <script defer src="/analytics.js"></script>
   <script defer src="/_vercel/insights/script.js"></script>
   <script defer src="/_vercel/speed-insights/script.js"></script>

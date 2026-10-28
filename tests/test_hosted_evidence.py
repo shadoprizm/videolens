@@ -1,3 +1,4 @@
+import html
 import importlib.util
 import json
 from pathlib import Path
@@ -10,7 +11,7 @@ from videolens.analysis.analyze_timeline import AnalysisError, analyze_timeline
 from videolens.analysis.structured import PROMPTS, normalize_report
 from videolens.config import Models
 from videolens.outputs import render_html, render_markdown, render_pdf
-from videolens.product import build_demo_analysis
+from videolens.product import WORKFLOW_PRESETS, build_demo_analysis
 from videolens.processors.structured_frames import sample_times
 from videolens.types import (
     Analysis,
@@ -161,8 +162,10 @@ def test_live_entry_workflows_are_selectable_without_credentials(workflow, label
     app.query_params["workflow"] = workflow
     app.run()
     assert not app.exception
-    assert label in "\n".join(m.value for m in app.markdown)
-    assert any("120 frames" in c.value for c in app.caption)
+    assert app.session_state["workflow"] == workflow
+    preset = WORKFLOW_PRESETS[workflow]
+    assert app.session_state["mode"] == preset.mode.value
+    assert html.escape(preset.description) in "\n".join(m.value for m in app.markdown)
     assert not any("v0.1.0" in m.value for m in app.markdown)
 
 

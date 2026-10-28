@@ -22,7 +22,7 @@ export async function handler(request: Request, options: { spacingMs?: number } 
     const config = marketingConfig();
     const offer = await foundingOffer();
     const campaigns = dueCampaigns(offer);
-    if (!campaigns.length) return json(request, { mode, sent: 0, reason: "offer_closed" });
+    if (!campaigns.length) return json(request, { mode, sent: 0, reason: "nothing_due" });
     const spacing = options.spacingMs ?? SEND_SPACING_MS;
     const started = Date.now();
     const sent: Partial<Record<Campaign, number>> = {};

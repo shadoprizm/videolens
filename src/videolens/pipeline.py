@@ -61,6 +61,7 @@ def run_extraction(
     console: Console | None = None,
     prompt: str | None = None,
     output_dir: Path | None = None,
+    client: OpenAI | None = None,
 ) -> ExtractionResult:
     console = console or Console()
 
@@ -86,7 +87,7 @@ def run_extraction(
                 "Recipe and Procedure currently support YouTube and local video files."
             )
         frame_interval = 0.5
-        max_frames = 120
+        max_frames = config.defaults.structured_frame_limit
 
     cache_key = compute_cache_key(
         resolved.source_url,
@@ -106,7 +107,7 @@ def run_extraction(
     console.print(f"[dim]cache: {cache.dir}[/dim]")
     cache.write_json("source.json", resolved)
 
-    client = OpenAI(api_key=config.openai_api_key)
+    client = client or OpenAI(api_key=config.openai_api_key)
 
     video_path = _ensure_video(resolved, cache, force, console)
     metadata = _ensure_metadata(video_path, cache, force, console)
@@ -129,6 +130,7 @@ def run_extraction(
             metadata.duration_seconds or 0,
             transcript if mode == AnalysisMode.TUTORIAL else None,
             force,
+            limit=max_frames,
         )
     else:
         frames = _ensure_frames(
@@ -227,9 +229,10 @@ def _ensure_transcript(
         console.print("[green]cached[/green] audio")
 
     chunks_dir = cache.path("audio_chunks")
-    console.print("[cyan]chunking audio (30s)…[/cyan]")
+    chunk_seconds = config.defaults.audio_chunk_seconds
+    console.print(f"[cyan]chunking audio ({chunk_seconds:g}s)…[/cyan]")
     chunks = chunk_audio(
-        audio_path, chunks_dir, chunk_seconds=30.0, total_duration=duration_seconds
+        audio_path, chunks_dir, chunk_seconds=chunk_seconds, total_duration=duration_seconds
     )
     console.print(f"  → {len(chunks)} chunks")
 

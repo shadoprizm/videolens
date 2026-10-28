@@ -74,9 +74,37 @@ it("offers the three free reports before subscription and keeps both browser ins
   expect(document.getElementById("first-report-next")!.hidden).toBe(false);
   expect(document.getElementById("usage-label")!.textContent).toBe("0 of 3 used");
   expect(document.getElementById("usage-note")!.textContent).toContain("first 3 reports are free");
-  expect([...document.querySelectorAll("#first-report-next a")].map(a => a.textContent)).toEqual(["Add to Chrome", "Add to Firefox"]);
+  expect([...document.querySelectorAll("#first-report-next a")].map(a => a.textContent)).toEqual(["Add to Chrome", "Add to Firefox", "Open the web app"]);
   expect((document.getElementById("upgrade-options") as unknown as HTMLDetailsElement).open).toBe(false);
   expect(fetch.mock.calls.some(([url]) => url.includes("checkout"))).toBe(false);
+});
+const order = (document: Document, id: string) => [...document.getElementById(id)!.parentElement!.children].indexOf(document.getElementById(id)!);
+it("offers the no-install web app as a secondary option next to the desktop extension installs", async () => {
+  const { document, fetch, window } = await openAccount();
+  const option = document.getElementById("web-app-option")!;
+  expect(option.hidden).toBe(false);
+  expect(option.textContent).toContain("Create a report in your browser — no install");
+  const link = document.getElementById("open-web-app") as HTMLAnchorElement;
+  expect(link.getAttribute("href")).toBe("https://app.videolens.io/?utm_source=account&utm_medium=web&utm_campaign=first_report");
+  expect(link.className).toContain("button-secondary");
+  expect(option.classList.contains("primary")).toBe(false);
+  expect(order(document, "desktop-install")).toBeLessThan(order(document, "web-app-option"));
+  link.dispatchEvent(new window.Event("click"));
+  await vi.waitFor(() => expect((fetch.mock.calls as unknown as [string, RequestInit?][]).some(([url, init]) => url === "/api/journey" && String(init?.body).includes("web_app_clicked"))).toBe(true));
+});
+it("makes the web app the primary path on phones, ahead of the desktop handoff", async () => {
+  const { document } = await openAccount({ mobile: true });
+  const option = document.getElementById("web-app-option")!;
+  expect(option.hidden).toBe(false);
+  expect(option.classList.contains("primary")).toBe(true);
+  expect(document.getElementById("open-web-app")!.className).toContain("button-primary");
+  expect(document.getElementById("copy-desktop-link")!.className).toContain("button-secondary");
+  expect(order(document, "web-app-option")).toBeLessThan(order(document, "copy-desktop-link"));
+  expect(document.getElementById("mobile-start")!.textContent).toContain("no install needed");
+});
+it("hides the web app option once free reports are used", async () => {
+  const { document } = await openAccount({ remaining: 0 });
+  expect(document.getElementById("web-app-option")!.hidden).toBe(true);
 });
 it("keeps the setup path open while free reports remain", async () => {
   const { document } = await openAccount({ remaining: 2 });
@@ -150,6 +178,16 @@ it("a pairing link prioritizes connecting the installed extension", async () => 
   const { document } = await openAccount({ search: "?connect=nonce&device=device" });
   await vi.waitFor(() => expect(document.getElementById("extension-connect")!.hidden).toBe(false));
   expect(document.getElementById("first-report-next")!.hidden).toBe(true);
+  expect(document.getElementById("connect-title")!.textContent).toBe("Connect this browser to your account?");
+  expect(document.getElementById("authorize-extension")!.textContent).toBe("Connect extension");
+});
+it("a web app pairing link says it is connecting the VideoLens web app", async () => {
+  const { document } = await openAccount({ search: "?connect=nonce&device=web-device&client=web" });
+  await vi.waitFor(() => expect(document.getElementById("extension-connect")!.hidden).toBe(false));
+  expect(document.getElementById("connect-kicker")!.textContent).toBe("Web app connection");
+  expect(document.getElementById("connect-title")!.textContent).toBe("Connect the VideoLens web app to your account?");
+  expect(document.getElementById("connect-description")!.textContent).not.toContain("extension");
+  expect(document.getElementById("authorize-extension")!.textContent).toBe("Connect web app");
 });
 it("password sign-in does not request an email or create checkout during pairing", async () => {
   const { document, window, signInWithPassword, fetch } = await openAccount({ signedIn: false, search: "?connect=nonce&device=device" });

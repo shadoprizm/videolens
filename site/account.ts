@@ -41,6 +41,10 @@ let activeReport: CloudReport | null = null;
 let passwordFlow = new URLSearchParams(location.hash.slice(1)).get("type") === "recovery";
 let authUi: ReturnType<typeof mountAccountAuth>;
 const reader = byId<HTMLDialogElement>("report-reader");
+// Phones and tablets cannot install the browser extensions.
+let touchDevice = false;
+const DESKTOP_HANDOFF = "Managed reports run in the Chrome or Firefox extension on a desktop computer. Copy the link below, open it on your computer, and sign in with this same account. You can read cloud-saved reports on your phone.";
+const WEB_APP_FIRST = "Create your free reports right here in the VideoLens web app—no install needed. Prefer the browser extension? Copy the link below, open it on your computer, and sign in with this same account.";
 
 void boot();
 
@@ -81,6 +85,14 @@ async function boot(): Promise<void> {
 
 function bindEvents(): void {
   const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  touchDevice = mobile;
+  if (mobile) {
+    // Where extensions cannot be installed, the web app is the primary path.
+    const webApp = byId("web-app-option");
+    webApp.classList.add("primary");
+    byId("open-web-app").className = "button button-primary";
+    byId("copy-desktop-link").before(webApp);
+  }
   byId("mobile-start").hidden = !mobile;
   byId("copy-desktop-link").hidden = !mobile;
   byId("desktop-start").hidden = mobile;
@@ -90,6 +102,7 @@ function bindEvents(): void {
   });
   byId("install-chrome").addEventListener("click", () => trackJourney("install_chrome_clicked"));
   byId("install-firefox").addEventListener("click", () => trackJourney("install_firefox_clicked"));
+  byId("open-web-app").addEventListener("click", () => trackJourney("web_app_clicked"));
   byId<HTMLDetailsElement>("upgrade-options").addEventListener("toggle", () => { if (byId<HTMLDetailsElement>("upgrade-options").open) trackJourney("pricing_viewed"); });
   byId("set-password").addEventListener("click", () => { passwordFlow = true; void renderSession(); });
   byId("sign-out").addEventListener("click", () => void signOut());
@@ -216,11 +229,11 @@ async function loadEntitlement(): Promise<void> {
   byId("usage-note").textContent = isPro
     ? `${remaining} remaining${entitlement.periodEndsAt ? ` until ${formatDate(entitlement.periodEndsAt)}` : " this calendar month"}.`
     : remaining === entitlement.managedReportsLimit && purchased === 0
-      ? `Your first ${entitlement.managedReportsLimit} reports are free. Connect the browser extension to create them—no API key required.`
+      ? `Your first ${entitlement.managedReportsLimit} reports are free. Create them in the web app or the browser extension—no API key required.`
       : remaining > 0
         ? purchased > 0
           ? `${remaining} ${remaining === 1 ? "report" : "reports"} left, including reports you purchased. Purchased reports never expire.`
-          : `${remaining} free ${remaining === 1 ? "report" : "reports"} left. Connect the browser extension to keep going—no API key required.`
+          : `${remaining} free ${remaining === 1 ? "report" : "reports"} left. Keep going in the web app or the browser extension—no API key required.`
         : packAvailable
           ? "Your reports are used. Buy 5 more for US$5, or continue with Pro for 20 reports per calendar month. Your saved reports remain available."
           : "Your free reports are used. Continue with Pro for 20 reports per calendar month. Your saved reports remain available.";
@@ -228,8 +241,11 @@ async function loadEntitlement(): Promise<void> {
   const hasStarter = !isPro && entitlement.canUseManagedAi && entitlement.managedReportsRemaining > 0;
   const pairing = new URL(location.href).searchParams;
   byId("first-report-next").hidden = !(hasStarter || isPro) || Boolean(pairing.get("connect") && pairing.get("device"));
+  byId("web-app-option").hidden = !(hasStarter || (isPro && remaining > 0));
+  byId("mobile-start").textContent = hasStarter ? WEB_APP_FIRST : DESKTOP_HANDOFF;
+  byId("copy-desktop-link").className = `button ${touchDevice && hasStarter ? "button-secondary" : "button-primary"}`;
   byId("report-setup-kicker").textContent = isPro ? "Your desktop workspace" : "Your free reports are ready to create";
-  byId("report-setup-title").textContent = isPro ? "Create reports on your computer" : "Open a video. Make something useful.";
+  byId("report-setup-title").textContent = isPro ? "Create reports in the web app or on your computer" : "Open a video. Make something useful.";
   byId<HTMLDetailsElement>("report-setup").open = !isPro || !byId("mobile-start").hidden;
   byId("desktop-start").textContent = `1. Add the extension below. 2. Open VideoLens → Settings → Connect account, and approve the connection here. 3. Choose a YouTube video or local video file and create ${isPro ? "a report" : "a free report"}.`;
   byId("upgrade-options").hidden = !entitlement.canUpgrade;
@@ -299,11 +315,20 @@ async function startCreditCheckout(button: HTMLButtonElement): Promise<void> {
   }
 }
 
+// The hosted web app reuses the extension pairing flow and marks itself with
+// client=web. The label only changes copy; authorization is identical.
+const pairingWebApp = () => new URL(location.href).searchParams.get("client") === "web";
+
 function renderExtensionConnect(): void {
   const url = new URL(location.href);
   const nonce = url.searchParams.get("connect") || "";
   const deviceId = url.searchParams.get("device") || "";
   byId("extension-connect").hidden = !(nonce && deviceId);
+  if (!pairingWebApp()) return;
+  byId("connect-kicker").textContent = "Web app connection";
+  byId("connect-title").textContent = "Connect the VideoLens web app to your account?";
+  byId("connect-description").textContent = "This lets the VideoLens web app in this browser create reports with your account. It does not share your Supabase login or billing credentials with the web app.";
+  byId("authorize-extension").textContent = "Connect web app";
 }
 
 async function authorizeExtension(): Promise<void> {
@@ -316,7 +341,9 @@ async function authorizeExtension(): Promise<void> {
       body: JSON.stringify({ nonce: url.searchParams.get("connect"), deviceId: url.searchParams.get("device") }),
     });
     button.textContent = "Connected — return to VideoLens";
-    setMessage("The extension is connected to this account. You can close this tab and return to the video.", "success");
+    setMessage(pairingWebApp()
+      ? "The VideoLens web app is connected to this account. You can close this tab and return to the web app."
+      : "The extension is connected to this account. You can close this tab and return to the video.", "success");
   } catch (error) {
     button.disabled = false;
     setMessage(asMessage(error), "error");

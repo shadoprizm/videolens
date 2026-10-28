@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import hashlib
+import html
 import json
 import re
 from base64 import b64encode
+from datetime import timedelta
 from pathlib import Path
 from time import monotonic
 from tempfile import TemporaryDirectory
+from urllib.parse import urlencode
 from uuid import uuid4
 
 import pandas as pd
@@ -14,6 +17,19 @@ import streamlit as st
 
 from videolens.analysis.structured import structured_markdown, fact_text, report_sections
 from videolens.config import Config, Defaults, Models
+from videolens.managed import (
+    MANAGED_DEFAULTS,
+    MANAGED_MAX_FRAMES,
+    MANAGED_MODELS,
+    Connection,
+    ManagedClient,
+    ManagedError,
+    Pairing,
+    complete_report,
+    fetch_account,
+    poll_pairing,
+    reserve_report,
+)
 from videolens.outputs import render_html, render_pdf
 from videolens.pipeline import ExtractionResult, run_extraction
 from videolens.product import (
@@ -33,15 +49,19 @@ from videolens.telemetry import (
 from videolens.types import AnalysisMode
 
 
+ASSETS = Path(__file__).parent / "assets"
+
 st.set_page_config(
     page_title="VideoLens — video to written reports",
-    page_icon=":clapper:",
+    page_icon=str(ASSETS / "favicon.png"),
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 
 BRAND_COLOR = "#0891B2"
+SITE_URL = "https://videolens.io"
+PAIRING_WINDOW = timedelta(minutes=10)
 
 
 STEP_KEYS: list[tuple[str, str]] = [
@@ -54,6 +74,117 @@ STEP_KEYS: list[tuple[str, str]] = [
     ("timeline", "Timeline"),
     ("analyze", "Analyze"),
 ]
+
+
+# ───────────────────────── styles ─────────────────────────
+
+# Mirrors videolens.io: Inter, slate text, the cyan brand scale, 12–16px radii and
+# soft shadows. Streamlit's own chrome is hidden so the app reads as one product.
+STYLES = """
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<style>
+:root {
+  --vl-ink: #0F172A; --vl-body: #475569; --vl-muted: #64748B; --vl-faint: #94A3B8;
+  --vl-line: #E2E8F0; --vl-wash: #F8FAFC; --vl-brand: #0891B2; --vl-brand-dark: #0E7490;
+  --vl-brand-wash: #ECFEFF; --vl-indigo: #6366F1;
+}
+html, body, .stApp, .stMarkdown, .stApp p, .stApp label, button, input, textarea, select {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+[data-testid="stIconMaterial"], .material-symbols-rounded {
+  font-family: 'Material Symbols Rounded' !important; }
+#MainMenu, footer, [data-testid="stToolbar"], [data-testid="stDecoration"],
+[data-testid="stStatusWidget"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+header[data-testid="stHeader"] { background: transparent; height: 0; }
+.stApp { background:
+  radial-gradient(1100px 420px at 85% -120px, rgba(34,211,238,.13), transparent 70%),
+  radial-gradient(900px 380px at -10% -80px, rgba(99,102,241,.08), transparent 70%), #FFFFFF; }
+.block-container { max-width: 1120px; padding: 1.25rem 1.25rem 4rem; }
+h1, h2, h3, h4 { color: var(--vl-ink); letter-spacing: -0.02em; font-weight: 800 !important; }
+p, li { color: var(--vl-body); }
+.stButton button p, .stDownloadButton button p, .stLinkButton a p { color: inherit !important; font-weight: 600; }
+
+.vl-nav { display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding: 6px 0 18px; border-bottom: 1px solid var(--vl-line); margin-bottom: 28px; }
+.vl-brand { display:flex; align-items:center; gap:10px; text-decoration:none !important; }
+.vl-brand img { width: 30px; height: 30px; border-radius: 8px; }
+.vl-brand span { font-weight: 800; font-size: 19px; color: var(--vl-ink); letter-spacing:-.02em; }
+.vl-links { display:flex; gap:18px; align-items:center; font-size: 14px; }
+.vl-links a { color: var(--vl-muted) !important; text-decoration: none !important; font-weight: 500; }
+.vl-links a:hover { color: var(--vl-ink) !important; }
+.vl-links a.vl-cta { color:#fff !important; background: var(--vl-brand); padding: 8px 14px;
+  border-radius: 10px; font-weight: 600; box-shadow: 0 6px 16px -8px rgba(8,145,178,.7); }
+
+.vl-hero h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.08; margin: 0 0 12px; }
+.vl-hero h1 em { font-style: normal; background: linear-gradient(120deg, #0891B2, #6366F1);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.vl-hero p { font-size: 17px; max-width: 640px; margin: 0 0 14px; }
+.vl-chips { display:flex; flex-wrap:wrap; gap:8px; margin: 4px 0 26px; }
+.vl-chip { font-size: 12.5px; font-weight: 600; color: var(--vl-brand-dark); background: var(--vl-brand-wash);
+  border: 1px solid #CFFAFE; border-radius: 999px; padding: 5px 11px; }
+
+.vl-step { display:flex; align-items:center; gap:10px; margin: 6px 0 10px; }
+.vl-step b { display:inline-grid; place-items:center; width:26px; height:26px; border-radius:8px;
+  background: var(--vl-ink); color:#fff; font-size: 13px; }
+.vl-step span { font-weight: 700; color: var(--vl-ink); font-size: 16.5px; }
+.vl-hint { color: var(--vl-muted); font-size: 13.5px; margin: -4px 0 10px; }
+
+.st-key-vl_account, .st-key-vl_compose {
+  background: #FFFFFF; border: 1px solid var(--vl-line); border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 12px 32px -18px rgba(15,23,42,.18); padding: 20px 20px 16px; }
+.st-key-vl_account { background: linear-gradient(180deg, #FFFFFF, #F8FAFC); }
+
+.vl-acct-title { font-weight: 800; color: var(--vl-ink); font-size: 17px; margin-bottom: 4px; }
+.vl-acct-sub { color: var(--vl-body); font-size: 14px; margin-bottom: 12px; }
+.vl-meter { height: 8px; background: #E2E8F0; border-radius: 99px; overflow: hidden; margin: 10px 0 6px; }
+.vl-meter i { display:block; height:100%; background: linear-gradient(90deg, #22D3EE, #0891B2); border-radius: 99px; }
+.vl-small { font-size: 12.5px; color: var(--vl-muted); }
+.vl-offer { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: #EEF2FF;
+  border: 1px solid #C7D2FE; color: #312E81; font-size: 13.5px; }
+.vl-offer strong { color: #3730A3; }
+
+.stButton > button, .stDownloadButton > button, .stLinkButton > a {
+  border-radius: 12px !important; font-weight: 600 !important; min-height: 42px;
+  border: 1px solid var(--vl-line) !important; transition: all .15s ease; }
+.stButton > button[kind="primary"], .stLinkButton > a[kind="primary"] {
+  background: var(--vl-brand) !important; border-color: var(--vl-brand) !important; color: #fff !important;
+  box-shadow: 0 10px 22px -12px rgba(8,145,178,.9); }
+.stButton > button[kind="tertiary"] { border: none !important; min-height: auto; padding: 4px 0 !important;
+  color: var(--vl-muted) !important; font-weight: 500 !important; }
+.stButton > button[kind="tertiary"]:hover { color: var(--vl-ink) !important; text-decoration: underline; }
+.stButton > button[kind="primary"]:hover, .stLinkButton > a[kind="primary"]:hover { background: var(--vl-brand-dark) !important; }
+.stTextInput input, .stTextArea textarea { border-radius: 12px !important; }
+.stTextInput > div > div, .stTextArea > div > div { border-radius: 12px !important; }
+[data-testid="stFileUploaderDropzone"] { border-radius: 14px; background: var(--vl-wash); }
+[data-baseweb="tab-list"] { gap: 6px; }
+[data-testid="stMetric"] { background: var(--vl-wash); border: 1px solid var(--vl-line); border-radius: 12px; padding: 10px 14px; }
+[data-testid="stExpander"] details { border-radius: 12px; border-color: var(--vl-line); }
+.vl-footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--vl-line);
+  display:flex; flex-wrap:wrap; gap:16px; justify-content:space-between; color: var(--vl-faint); font-size: 12.5px; }
+.vl-footer a { color: var(--vl-muted) !important; text-decoration: none !important; }
+@media (max-width: 640px) {
+  .block-container { padding: .75rem 1rem 3rem; }
+  .st-key-vl_main > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] { flex-wrap: wrap-reverse; }
+  .vl-links a:not(.vl-cta) { display: none; }
+  .vl-hero p { font-size: 15.5px; }
+}
+</style>
+"""
+
+
+def _inject_styles() -> None:
+    st.html(STYLES)
+
+
+def _logo_data_url() -> str:
+    svg = (ASSETS / "logo.svg").read_bytes()
+    return "data:image/svg+xml;base64," + b64encode(svg).decode("ascii")
+
+
+def _site_link(path: str, campaign: str) -> str:
+    query = urlencode({"utm_source": "web_app", "utm_medium": "web", "utm_campaign": campaign})
+    return f"{SITE_URL}{path}?{query}"
 
 
 # ───────────────────────── helpers ─────────────────────────
@@ -259,6 +390,214 @@ def _mode_description(mode: str) -> str:
     }.get(mode, "")
 
 
+def _step(number: int, title: str, hint: str | None = None) -> None:
+    st.markdown(
+        f'<div class="vl-step"><b>{number}</b><span>{html.escape(title)}</span></div>'
+        + (f'<div class="vl-hint">{html.escape(hint)}</div>' if hint else ""),
+        unsafe_allow_html=True,
+    )
+
+
+# ───────────────────────── account access ─────────────────────────
+
+
+def _connection() -> Connection | None:
+    return st.session_state.get("connection")
+
+
+def _account() -> dict | None:
+    """Cached entitlement for the connected account; refreshed after each report."""
+    connection = _connection()
+    if connection is None:
+        return None
+    if st.session_state.get("account") is None:
+        try:
+            st.session_state["account"] = fetch_account(connection)
+        except ManagedError as exc:
+            if exc.status in (401, 403):
+                _disconnect()
+                st.session_state["account_notice"] = "Your VideoLens session expired. Connect again to continue."
+                return None
+            raise
+    return st.session_state["account"]
+
+
+def _disconnect() -> None:
+    for key in ("connection", "account", "pairing", "pairing_started"):
+        st.session_state.pop(key, None)
+
+
+def _access_mode() -> str:
+    """'account' when a connected account can run a managed report, else 'byok'."""
+    if st.session_state.get("use_own_key"):
+        return "byok"
+    return "account"
+
+
+def _remaining_reports(account: dict | None) -> int:
+    if not account:
+        return 0
+    entitlement = account.get("entitlement", {})
+    return int(entitlement.get("managedReportsRemaining") or 0) + int(
+        entitlement.get("purchasedReports") or 0
+    )
+
+
+def _start_pairing() -> None:
+    st.session_state["pairing"] = Pairing.new()
+    st.session_state["pairing_started"] = monotonic()
+    st.session_state.pop("account_notice", None)
+    _track_event("account_connect_started")
+
+
+@st.fragment(run_every=2)
+def _pairing_watcher() -> None:
+    pairing: Pairing | None = st.session_state.get("pairing")
+    if pairing is None:
+        return
+    if monotonic() - st.session_state.get("pairing_started", 0) > PAIRING_WINDOW.total_seconds():
+        _disconnect()
+        st.session_state["account_notice"] = "That connection request expired. Start again."
+        st.rerun()
+    try:
+        connection = poll_pairing(pairing)
+    except ManagedError as exc:
+        _disconnect()
+        st.session_state["account_notice"] = str(exc)
+        st.rerun()
+        return
+    if connection is None:
+        st.markdown(
+            '<div class="vl-small">Waiting for you to approve the connection in the VideoLens tab…</div>',
+            unsafe_allow_html=True,
+        )
+        return
+    st.session_state.pop("pairing", None)
+    st.session_state["connection"] = connection
+    st.session_state["account"] = None
+    _track_event("account_connected")
+    st.rerun()
+
+
+def _founding_offer_html(account: dict) -> str:
+    founding = (account.get("offers") or {}).get("founding") or {}
+    if not founding.get("available"):
+        return (
+            '<div class="vl-offer"><strong>Keep creating with Pro.</strong> 20 reports a month, '
+            "no API key, cancel anytime.</div>"
+        )
+    percent = int(founding.get("percentOff") or 40)
+    spots = (
+        f" {founding['spotsLeft']} of {founding['spots']} spots left."
+        if founding.get("showCount")
+        else f" Limited to the first {founding.get('spots', 100)} members."
+    )
+    return (
+        f'<div class="vl-offer"><strong>Founding Member: {percent}% off Pro for life.</strong> '
+        f"20 reports a month, no API key, cancel anytime.{html.escape(spots)}</div>"
+    )
+
+
+def _render_account_panel() -> None:
+    with st.container(key="vl_account"):
+        notice = st.session_state.pop("account_notice", None)
+        if notice:
+            st.warning(notice)
+
+        if st.session_state.get("use_own_key"):
+            st.markdown(
+                '<div class="vl-acct-title">Using your OpenAI key</div>'
+                '<div class="vl-acct-sub">Kept in server session memory only and never saved. '
+                "You pay OpenAI directly for usage.</div>",
+                unsafe_allow_html=True,
+            )
+            api_key = st.text_input(
+                "OpenAI API key",
+                value=st.session_state.get("api_key", ""),
+                type="password",
+                placeholder="sk-...",
+                label_visibility="collapsed",
+            )
+            st.session_state["api_key"] = api_key.strip()
+            if st.button("Use my free VideoLens account instead", use_container_width=True):
+                st.session_state["use_own_key"] = False
+                st.rerun()
+            return
+
+        connection = _connection()
+        if connection is None:
+            st.markdown(
+                '<div class="vl-acct-title">Your free reports are waiting</div>'
+                '<div class="vl-acct-sub">Connect your VideoLens account to create reports here. '
+                "3 free reports, no API key, no install. Works on phone and desktop.</div>",
+                unsafe_allow_html=True,
+            )
+            pairing: Pairing | None = st.session_state.get("pairing")
+            if pairing is None:
+                if st.button("Connect my VideoLens account", type="primary", use_container_width=True):
+                    _start_pairing()
+                    st.rerun()
+                st.markdown(
+                    '<div class="vl-small">New here? You can create your free account in the next step. '
+                    "Just your email.</div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.link_button(
+                    "Approve in VideoLens ↗", pairing.approve_url(), type="primary", use_container_width=True
+                )
+                _pairing_watcher()
+                if st.button("Cancel", use_container_width=True):
+                    _disconnect()
+                    st.rerun()
+            if st.button("Use my own OpenAI key", type="tertiary"):
+                st.session_state["use_own_key"] = True
+                _track_event("byok_selected")
+                st.rerun()
+            return
+
+        try:
+            account = _account()
+        except ManagedError as exc:
+            st.error(str(exc))
+            return
+        if account is None:
+            st.rerun()
+            return
+        entitlement = account.get("entitlement", {})
+        plan = entitlement.get("plan", "free")
+        used = int(entitlement.get("managedReportsUsed") or 0)
+        limit = max(1, int(entitlement.get("managedReportsLimit") or 3))
+        remaining = _remaining_reports(account)
+        label = "Pro" if plan == "pro" else "Free account"
+        period = "this month" if plan == "pro" else "free reports"
+        st.markdown(
+            f'<div class="vl-acct-title">{label}</div>'
+            f'<div class="vl-acct-sub">{html.escape(connection.email)}</div>'
+            f'<div class="vl-meter"><i style="width:{min(100, round(used / limit * 100))}%"></i></div>'
+            f'<div class="vl-small"><strong>{remaining}</strong> of {limit} {period} left. '
+            "Failed reports never use your allowance.</div>",
+            unsafe_allow_html=True,
+        )
+        if remaining <= 0:
+            st.markdown(_founding_offer_html(account), unsafe_allow_html=True)
+            st.link_button(
+                "See Pro options ↗",
+                _site_link("/account", "web_app_upgrade"),
+                type="primary",
+                use_container_width=True,
+            )
+        elif plan != "pro" and remaining == 1:
+            st.markdown(_founding_offer_html(account), unsafe_allow_html=True)
+        col_a, col_b = st.columns(2)
+        col_a.link_button(
+            "My account ↗", _site_link("/account", "web_app_account"), use_container_width=True
+        )
+        if col_b.button("Disconnect", use_container_width=True):
+            _disconnect()
+            st.rerun()
+
+
 # ───────────────────────── layout ─────────────────────────
 
 
@@ -266,43 +605,60 @@ def main() -> None:
     _ensure_product_session()
     _apply_entry_params()
     _track_once("app_open", "app_open")
+    _inject_styles()
 
     _render_header()
-    _render_workflow_picker()
-
-    with st.sidebar:
-        _render_sidebar_config()
 
     if st.session_state.get("show_demo"):
         _render_demo_report()
+        _render_footer()
         return
 
-    api_key = st.session_state.get("api_key", "")
+    main_area = st.container(key="vl_main")
+    compose_col, account_col = main_area.columns([1.65, 1], gap="large")
+    with account_col:
+        _render_account_panel()
+        st.write("")
+        if st.button("View a sample report", use_container_width=True):
+            st.session_state["show_demo"] = True
+            _track_once("demo_opened", "demo_opened", workflow="detailed", mode="general")
+            st.rerun()
+        st.markdown(
+            '<div class="vl-small" style="text-align:center">See a finished report first. '
+            "No account needed.</div>",
+            unsafe_allow_html=True,
+        )
+
+    with compose_col, st.container(key="vl_compose"):
+        source_path, upload_path = _render_composer()
+
     mode = st.session_state.get("mode", "general")
+    access = _access_mode()
     max_frames = 120 if mode in ("recipe", "tutorial") else st.session_state.get("max_frames", 20)
+    if access == "account":
+        max_frames = min(max_frames, MANAGED_MAX_FRAMES)
     frame_interval = (
         0.5 if mode in ("recipe", "tutorial") else st.session_state.get("frame_interval", 5.0)
     )
     force = st.session_state.get("force", False)
+    prompt = st.session_state.get("prompt_input", preset_for_mode(mode).prompt)
 
-    if not api_key:
-        st.info(
-            "The sample report needs no key. To turn your own YouTube video into a report, open the "
-            "sidebar and add your OpenAI API key; it remains in server session memory only."
-        )
+    if st.session_state.pop("run_requested", False):
+        _start_report(source_path, upload_path, prompt, mode, max_frames, frame_interval, force, access)
 
-    st.markdown("### 1. Add a YouTube video")
-    if mode in ("recipe", "tutorial"):
-        st.caption(
-            "Use a YouTube video or local file. Up to 120 frames are analyzed; cost depends on video length. Missing details remain unknown."
-        )
-        if mode == "recipe":
-            st.caption("Video evidence only. This hosted workflow does not look up recipes online.")
-    else:
-        st.caption(
-            "Paste a YouTube link. Other supported video URLs and local files still work too."
-        )
-    url_tab, source_tab = st.tabs(["**Paste a YouTube URL**", "**Upload a video file**"])
+    if "result" in st.session_state:
+        st.divider()
+        render_results(st.session_state["result"])
+
+    _render_footer()
+
+
+def _render_composer() -> tuple[str | None, Path | None]:
+    _step(1, "Choose your report")
+    _render_workflow_picker()
+
+    _step(2, "Add your video", "Paste a YouTube link or upload a file from your device.")
+    url_tab, source_tab = st.tabs(["Paste a YouTube link", "Upload a video file"])
 
     source_path: str | None = None
     upload_path: Path | None = None
@@ -332,107 +688,141 @@ def main() -> None:
                 f"{uploaded.name} · {uploaded.size / 1024 / 1024:.1f} MB · ready for this session"
             )
 
+    mode = st.session_state.get("mode", "general")
+    if mode == "recipe":
+        st.caption("Recipes use evidence from the video only; missing quantities stay marked unknown.")
+
     if "prompt_input" not in st.session_state:
         st.session_state["prompt_input"] = preset_for_mode(mode).prompt
 
-    st.markdown("### 2. Shape the report")
-    prompt = st.text_area(
-        "What do you want to know about this video?",
-        height=100,
-        key="prompt_input",
-    )
-
-    enhance_col, _spacer = st.columns([1, 4])
-    if enhance_col.button(
-        "✨ Enhance prompt",
-        use_container_width=True,
-        help="Rewrite your prompt to be sharper and mode-aware. Costs less than a cent.",
-    ):
-        if not api_key:
-            st.warning("Enter your OpenAI API key in the sidebar before enhancing.")
-        elif not prompt.strip():
-            st.warning("Type a prompt first, then click Enhance.")
-        else:
-            with st.spinner("Enhancing prompt…"):
-                from openai import OpenAI as _OpenAI
-                from videolens.analysis import enhance_prompt as _enhance_prompt
-                from videolens.analysis.enhance_prompt import (
-                    EnhancePromptError as _EnhancePromptError,
-                )
-
-                try:
-                    client = _OpenAI(api_key=api_key)
-                    new_prompt = _enhance_prompt(
-                        prompt,
-                        AnalysisMode(mode),
-                        client,
-                        Models(),
-                    )
-                    st.session_state["prompt_input"] = new_prompt
-                    st.rerun()
-                except _EnhancePromptError as exc:
-                    st.error(f"Enhance failed: {exc}")
-
-    cost_low, cost_high = _estimate_cost(max_frames)
-    run_col, cost_col = st.columns([1, 2])
-    run = run_col.button("Create written report", type="primary", use_container_width=True)
-    cost_col.markdown(
-        f'<div style="display:flex;align-items:center;height:100%;color:#475569;font-size:13px;padding-left:8px">'
-        f'Estimated: <span style="color:{BRAND_COLOR};font-weight:600;margin:0 6px">'
-        f"~${cost_low:.2f}–${cost_high:.2f}</span>"
-        f'<span style="color:#94A3B8">· assumes ~3-min video · scales with duration</span></div>',
-        unsafe_allow_html=True,
-    )
-
-    if run:
-        if not api_key:
-            _track_event("validation_failed", mode=mode, error_code="missing_api_key")
-            st.error("Open the sidebar and add your OpenAI API key, then try again.")
-            return
-        if source_path is None:
-            _track_event("validation_failed", mode=mode, error_code="missing_source")
-            st.error("Paste a YouTube URL or upload a video file.")
-            return
-
-        st.session_state.pop("result", None)
-        st.session_state["qa_history"] = []
-        st.session_state["seek_to"] = 0
-        _track_event(
-            "analysis_started",
-            workflow=st.session_state.get("workflow", mode),
-            mode=mode,
-            source_kind="upload" if upload_path is not None else "url",
+    with st.expander("Customize what the report focuses on (optional)"):
+        st.text_area(
+            "What do you want to know about this video?",
+            height=110,
+            key="prompt_input",
         )
-        _run_pipeline(source_path, prompt, mode, max_frames, frame_interval, force, api_key)
+        if _access_mode() == "byok":
+            _render_enhance_prompt(mode)
+        _render_advanced_settings(mode)
 
-    if "result" in st.session_state:
-        render_results(st.session_state["result"])
+    _step(3, "Create your report")
+    run_col, note_col = st.columns([1.1, 1.4])
+    if run_col.button("Create report", type="primary", use_container_width=True):
+        st.session_state["run_requested"] = True
+    note_col.markdown(_run_note(mode), unsafe_allow_html=True)
+    return source_path, upload_path
+
+
+def _run_note(mode: str) -> str:
+    if _access_mode() == "byok":
+        max_frames = 120 if mode in ("recipe", "tutorial") else st.session_state.get("max_frames", 20)
+        low, high = _estimate_cost(max_frames)
+        return (
+            f'<div class="vl-small" style="padding-top:10px">Estimated OpenAI cost '
+            f'<strong style="color:{BRAND_COLOR}">~${low:.2f}–${high:.2f}</strong> for a 3-minute video.</div>'
+        )
+    if _connection() is None:
+        return '<div class="vl-small" style="padding-top:10px">Connect your free account to start.</div>'
+    return (
+        '<div class="vl-small" style="padding-top:10px">Uses 1 report from your allowance. '
+        "Most videos finish in 1–4 minutes.</div>"
+    )
+
+
+def _render_enhance_prompt(mode: str) -> None:
+    if not st.button("✨ Sharpen this prompt", help="Rewrites your prompt for this report type. Costs less than a cent."):
+        return
+    api_key = st.session_state.get("api_key", "")
+    prompt = st.session_state.get("prompt_input", "")
+    if not api_key:
+        st.warning("Add your OpenAI API key first.")
+        return
+    if not prompt.strip():
+        st.warning("Type a prompt first.")
+        return
+    with st.spinner("Sharpening prompt…"):
+        from openai import OpenAI as _OpenAI
+        from videolens.analysis import enhance_prompt as _enhance_prompt
+        from videolens.analysis.enhance_prompt import EnhancePromptError as _EnhancePromptError
+
+        try:
+            new_prompt = _enhance_prompt(prompt, AnalysisMode(mode), _OpenAI(api_key=api_key), Models())
+            st.session_state["prompt_input"] = new_prompt
+            st.rerun()
+        except _EnhancePromptError as exc:
+            st.error(f"Could not sharpen the prompt: {exc}")
+
+
+def _render_advanced_settings(mode: str) -> None:
+    st.selectbox(
+        "Report style",
+        options=[m.value for m in AnalysisMode],
+        format_func=lambda value: preset_for_mode(value).short_label,
+        key="mode_selector",
+        on_change=_on_mode_change,
+    )
+    st.caption(_mode_description(mode))
+    if mode in ("recipe", "tutorial"):
+        st.caption("Recipe and Procedure sample evidence frames automatically.")
+        return
+    left, right = st.columns(2)
+    frame_cap = MANAGED_MAX_FRAMES if _access_mode() == "account" else 80
+    st.session_state["max_frames"] = left.slider(
+        "Max frames",
+        min_value=3,
+        max_value=frame_cap,
+        value=min(st.session_state.get("max_frames", 20), frame_cap),
+        step=1,
+        help="Frames sent to the vision model. Higher means better visual coverage.",
+    )
+    st.session_state["frame_interval"] = right.slider(
+        "Frame interval (s)",
+        min_value=1.0,
+        max_value=30.0,
+        value=st.session_state.get("frame_interval", 5.0),
+        step=0.5,
+        help="Seconds between sampled frames. Grows automatically to respect max frames.",
+    )
 
 
 def _render_header() -> None:
     st.markdown(
         f"""
-        <div style="display:flex;align-items:center;justify-content:space-between;
-                    flex-wrap:wrap;gap:12px;padding:14px 0 10px 0;border-bottom:1px solid #E2E8F0;margin-bottom:18px">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="font-size:28px;font-weight:800;letter-spacing:-0.5px;
-                        background:linear-gradient(135deg,{BRAND_COLOR},#6366F1);
-                        -webkit-background-clip:text;-webkit-text-fill-color:transparent">
-              VideoLens
-            </div>
-            <span style="padding:3px 8px;background:#F1F5F9;color:#64748B;
-                         border-radius:8px;font-size:11px;font-weight:600">
-              Video reports
-            </span>
+        <nav class="vl-nav">
+          <a class="vl-brand" href="{_site_link('/', 'web_app_nav')}" target="_blank">
+            <img src="{_logo_data_url()}" alt=""><span>VideoLens</span>
+          </a>
+          <div class="vl-links">
+            <a href="{_site_link('/', 'web_app_nav')}#pricing" target="_blank">Pricing</a>
+            <a href="{_site_link('/chrome', 'web_app_nav')}" target="_blank">Browser extension</a>
+            <a class="vl-cta" href="{_site_link('/account', 'web_app_nav')}" target="_blank">My account</a>
           </div>
-          <div style="display:flex;align-items:center;gap:14px;color:#64748B;font-size:13px">
-            <a href="https://videolens.io/account" target="_blank" style="color:#64748B;text-decoration:none">Account &amp; cloud library ↗</a>
-            <a href="https://videolens.io" target="_blank"
-               style="color:#64748B;text-decoration:none">Website ↗</a>
+        </nav>
+        <div class="vl-hero">
+          <h1>Turn any video into a <em>written report</em>.</h1>
+          <p>Get the key ideas, visual details, and practical steps from a YouTube video or your own
+          recording, with timestamped evidence you can check.</p>
+          <div class="vl-chips">
+            <span class="vl-chip">3 free reports with your account</span>
+            <span class="vl-chip">No API key or install</span>
+            <span class="vl-chip">Works on phone and desktop</span>
+            <span class="vl-chip">HTML, PDF and Markdown exports</span>
           </div>
         </div>
-        <div style="color:#475569;font-size:15.5px;margin-bottom:18px;max-width:760px">
-          Turn a long video into a useful written report with timestamped evidence.
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_footer() -> None:
+    st.markdown(
+        f"""
+        <div class="vl-footer">
+          <span>Videos and reports are processed for this session and are not stored. Usage
+          analytics never include videos, links, prompts, or report text.</span>
+          <span><a href="{_site_link('/privacy', 'web_app_footer')}" target="_blank">Privacy</a> ·
+          <a href="{_site_link('/terms', 'web_app_footer')}" target="_blank">Terms</a> ·
+          <a href="{_site_link('/support', 'web_app_footer')}" target="_blank">Support</a></span>
         </div>
         """,
         unsafe_allow_html=True,
@@ -440,9 +830,6 @@ def _render_header() -> None:
 
 
 def _render_workflow_picker() -> None:
-    st.markdown("### What kind of report do you want?")
-    st.caption("Choose a starting point, then edit the prompt if you want something more specific.")
-
     if "workflow" not in st.session_state:
         st.session_state["workflow"] = "detailed"
     if "mode" not in st.session_state:
@@ -469,15 +856,10 @@ def _render_workflow_picker() -> None:
         _track_event("workflow_selected", workflow=selected, mode=preset.mode.value)
 
     active = preset_for(st.session_state.get("workflow"))
-    st.markdown(f"**{active.label}** — {active.description}")
-
-    demo_col, own_col, _ = st.columns([1.25, 1.35, 3])
-    if demo_col.button("View a sample report", use_container_width=True):
-        st.session_state["show_demo"] = True
-        _track_once("demo_opened", "demo_opened", workflow="detailed", mode="general")
-        st.rerun()
-    own_col.caption("No API key or upload required for the sample.")
-    st.divider()
+    st.markdown(
+        f'<div class="vl-hint" style="margin:6px 0 18px">{html.escape(active.description)}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def _render_demo_report() -> None:
@@ -584,74 +966,68 @@ def _render_demo_report() -> None:
         st.rerun()
 
 
-def _render_sidebar_config() -> None:
-    st.markdown("### Analyze a video")
-    api_key = st.text_input(
-        "OpenAI API key",
-        value=st.session_state.get("api_key", ""),
-        type="password",
-        placeholder="sk-...",
-        help="Kept only in server session memory. VideoLens never saves your key.",
-    )
-    st.session_state["api_key"] = api_key.strip()
-    st.caption(
-        "Hosted BYOK: VideoLens processes your video on its server and uses your key for this session. Your key is never saved."
-    )
-    st.markdown(
-        "Prefer local-first analysis or a managed report without an API key? [Chrome extension](https://chromewebstore.google.com/detail/plhohhmnkfidolnjnmdaenhdjkbbledl) · [Firefox add-on](https://addons.mozilla.org/firefox/addon/videolens-video-reports/)"
-    )
-    st.link_button(
-        "Account & cloud library", "https://videolens.io/account", use_container_width=True
-    )
-
-    st.divider()
-
-    mode = st.selectbox(
-        "Analysis mode",
-        options=[m.value for m in AnalysisMode],
-        format_func=lambda value: preset_for_mode(value).short_label,
-        key="mode_selector",
-        on_change=_on_mode_change,
-    )
-    st.session_state["mode"] = mode
-    st.caption(_mode_description(mode))
-
-    with st.expander("Advanced processing settings", expanded=False):
-        if mode in ("recipe", "tutorial"):
-            st.caption(
-                "Recipe and Procedure use automatic evidence sampling, up to 120 frames. The sliders below apply to other report styles."
-            )
-        st.session_state["max_frames"] = st.slider(
-            "Max frames",
-            min_value=3,
-            max_value=80,
-            value=st.session_state.get("max_frames", 20),
-            step=1,
-            help="Cap on frames sent to the vision model. Higher = better coverage, more cost.",
-        )
-
-        st.session_state["frame_interval"] = st.slider(
-            "Frame interval (s)",
-            min_value=1.0,
-            max_value=30.0,
-            value=st.session_state.get("frame_interval", 5.0),
-            step=0.5,
-            help="Seconds between sampled frames. Adaptive — grows if needed to respect max frames.",
-        )
-
-        st.session_state["force"] = st.checkbox(
-            "Force reprocess (bypass cache)",
-            value=st.session_state.get("force", False),
-        )
-
-    st.divider()
-    st.caption(
-        "Privacy-safe usage events record only workflow, source type, success/failure, and coarse "
-        "performance buckets. Videos, filenames, URLs, prompts, reports, and API keys are never logged."
-    )
-
-
 # ───────────────────────── pipeline runner ─────────────────────────
+
+
+def _start_report(
+    source_path: str | None,
+    upload_path: Path | None,
+    prompt: str,
+    mode: str,
+    max_frames: int,
+    frame_interval: float,
+    force: bool,
+    access: str,
+) -> None:
+    if source_path is None:
+        _track_event("validation_failed", mode=mode, error_code="missing_source")
+        st.error("Paste a YouTube link or upload a video file first.")
+        return
+    if access == "byok" and not st.session_state.get("api_key"):
+        _track_event("validation_failed", mode=mode, error_code="missing_api_key")
+        st.error("Add your OpenAI API key in the panel on the right, then try again.")
+        return
+    if access == "account":
+        if _connection() is None:
+            _track_event("validation_failed", mode=mode, error_code="not_connected")
+            st.error("Connect your free VideoLens account first. It takes about 30 seconds.")
+            return
+        if _remaining_reports(_account()) <= 0:
+            _track_event("validation_failed", mode=mode, error_code="allowance_used")
+            st.error("You have used your available reports. See the Pro options in the panel on the right.")
+            return
+
+    st.session_state.pop("result", None)
+    st.session_state["qa_history"] = []
+    st.session_state["seek_to"] = 0
+    _track_event(
+        "analysis_started",
+        workflow=st.session_state.get("workflow", mode),
+        mode=mode,
+        source_kind="upload" if upload_path is not None else "url",
+        access=access,
+    )
+    _run_pipeline(source_path, prompt, mode, max_frames, frame_interval, force, access)
+
+
+def _failure_category(exc: Exception) -> tuple[str, str]:
+    """Map a failure to the account's privacy-safe diagnostic stage and code."""
+    if isinstance(exc, ManagedError):
+        if exc.code == "network":
+            return "analysis", "network"
+        if exc.status == 429:
+            return "analysis", "rate_limit"
+        if exc.status in (401, 403):
+            return "analysis", "authentication"
+        return "analysis", "analysis"
+    name = type(exc).__name__.lower()
+    if "download" in name or "resolve" in name or "source" in name:
+        return "source", "source"
+    if "transcri" in name:
+        return "transcription", "analysis"
+    if "frame" in name:
+        return "frames", "analysis"
+    return "analysis", "analysis"
 
 
 def _run_pipeline(
@@ -661,18 +1037,36 @@ def _run_pipeline(
     max_frames: int,
     frame_interval: float,
     force: bool,
-    api_key: str,
+    access: str,
 ) -> None:
     started_at = monotonic()
+    connection = _connection() if access == "account" else None
     config = Config(
-        models=Models(),
-        defaults=Defaults(),
+        models=MANAGED_MODELS if connection else Models(),
+        defaults=MANAGED_DEFAULTS if connection else Defaults(),
         cache_root=_session_directory() / "cache",
-        openai_api_key=api_key,
+        openai_api_key=None if connection else st.session_state.get("api_key"),
     )
+
+    report_id: str | None = None
+    client = None
+    if connection is not None:
+        try:
+            report_id = reserve_report(connection)
+        except ManagedError as exc:
+            st.error(str(exc))
+            st.session_state["account"] = None
+            _track_event("analysis_failed", mode=mode, error_code=exc.code, access=access)
+            return
+        client = ManagedClient(connection, report_id)
+        st.session_state["report_id"] = report_id
 
     state: list[str] = ["pending"] * len(STEP_KEYS)
     container = st.container()
+    container.markdown(
+        '<div class="vl-small">Keep this tab open while your report is created.</div>',
+        unsafe_allow_html=True,
+    )
     stepper_slot = container.empty()
     log_expander = container.expander("Detailed log", expanded=False)
     captured: list[str] = []
@@ -713,23 +1107,58 @@ def _run_pipeline(
             console=UIConsole(),  # type: ignore[arg-type]
             prompt=prompt,
             output_dir=None,
+            client=client,
         )
     except Exception as exc:
         for i in range(len(state)):
             if state[i] == "running":
                 state[i] = "pending"
         stepper_slot.markdown(_render_stepper(state), unsafe_allow_html=True)
-        st.error(f"Pipeline failed: {exc}")
-        with st.expander("Trace"):
+        if connection is not None and report_id is not None:
+            stage, code = _failure_category(exc)
+            try:
+                complete_report(
+                    connection,
+                    report_id,
+                    failed=True,
+                    title="Untitled video",
+                    source_type="upload" if source_path.startswith("/") else "youtube",
+                    mode=mode,
+                    failure_stage=stage,
+                    failure_code=code,
+                )
+            except ManagedError:
+                pass
+            st.session_state["account"] = None
+            st.error(f"This report could not be created: {exc}")
+            st.info("Your report allowance was not used. You can try again or choose another video.")
+        else:
+            st.error(f"This report could not be created: {exc}")
+        with st.expander("Technical details"):
             st.code("\n".join(captured))
         _track_event(
             "analysis_failed",
             workflow=st.session_state.get("workflow", mode),
             mode=mode,
             error_code=type(exc).__name__,
+            access=access,
             latency_bucket=latency_bucket((monotonic() - started_at) * 1000),
         )
         return
+
+    if connection is not None and report_id is not None:
+        try:
+            complete_report(
+                connection,
+                report_id,
+                failed=False,
+                title=(result.resolved.title or result.video_path.stem or "Untitled video"),
+                source_type=result.resolved.source_type.value,
+                mode=mode,
+            )
+        except ManagedError:
+            pass
+        st.session_state["account"] = None
 
     state = ["complete"] * len(STEP_KEYS)
     stepper_slot.markdown(_render_stepper(state), unsafe_allow_html=True)
@@ -745,11 +1174,14 @@ def _run_pipeline(
         "analysis_succeeded",
         workflow=st.session_state.get("workflow", mode),
         mode=mode,
+        access=access,
         source_kind=result.resolved.source_type.value,
         duration_bucket=duration_bucket(result.metadata.duration_seconds),
         latency_bucket=latency_bucket((monotonic() - started_at) * 1000),
         finding_count_bucket=count_bucket(len(result.analysis.findings) if result.analysis else 0),
     )
+    # Refresh the account panel so the allowance meter reflects this report.
+    st.rerun()
 
 
 # ───────────────────────── results ─────────────────────────
@@ -982,8 +1414,8 @@ def _render_qa_section(result: ExtractionResult) -> None:
     st.divider()
     st.subheader("💬 Ask a follow-up question")
     st.caption(
-        "Costs a few cents per question. The video isn't re-processed — only the "
-        "synthesis call runs again."
+        "Follow-ups are included with account reports. The video isn't re-processed, "
+        "so answers arrive in seconds."
     )
 
     qa_history: list[dict[str, str]] = st.session_state.setdefault("qa_history", [])
@@ -1006,10 +1438,14 @@ def _render_qa_section(result: ExtractionResult) -> None:
     )
 
     api_key = st.session_state.get("api_key", "")
+    connection = _connection() if _access_mode() == "account" else None
+    report_id = st.session_state.get("report_id")
 
     if st.button("Ask", type="secondary"):
-        if not api_key:
-            st.warning("Enter your OpenAI API key in the sidebar before asking.")
+        if connection is None and not api_key:
+            st.warning("Connect your VideoLens account or add your OpenAI API key before asking.")
+        elif connection is not None and not report_id:
+            st.warning("Follow-up questions are available for reports created with your account.")
         elif not new_question.strip():
             st.warning("Type a question first.")
         else:
@@ -1026,7 +1462,11 @@ def _render_qa_section(result: ExtractionResult) -> None:
                 )
 
                 try:
-                    client = _OpenAI(api_key=api_key)
+                    client = (
+                        ManagedClient(connection, report_id)
+                        if connection is not None
+                        else _OpenAI(api_key=api_key)
+                    )
                     answer = _ask_question(
                         new_question,
                         result.timeline,
@@ -1043,7 +1483,7 @@ def _render_qa_section(result: ExtractionResult) -> None:
                         mode=result.analysis.mode.value,
                     )
                     st.rerun()
-                except _AskQuestionError as exc:
+                except (_AskQuestionError, ManagedError) as exc:
                     _track_event(
                         "followup_failed",
                         workflow=st.session_state.get("workflow", result.analysis.mode.value),

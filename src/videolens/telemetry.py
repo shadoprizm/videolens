@@ -19,6 +19,9 @@ ALLOWED_EVENTS = {
     "followup_started",
     "followup_succeeded",
     "followup_failed",
+    "account_connect_started",
+    "account_connected",
+    "byok_selected",
 }
 
 ALLOWED_PROPERTIES = {
@@ -31,6 +34,7 @@ ALLOWED_PROPERTIES = {
     "finding_count_bucket",
     "error_code",
     "format",
+    "access",
 }
 
 
