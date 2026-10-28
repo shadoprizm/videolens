@@ -18,7 +18,7 @@ interface PublicConfig {
 import type { Entitlement } from "./api/_lib/entitlements.js";
 
 interface Offers {
-  founding: { available: boolean; spotsLeft: number; spots: number; percentOff: number; endsAt: string };
+  founding: { available: boolean; spotsLeft: number; spots: number; percentOff: number; endsAt: string; showCount: boolean };
   creditPack: { available: boolean; reports: number; priceUsd: number };
 }
 
@@ -271,7 +271,7 @@ function renderOffers(entitlement: Entitlement): void {
     banner.replaceChildren();
     const title = document.createElement("strong");
     title.textContent = `Founding Member: ${founding!.percentOff}% off Pro for life.`;
-    banner.append(title, ` ${monthly}/month or ${annual}/year for as long as you stay subscribed. ${founding!.spotsLeft} of ${founding!.spots} spots left; offer ends ${lastDay}.`);
+    banner.append(title, ` ${monthly}/month or ${annual}/year for as long as you stay subscribed. ${founding!.showCount ? `${founding!.spotsLeft} of ${founding!.spots} spots left` : `Limited to the first ${founding!.spots} members`}; offer ends ${lastDay}.`);
   }
   byId("checkout-monthly").textContent = `Continue monthly · ${monthly}/month`;
   byId("checkout-annual").textContent = `Choose annual · ${annual}/year`;

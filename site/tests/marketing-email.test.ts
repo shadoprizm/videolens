@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const m = vi.hoisted(() => ({ offer: vi.fn(), rpc: vi.fn(), upsert: vi.fn(), update: vi.fn(), fetch: vi.fn() }));
-vi.mock("../api/_lib/stripe.js", () => ({ foundingOffer: m.offer }));
+vi.mock("../api/_lib/stripe.js", async (actual) => ({ ...(await actual<typeof import("../api/_lib/stripe.js")>()), foundingOffer: m.offer }));
 vi.mock("../api/_lib/supabase.js", () => ({ supabaseAdmin: () => ({
   rpc: m.rpc,
   from: () => ({
@@ -8,11 +8,11 @@ vi.mock("../api/_lib/supabase.js", () => ({ supabaseAdmin: () => ({
     update: (values: unknown) => ({ eq: (_c: string, token: string) => ({ is: () => m.update(values, token) }) }),
   }),
 }) }));
-import { dueCampaigns, marketingConfig, renderCampaign } from "../api/_lib/marketing.js";
+import { dueCampaigns, marketingConfig, renderCampaign, spotsLine } from "../api/_lib/marketing.js";
 import { handler as send } from "../api/marketing-email.js";
 import { handler as unsubscribe } from "../api/unsubscribe.js";
 
-const open = { available: true, spotsLeft: 100, spots: 100, percentOff: 40, endsAt: "2027-01-01T05:00:00Z" };
+const open = { available: true, spotsLeft: 100, spots: 100, percentOff: 40, endsAt: "2027-01-01T05:00:00Z", showCount: false };
 const cron = (secret = "cron-secret") => new Request("https://videolens.io/api/marketing-email", { headers: { authorization: `Bearer ${secret}` } });
 const accepted = (id = "msg_1") => new Response(JSON.stringify({ status: "accepted", id }), { status: 200 });
 const configure = (mode: string) => {
@@ -52,6 +52,15 @@ describe("campaign email content", () => {
       expect(email.html).toContain(part);
       expect(email.text).toContain(part);
     }
+  });
+  it("shows the spot limit, never a full counter, until 10 spots are claimed", () => {
+    const fresh = renderCampaign("founding_announcement", { spotsLeft: 100, unsubscribeToken: "11111111-2222-3333-4444-555555555555", mailingAddress: "x" });
+    for (const body of [fresh.html, fresh.text, fresh.preheader]) {
+      expect(body).toContain("Limited to the first 100 Pro members");
+      expect(body).not.toMatch(/100 of 100/);
+    }
+    expect(spotsLine(91)).toBe("Limited to the first 100 Pro members");
+    expect(spotsLine(90)).toBe("90 of 100 founding spots left");
   });
   it("includes the CASL essentials: sender, escaped mailing address and a working unsubscribe link", () => {
     expect(email.html).toContain("https://videolens.io/unsubscribe?token=11111111-2222-3333-4444-555555555555");

@@ -1,6 +1,6 @@
 import { optionalEnv, planConfig, siteUrl } from "./env.js";
 import { ApiError } from "./http.js";
-import type { FoundingOffer } from "./stripe.js";
+import { showFoundingCount, type FoundingOffer } from "./stripe.js";
 
 export const CAMPAIGNS = ["founding_announcement", "founding_welcome", "founding_25_left", "founding_last_week"] as const;
 export type Campaign = typeof CAMPAIGNS[number];
@@ -9,6 +9,11 @@ export type Campaign = typeof CAMPAIGNS[number];
 // announcement; later accounts receive the welcome once they are a day old.
 export const ANNOUNCEMENT_CUTOFF = "2026-10-27T04:00:00Z";
 const REMINDER_SPOTS = 25;
+
+export function spotsLine(spotsLeft: number): string {
+  const spots = planConfig.foundingSpots;
+  return showFoundingCount(spotsLeft) ? `${spotsLeft} of ${spots} founding spots left` : `Limited to the first ${spots} Pro members`;
+}
 const LAST_WEEK_MS = 7 * 86_400_000;
 
 export function dueCampaigns(offer: FoundingOffer, now = new Date()): Campaign[] {
@@ -48,11 +53,11 @@ export function unsubscribeUrl(token: string): string {
 interface Copy { subject: string; preheader: string; kicker: string; headline: string; intro: string; cta: string }
 
 function copyFor(campaign: Campaign, spotsLeft: number): Copy {
-  const spots = `${spotsLeft} of ${planConfig.foundingSpots}`;
+  const spots = spotsLine(spotsLeft);
   switch (campaign) {
     case "founding_announcement": return {
       subject: "Become a VideoLens Founding Member: 40% off Pro for life",
-      preheader: `Only 100 founding spots, ${spots} left. Plus, your free reports just went from 1 to 3.`,
+      preheader: `${spots}. Plus, your free reports just went from 1 to 3.`,
       kicker: "Founding Member offer",
       headline: "Lock in 40% off VideoLens Pro, for life.",
       intro: "Thank you for being one of the first people to try VideoLens. To say thanks, the first 100 people who subscribe to Pro become Founding Members and keep 40% off for as long as they stay subscribed.",
@@ -60,7 +65,7 @@ function copyFor(campaign: Campaign, spotsLeft: number): Copy {
     };
     case "founding_welcome": return {
       subject: "Welcome to VideoLens: 3 free reports and a founding offer",
-      preheader: `Your first 3 reports are free. The first 100 Pro subscribers also get 40% off for life, ${spots} spots left.`,
+      preheader: `Your first 3 reports are free. Founding Members also get 40% off Pro for life. ${spots}.`,
       kicker: "Welcome to VideoLens",
       headline: "Your first 3 reports are on us.",
       intro: "Turn any video into a report, lesson, or step-by-step guide with timestamped evidence. And while founding spots last, the first 100 people who subscribe to Pro keep 40% off for life.",
@@ -76,7 +81,7 @@ function copyFor(campaign: Campaign, spotsLeft: number): Copy {
     };
     case "founding_last_week": return {
       subject: "Last week to lock in 40% off VideoLens Pro for life",
-      preheader: `The Founding Member offer ends December 31. ${spots} spots left.`,
+      preheader: `The Founding Member offer ends December 31. ${spots}.`,
       kicker: "Final week",
       headline: "The founding offer ends December 31.",
       intro: "This is the last week to become a VideoLens Founding Member and keep 40% off Pro for as long as you stay subscribed. After December 31, Pro returns to the regular price.",
@@ -105,7 +110,7 @@ export function renderCampaign(campaign: Campaign, context: { spotsLeft: number;
     copy.headline, "", copy.intro, "",
     `Monthly: ${monthly}/month (regularly US$${planConfig.monthlyPriceUsd})`,
     `Annual: ${annual}/year (regularly US$${planConfig.annualPriceUsd})`,
-    `${context.spotsLeft} of ${planConfig.foundingSpots} founding spots left. Offer ends December 31, 2026.`, "",
+    `${spotsLine(context.spotsLeft)}. Offer ends December 31, 2026.`, "",
     `${copy.cta}: ${cta}`, "",
     "Pro includes:", ...included.map((item) => `- ${item}`), "",
     `Not ready to subscribe? Get ${pack}, one-time, no subscription. Purchased reports never expire.`, "",
@@ -132,7 +137,7 @@ export function renderCampaign(campaign: Campaign, context: { spotsLeft: number;
 </td></tr>
 <tr><td class="pad" style="padding:28px 32px 8px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.65;color:#334155">${h(copy.intro)}</td></tr>
 <tr><td style="padding:10px 26px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>${priceCard("Monthly", monthly, "month", `US$${planConfig.monthlyPriceUsd}/month`)}${priceCard("Annual", annual, "year", `US$${planConfig.annualPriceUsd}/year`)}</tr></table></td></tr>
-<tr><td align="center" style="padding:14px 32px 0;font-family:Arial,Helvetica,sans-serif"><span style="display:inline-block;padding:7px 14px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:13px;font-weight:700">${context.spotsLeft} of ${planConfig.foundingSpots} founding spots left · ends December 31, 2026</span></td></tr>
+<tr><td align="center" style="padding:14px 32px 0;font-family:Arial,Helvetica,sans-serif"><span style="display:inline-block;padding:7px 14px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:13px;font-weight:700">${h(spotsLine(context.spotsLeft))} · ends December 31, 2026</span></td></tr>
 <tr><td align="center" style="padding:24px 32px 6px"><a href="${h(cta)}" style="display:inline-block;background:#0891b2;color:#ffffff;padding:16px 30px;border-radius:12px;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;text-decoration:none">${h(copy.cta)}</a></td></tr>
 <tr><td align="center" style="padding:0 32px 22px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#94a3b8">The founding price is applied automatically at checkout.</td></tr>
 <tr><td style="padding:0 32px"><div style="border-top:1px solid #e2e8f0"></div></td></tr>

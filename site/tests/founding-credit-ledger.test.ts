@@ -30,7 +30,7 @@ describe("Founding Member offer window", () => {
   const before = new Date("2026-10-26T12:00:00Z");
   it("reports the remaining spots out of 100", async () => {
     m.count.mockResolvedValue({ count: 63, error: null });
-    expect(await foundingOffer(before)).toMatchObject({ available: true, spotsLeft: 37, spots: 100, percentOff: 40 });
+    expect(await foundingOffer(before)).toMatchObject({ available: true, spotsLeft: 37, spots: 100, percentOff: 40, showCount: true });
   });
   it("closes once 100 founding subscriptions exist", async () => {
     m.count.mockResolvedValue({ count: 100, error: null });

@@ -42,16 +42,18 @@ export async function verifiedCreditPackPrice():Promise<string> {
   return id;
 }
 
-export interface FoundingOffer { available: boolean; spotsLeft: number; spots: number; percentOff: number; endsAt: string }
+export interface FoundingOffer { available: boolean; spotsLeft: number; spots: number; percentOff: number; endsAt: string; showCount: boolean }
+
+export const showFoundingCount = (spotsLeft: number) => planConfig.foundingSpots - spotsLeft >= planConfig.foundingCountAfterClaimed;
 
 // Fails closed: if the spot count cannot be read, the discount is not promised.
 export async function foundingOffer(now = new Date()): Promise<FoundingOffer> {
-  const offer = { available: false, spotsLeft: 0, spots: planConfig.foundingSpots, percentOff: planConfig.foundingPercentOff, endsAt: planConfig.foundingEndsAt };
+  const offer = { available: false, spotsLeft: 0, spots: planConfig.foundingSpots, percentOff: planConfig.foundingPercentOff, endsAt: planConfig.foundingEndsAt, showCount: false };
   if (!optionalEnv("STRIPE_FOUNDING_COUPON_ID") || now.getTime() >= Date.parse(planConfig.foundingEndsAt)) return offer;
   const { count, error } = await supabaseAdmin().from("subscriptions").select("user_id", { count: "exact", head: true }).eq("founding_member", true);
   if (error || count === null) { console.warn("Founding Member count unavailable"); return offer; }
   const spotsLeft = Math.max(0, planConfig.foundingSpots - count);
-  return { ...offer, available: spotsLeft > 0, spotsLeft };
+  return { ...offer, available: spotsLeft > 0, spotsLeft, showCount: showFoundingCount(spotsLeft) };
 }
 
 export async function verifiedFoundingCoupon():Promise<string> {

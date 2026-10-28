@@ -35,4 +35,8 @@ begin
   end if;
 end;
 $$;
+-- The API calls this as service_role, which cannot read auth.users directly.
+set local role service_role;
+select count(*) from public.marketing_candidates('founding_announcement', now(), 1);
+reset role;
 rollback;

@@ -23,5 +23,8 @@ export const planConfig = {
   // of 2026-12-31 in Toronto (midnight EST is 05:00 UTC).
   foundingPercentOff: 40,
   foundingSpots: 100,
+  // A full counter ("100 of 100 left") reads as no demand, so the live count
+  // appears only once this many spots are claimed. Never show invented numbers.
+  foundingCountAfterClaimed: 10,
   foundingEndsAt: "2027-01-01T05:00:00Z",
 } as const;
