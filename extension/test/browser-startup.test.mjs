@@ -161,6 +161,7 @@ test("local-file cancellation stays home and a valid file reaches confirmation",
     const node = createElement(tagName, options);
     if (String(tagName).toLowerCase() === "video") {
       Object.defineProperty(node, "duration", { configurable: true, value: 125 });
+      node.load = () => {};
       queueMicrotask(() => node.dispatchEvent(new window.Event("loadedmetadata")));
     }
     return node;
