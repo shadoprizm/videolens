@@ -685,7 +685,7 @@
     "status": "not_submitted",
     "publishedVersion": "0.8.1",
     "blockedReason": null,
-    "sha256": "d94a8116dbaf34f7c0a40b10dbb2897ac04053c166d90b8f4c9dee7ee40305fd"
+    "sha256": "02961f6a469a2fcd97252d000c362b1601450dbd4756e49dcae8fe6f7d0d5a2e"
   },
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.8.4.zip",
@@ -694,13 +694,13 @@
     "status": "not_submitted",
     "publishedVersion": "0.8.3",
     "blockedReason": null,
-    "sha256": "fc2366076a2bef286c7eb3ffb8e776188e0911de2da6e3c40330d4564af11c97",
-    "sourceSha256": "da8063af37ed256f9edec9a5f26a5248b95f6a8ba16df5f248c8ccd33b54e600"
+    "sha256": "539181a3fce1a109267fd56b5db10b20716e377d678f035a4cb31f14c5b43094",
+    "sourceSha256": "4375952f0655a25e5bdd0292fff9a5f1dcc1c730332934a83f50bccfa854ef53"
   },
   "validation": {
     "releaseCheck": "passed",
     "extensionTests": 115,
-    "siteTests": 230,
+    "siteTests": 231,
     "pythonTests": 65,
     "firefoxLint": {
       "errors": 0,
