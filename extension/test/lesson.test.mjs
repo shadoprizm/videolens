@@ -19,7 +19,7 @@ test('lesson citations must exist within captured evidence and source duration',
 test('lesson synthesis preserves limitations and rejects non-teaching evidence',async()=>{
  const f=fixture(),old=globalThis.fetch;let body;
  globalThis.fetch=async(_u,i)=>{body=JSON.parse(i.body);return response(f);};
- try{const a=await analyze.analyzeTimeline({kind:'byok',apiKey:'test'},f.timeline,f.source,'lesson',f.prompt,'en');assert.deepEqual(a.lesson,f.lesson);assert.ok(a.limitations.includes(f.source.limitations[0]));assert.match(body.messages[0].content,/Every objective must be assessed/);assert.equal(body.reasoning_effort,'medium');
+ try{const a=await analyze.analyzeTimeline({kind:'byok',apiKey:'test'},f.timeline,f.source,'lesson',f.prompt,'en');assert.deepEqual(a.lesson,f.lesson);assert.ok(a.limitations.includes(f.source.limitations[0]));assert.match(body.messages[0].content,/Every objective must be assessed/);assert.equal(body.reasoning_effort,'high');
  await analyze.askQuestion({kind:'byok',apiKey:'test'},'Explain the challenge',f.timeline,a);assert.match(body.messages[1].content,/Final|unaided/);
  globalThis.fetch=async()=>response({lesson:null});await assert.rejects(analyze.analyzeTimeline({kind:'byok',apiKey:'test'},f.timeline,f.source,'lesson',f.prompt),/not enough supported teaching/);
  }finally{globalThis.fetch=old;}

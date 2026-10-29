@@ -30,6 +30,9 @@ export function providerException(error: unknown): { status: number | null; code
       return { status: current.statusCode, code: failureCode(current.statusCode, body) };
     }
     if (exceptionCode(current) === "request_timeout") return { status: null, code: "request_timeout" };
+    const name = "name" in current && typeof current.name === "string" ? current.name : "";
+    if (/TypeValidation|JSONParse|InvalidResponse/.test(name)) return { status: null, code: "invalid_provider_response" };
+    if (/NoSuchModel|UnsupportedFunctionality/.test(name)) return { status: null, code: "configuration_error" };
     if ("lastError" in current) current = current.lastError;
     else if ("cause" in current) current = current.cause;
     else break;
@@ -76,7 +79,7 @@ export function retryDelayMs(response: Response): number {
   return 2000;
 }
 
-export async function requestManagedChat(provider: ManagedAiProvider, payload: Record<string, unknown>, initialModel: string): Promise<ChatResult> {
+export async function requestManagedChat(provider: ManagedAiProvider, payload: Record<string, unknown>, initialModel: string, fetcher: typeof fetch = fetch): Promise<ChatResult> {
   let model = initialModel;
   let fallbackUsed = false;
   let transientRetryUsed = false;
@@ -84,7 +87,7 @@ export async function requestManagedChat(provider: ManagedAiProvider, payload: R
     let response: Response;
     let body: string;
     try {
-      response = await fetch(provider.kind === "gateway"
+      response = await fetcher(provider.kind === "gateway"
         ? "https://ai-gateway.vercel.sh/v1/chat/completions"
         : "https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -93,30 +96,38 @@ export async function requestManagedChat(provider: ManagedAiProvider, payload: R
           "Content-Type": "application/json",
           ...(provider.kind === "gateway" ? { "ai-gateway-auth-method": provider.authMethod, "ai-gateway-protocol-version": "0.0.1" } : {}),
         },
-        body: JSON.stringify({ ...payload, model: provider.kind === "gateway" ? `openai/${model}` : model }),
+        body: JSON.stringify(provider.kind === "gateway" ? gatewayPayload(payload, model) : { ...payload, model }),
         signal: AbortSignal.timeout(90_000),
       });
       body = await response.text();
     } catch (error) {
+      if (!transientRetryUsed && attempt < 2) {
+        transientRetryUsed = true;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        continue;
+      }
       return { body: "", status: 502, model, fallbackUsed, errorCode: exceptionCode(error) };
     }
     if (response.ok) {
       let content: unknown;
-      try { content = JSON.parse(body)?.choices?.[0]?.message?.content; } catch { /* classified below */ }
+      let envelope: any;
+      try { envelope = JSON.parse(body); content = envelope?.choices?.[0]?.message?.content; } catch { /* classified below */ }
       let valid = typeof content === "string" && content.trim().length > 0;
       if (valid && payload.response_format) {
         try {
-          const parsed: unknown = JSON.parse(content as string);
-          valid = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed);
+          const normalized = (content as string).trim().replace(/^```(?:json)?\s*\n([\s\S]*?)\n```$/i, "$1").trim();
+          const parsed: unknown = JSON.parse(normalized);
+          valid = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) && envelope?.choices?.[0]?.finish_reason !== "length";
+          if (valid && normalized !== content) { envelope.choices[0].message.content = normalized; body = JSON.stringify(envelope); }
         } catch { valid = false; }
       }
       if (!valid) return { body: "", status: 502, model, fallbackUsed, errorCode: "invalid_provider_response" };
       return { body, status: response.status, model, fallbackUsed, errorCode: null };
     }
     const code = failureCode(response.status, body);
-    if ((code === "model_access_denied" || code === "rate_limited") && model !== "gpt-5.4-mini" && !fallbackUsed) {
-      // Same provider/data destination; preserve the user's input and JSON schema.
-      model = "gpt-5.4-mini";
+    if ((code === "model_access_denied" || code === "rate_limited") && model !== "gpt-6-luna" && !fallbackUsed) {
+      // The updated processing notice covers this OpenAI recovery destination.
+      model = "gpt-6-luna";
       fallbackUsed = true;
       continue;
     }
@@ -128,4 +139,22 @@ export async function requestManagedChat(provider: ManagedAiProvider, payload: R
     return { body: "", status: response.status, model, fallbackUsed, errorCode: code };
   }
   return { body: "", status: 502, model, fallbackUsed, errorCode: "provider_unavailable" };
+}
+
+function gatewayPayload(payload: Record<string, unknown>, model: string): Record<string, unknown> {
+  const { reasoning_effort, max_completion_tokens, ...rest } = payload;
+  const foreign = model.includes("/");
+  const only = model.startsWith("zai/") ? ["baseten"] : undefined;
+  const messages = foreign && Array.isArray(rest.messages) ? rest.messages.map(message => {
+    if (!message || typeof message !== "object" || !Array.isArray(message.content)) return message;
+    return { ...message, content: message.content.map((part: Record<string, unknown>) => {
+      if (part?.type !== "image_url" || !part.image_url || typeof part.image_url !== "object") return part;
+      return { ...part, image_url: { ...part.image_url, detail: "high" } };
+    }) };
+  }) : rest.messages;
+  return { ...rest, ...(messages !== undefined ? {messages} : {}), model: foreign ? model : `openai/${model}`,
+    ...(reasoning_effort !== undefined ? {reasoning: {effort: reasoning_effort}} : {}),
+    ...(max_completion_tokens !== undefined ? {max_tokens: max_completion_tokens} : {}),
+    ...(only ? {providerOptions: {gateway: {only}}} : {}),
+  };
 }

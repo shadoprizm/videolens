@@ -121,6 +121,10 @@
     {
       "path": "/api/marketing-email",
       "schedule": "17 14 * * *"
+    },
+    {
+      "path": "/api/report-maintenance",
+      "schedule": "7 * * * *"
     }
   ]
 }

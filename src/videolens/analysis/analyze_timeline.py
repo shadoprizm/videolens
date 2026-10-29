@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import math
+import base64
 
 from openai import OpenAI
 
@@ -10,6 +12,7 @@ from videolens.config import Models
 from videolens.types import (
     Analysis,
     AnalysisMode,
+    Frame,
     Evidence,
     Finding,
     Recommendation,
@@ -28,6 +31,8 @@ You are VideoLens, an analyst that reviews videos by reading a structured
 timeline. The user provides a prompt and an analysis mode. You return a single
 JSON object matching the schema below. Be faithful to evidence: every finding
 should cite at least one timestamp from the timeline.
+Timeline captions are provisional model-generated observations, not verified facts. Direct images take precedence. Do not promote caption claims of sliding, stationary vehicles, lane crossings, braking or identity to facts without clear image support. Distinguish traffic beyond a separating barrier. Date, GPS and speed overlays are unverified readings, not independent measurements.
+The timeline is sampled evidence, not continuous video. Missing observations are not proof an event did not occur. Describe visible changes separately from uncertainty about their cause. Scope negative findings to the supplied evidence and state what cannot be ruled out.
 
 Mode-specific guidance:
 {mode_instructions}
@@ -61,6 +66,7 @@ def analyze_timeline(
     user_prompt: str,
     client: OpenAI,
     models: Models,
+    evidence_frames: list[Frame] | None = None,
 ) -> Analysis:
     prompts = get_mode_prompts(mode)
     system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
@@ -80,6 +86,39 @@ def analyze_timeline(
 
     user_message = _build_user_message(timeline, source, mode, user_prompt, prompts["findings"])
 
+    user_content = user_message
+    if mode == AnalysisMode.GENERAL and evidence_frames:
+        images = [
+            {
+                "timestamp": f.timestamp,
+                "url": "data:image/jpeg;base64,"
+                + base64.b64encode(f.path.read_bytes()).decode("ascii"),
+            }
+            for f in evidence_frames
+        ]
+        while sum(len(f["url"]) for f in images) > 2_500_000:
+            if len(images) == 1:
+                images = []
+                break
+            images = images[::2]
+        if images:
+            user_content = [
+                {
+                    "type": "text",
+                    "text": user_message
+                    + "\nDirect timestamped frames follow. Recheck the descriptions against the actual images; descriptions can omit important actions. Sampled images cannot prove absence between frames.",
+                }
+            ]
+            for f in images:
+                user_content.extend(
+                    [
+                        {"type": "text", "text": f"Frame at {f['timestamp']:.3f} seconds"},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f["url"], "detail": models.frame_image_detail},
+                        },
+                    ]
+                )
     try:
         response = client.chat.completions.create(
             model=models.synthesize,
@@ -87,7 +126,7 @@ def analyze_timeline(
             response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message},
+                {"role": "user", "content": user_content},
             ],
         )
     except Exception as exc:
@@ -120,7 +159,13 @@ def analyze_timeline(
             else [],
             **{kind: structured},
         )
-    return _to_analysis(data, source, mode, user_prompt, timeline)
+    if not isinstance(data.get("summary"), str) or not data["summary"].strip():
+        raise AnalysisError("The AI returned an empty report. Please retry.")
+    analysis = _to_analysis(data, source, mode, user_prompt, timeline)
+    analysis.limitations = list(dict.fromkeys(source.limitations + analysis.limitations))
+    if any("could not be analyzed" in lim for lim in source.limitations):
+        analysis.confidence = "low"
+    return analysis
 
 
 def _build_user_message(
@@ -169,21 +214,41 @@ def _to_analysis(
     user_prompt: str,
     timeline: Timeline,
 ) -> Analysis:
-    findings = [
-        Finding(
-            finding=str(f.get("finding", "")).strip(),
-            evidence=[
-                Evidence(
-                    timestamp=float(e.get("timestamp", 0.0)),
-                    detail=str(e.get("detail", "")).strip(),
+    findings = []
+    removed_evidence = False
+    for item in data.get("findings") or []:
+        if not isinstance(item, dict) or not item.get("finding"):
+            continue
+        evidence = []
+        for row in item.get("evidence") or []:
+            if not isinstance(row, dict):
+                removed_evidence = True
+                continue
+            timestamp = row.get("timestamp")
+            detail = row.get("detail")
+            if (
+                isinstance(timestamp, bool)
+                or not isinstance(timestamp, (int, float))
+                or not math.isfinite(timestamp)
+                or timestamp < 0
+                or (source.duration_seconds is not None and timestamp > source.duration_seconds)
+                or not any(seg.start <= timestamp <= seg.end for seg in timeline.segments)
+                or not isinstance(detail, str)
+                or not detail.strip()
+            ):
+                removed_evidence = True
+                continue
+            evidence.append(Evidence(timestamp=timestamp, detail=detail.strip()))
+        if evidence:
+            findings.append(
+                Finding(
+                    finding=str(item["finding"]).strip(),
+                    evidence=evidence,
+                    confidence=_coerce_conf(item.get("confidence")),
                 )
-                for e in (f.get("evidence") or [])
-            ],
-            confidence=_coerce_conf(f.get("confidence")),
-        )
-        for f in (data.get("findings") or [])
-        if f.get("finding")
-    ]
+            )
+        else:
+            removed_evidence = True
 
     recommendations = [
         Recommendation(
@@ -213,8 +278,15 @@ def _to_analysis(
         findings=findings,
         recommendations=recommendations,
         tasks=tasks,
-        limitations=[str(x) for x in (data.get("limitations") or [])],
-        confidence=_coerce_conf(data.get("confidence")),
+        limitations=[str(x) for x in (data.get("limitations") or [])]
+        + (
+            [
+                "Some generated findings or citations were omitted because their timestamps could not be matched to the supplied video evidence."
+            ]
+            if removed_evidence
+            else []
+        ),
+        confidence="low" if removed_evidence else _coerce_conf(data.get("confidence")),
     )
 
 

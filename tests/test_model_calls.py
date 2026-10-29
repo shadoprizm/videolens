@@ -47,17 +47,17 @@ def _source() -> ResolvedSource:
     )
 
 
-def test_default_models_use_terra_for_both_quality_roles() -> None:
+def test_default_models_use_efficient_extraction_and_stronger_direct_review() -> None:
     models = Models()
 
-    assert models.frame_describe == "gpt-5.6-terra"
-    assert models.synthesize == "gpt-5.6-terra"
-    assert models.frame_reasoning_effort == "none"
-    assert models.synthesize_reasoning_effort == "medium"
+    assert models.frame_describe == "gpt-6-luna"
+    assert models.synthesize == "gpt-6-luna"
+    assert models.frame_reasoning_effort == "high"
+    assert models.synthesize_reasoning_effort == "high"
     assert models.frame_image_detail == "original"
 
 
-def test_frame_description_uses_terra_original_detail_without_reasoning(tmp_path: Path) -> None:
+def test_frame_description_uses_current_extraction_model(tmp_path: Path) -> None:
     frame_path = tmp_path / "frame.jpg"
     frame_path.write_bytes(b"jpeg")
     payload = json.dumps(
@@ -75,12 +75,12 @@ def test_frame_description_uses_terra_original_detail_without_reasoning(tmp_path
     call = completions.calls[0]
     image = call["messages"][1]["content"][1]["image_url"]
     assert result.extracted_text == ["VideoLens"]
-    assert call["model"] == "gpt-5.6-terra"
-    assert call["reasoning_effort"] == "none"
+    assert call["model"] == "gpt-6-luna"
+    assert call["reasoning_effort"] == "high"
     assert image["detail"] == "original"
 
 
-def test_synthesis_and_follow_up_use_terra_with_medium_reasoning() -> None:
+def test_synthesis_and_follow_up_use_stronger_review_model() -> None:
     analysis_payload = json.dumps(
         {
             "summary": "Summary",
@@ -106,8 +106,8 @@ def test_synthesis_and_follow_up_use_terra_with_medium_reasoning() -> None:
     answer = ask_question("Anything else?", Timeline(), None, answer_client, Models())
 
     for call in (analysis_completions.calls[0], answer_completions.calls[0]):
-        assert call["model"] == "gpt-5.6-terra"
-        assert call["reasoning_effort"] == "medium"
+        assert call["model"] == "gpt-6-luna"
+        assert call["reasoning_effort"] == "high"
         assert "temperature" not in call
     assert answer == "Nothing else was visible."
 

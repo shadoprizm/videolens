@@ -152,6 +152,7 @@ export async function transcribeLocalFile(
   const segments: (TranscriptSegment | null)[] = new Array(chunks.length).fill(null);
   let next = 0;
   let done = 0;
+  let failed = 0;
   async function worker(): Promise<void> {
     while (next < chunks.length) {
       const idx = next++;
@@ -165,7 +166,7 @@ export async function transcribeLocalFile(
         );
         if (text) segments[idx] = { start: chunk.start, end: chunk.end, text };
       } catch {
-        // A failed chunk leaves a gap; the synthesis model handles gaps.
+        failed += 1;
       }
       done += 1;
       onProgress(done, chunks.length);
@@ -175,9 +176,9 @@ export async function transcribeLocalFile(
 
   const kept = segments.filter((s): s is TranscriptSegment => s !== null);
   if (kept.length === 0) {
-    return { transcript: null, limitation: "Audio not transcribed: all transcription calls failed." };
+    return { transcript: null, limitation: failed === chunks.length ? "Audio not transcribed: all transcription calls failed." : "No intelligible speech was returned. Non-speech audio events were not analyzed." };
   }
-  return { transcript: { language: null, segments: kept }, limitation: null };
+  return { transcript: { language: null, segments: kept }, limitation: failed ? `${failed} of ${chunks.length} audio chunks could not be transcribed; speech coverage is incomplete.` : null };
 }
 
 async function resampleToMono(audio: AudioBuffer, targetRate: number): Promise<Float32Array> {

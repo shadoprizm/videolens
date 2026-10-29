@@ -1,3 +1,4 @@
+import { describeFocusedFrames } from "../lib/describeFrames";
 import { describeLessonFrames } from "../lib/describeFrames";
 import { lessonHtml, LESSON_CSS } from "../lib/lessonReport";
 import { lessonCopy } from "../lib/lessonCopy";
@@ -1459,7 +1460,7 @@ function renderResults(): void {
     try {
       let access: AiAccess;
       if (state.managedReportId && state.proSession) {
-        access = { kind: "pro", token: state.proSession.token, reportId: state.managedReportId };
+        access = { kind: "pro", token: state.proSession.token, reportId: state.managedReportId, mode: a.mode };
       } else {
         const apiKey = await getApiKey();
         if (!apiKey) {
@@ -1692,10 +1693,10 @@ async function performAnalysis(): Promise<void> {
       return;
     }
     try {
-      const reservation = await reserveManagedReport(state.proSession.token, state.proCloudSave);
+      const reservation = await reserveManagedReport(state.proSession.token, state.proCloudSave, { title: state.sourceKind === "file" ? state.localVideo?.file.name : undefined, sourceType: state.sourceKind === "file" ? "local_file" : "video", mode: state.mode });
       managedReportId = reservation.reportId;
       state.managedReportId = managedReportId;
-      access = { kind: "pro", token: state.proSession.token, reportId: managedReportId };
+      access = { kind: "pro", token: state.proSession.token, reportId: managedReportId, mode: state.mode };
     } catch (error) {
       state.error = localizeKnownError((error as Error).message);
       state.proEntitlement = await fetchProEntitlement(state.proSession.token).catch(() => state.proEntitlement);
@@ -1877,9 +1878,12 @@ async function describeAndSynthesize(
 ): Promise<void> {
   analysisStage = "analysis";
   steps.set(stepOffset, "active");
-  const summaries = await (state.mode === "recipe" ? describeRecipeFrames : state.mode === "tutorial" ? describeProcedureFrames : state.mode === "lesson" ? describeLessonFrames : describeFrames)(access, frames, (done, total) =>
-    steps.set(stepOffset, "active", t("describingProgress", { done, total })),
-  );
+  const progress = (done: number, total: number) => steps.set(stepOffset, "active", t("describingProgress", { done, total }));
+  const summaries = state.mode === "general"
+    ? await describeFocusedFrames(access, frames, prompt, progress)
+    : await (state.mode === "recipe" ? describeRecipeFrames : state.mode === "tutorial" ? describeProcedureFrames : state.mode === "lesson" ? describeLessonFrames : describeFrames)(access, frames, progress);
+  if (frames.length && summaries.length < Math.ceil(frames.length / 2)) throw new Error("Too little visual evidence could be analyzed. Retry this scan; a partial report has not been charged.");
+  if (summaries.length < frames.length) source.limitations.push(`${frames.length - summaries.length} of ${frames.length} captured frames could not be analyzed. Brief events may be missing.`);
   if (state.mode === "recipe") {
     if (summaries.length < Math.ceil(frames.length / 2)) throw new Error("Too few cooking frames could be analyzed. Please retry the recipe scan.");
     if (summaries.length < frames.length) source.limitations.push(`${frames.length - summaries.length} of ${frames.length} sampled frames could not be analyzed; ingredients or steps may be missing.`);
@@ -1917,7 +1921,7 @@ async function describeAndSynthesize(
           root.appendChild(preview);
         }
       })
-    : await analyzeTimeline(access, timeline, source, state.mode, prompt, outputLanguage);
+    : await analyzeTimeline(access, timeline, source, state.mode, prompt, outputLanguage, undefined, frames);
   steps.set(stepOffset + 2, "done");
 }
 

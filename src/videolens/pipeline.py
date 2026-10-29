@@ -101,6 +101,9 @@ def run_extraction(
             "frame_image_detail": config.models.frame_image_detail,
             "frame_processing": FRAME_PROCESSING_VERSION,
             "evidence_contract": CONTRACT_VERSION,
+            "visual_focus": prompt if mode == AnalysisMode.GENERAL else None,
+            "sequence_evidence": 1,
+            "processing_policy": getattr(client, "cache_identity", "openai"),
         },
     )
     cache = Cache(config.cache_root, cache_key)
@@ -136,7 +139,23 @@ def run_extraction(
         frames = _ensure_frames(
             video_path, cache, force, metadata.duration_seconds, frame_interval, max_frames, console
         )
-    frame_summaries = _ensure_frame_summaries(frames, cache, force, client, config, console)
+    if hasattr(client, "purpose"):
+        client.purpose = "frames"
+    frame_summaries = _ensure_frame_summaries(
+        frames,
+        cache,
+        force,
+        client,
+        config,
+        console,
+        focus=prompt or "" if mode == AnalysisMode.GENERAL else "",
+    )
+    if frames and len(frame_summaries) < (len(frames) + 1) // 2:
+        raise RuntimeError("Too little visual evidence could be analyzed. Please retry this scan.")
+    if len(frame_summaries) < len(frames):
+        resolved.limitations.append(
+            f"{len(frames) - len(frame_summaries)} of {len(frames)} captured frames could not be analyzed; brief events may be missing."
+        )
     timeline = _ensure_timeline(
         frame_summaries, transcript, metadata.duration_seconds, cache, force, console
     )
@@ -145,8 +164,10 @@ def run_extraction(
     report_html: str | None = None
     report_md: str | None = None
     if prompt:
+        if hasattr(client, "purpose"):
+            client.purpose = "report"
         analysis = _ensure_analysis(
-            timeline, resolved, mode, prompt, cache, force, client, config, console
+            timeline, resolved, mode, prompt, cache, force, client, config, console, frames=frames
         )
         report_html = render_html(analysis)
         report_md = render_markdown(analysis)
@@ -279,6 +300,7 @@ def _ensure_frame_summaries(
     client: OpenAI,
     config: Config,
     console: Console,
+    focus: str = "",
 ) -> list[FrameSummary]:
     if not frames:
         return []
@@ -288,7 +310,9 @@ def _ensure_frame_summaries(
             console.print(f"[green]cached[/green] frame summaries ({len(cached)})")
             return [FrameSummary.model_validate(s) for s in cached]
     console.print(f"[cyan]describing {len(frames)} frames ({config.models.frame_describe})…[/cyan]")
-    summaries = describe_frames(frames, client, config.models, console=console)
+    summaries = describe_frames(
+        frames, client, config.models, console=console, **({"focus": focus} if focus else {})
+    )
     cache.write_json("frame_summaries.json", [s.model_dump(mode="json") for s in summaries])
     return summaries
 
@@ -323,6 +347,7 @@ def _ensure_analysis(
     client: OpenAI,
     config: Config,
     console: Console,
+    frames: list[Frame] | None = None,
 ) -> Analysis:
     cache_key_inputs = {
         "prompt": prompt,
@@ -330,6 +355,7 @@ def _ensure_analysis(
         "mode": mode.value,
         "model": config.models.synthesize,
         "reasoning_effort": config.models.synthesize_reasoning_effort,
+        "direct_visual_evidence": 1,
     }
     prompt_hash = hashlib.sha256(
         _json.dumps(cache_key_inputs, sort_keys=True).encode()
@@ -343,7 +369,15 @@ def _ensure_analysis(
             return cached
 
     console.print(f"[cyan]synthesizing analysis ({config.models.synthesize})…[/cyan]")
-    analysis = analyze_timeline(timeline, source, mode, prompt, client, config.models)
+    analysis = analyze_timeline(
+        timeline,
+        source,
+        mode,
+        prompt,
+        client,
+        config.models,
+        **({"evidence_frames": frames} if mode == AnalysisMode.GENERAL else {}),
+    )
     cache.write_json(cache_name, analysis)
     cache.write_json("analysis.json", analysis)
     console.print(

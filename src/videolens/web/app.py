@@ -315,7 +315,7 @@ def _save_upload(uploaded) -> Path:
 def _estimate_cost(max_frames: int, assumed_minutes: float = 3.0) -> tuple[float, float]:
     """Rough estimate; returns (low, high) USD."""
     per_frame_low, per_frame_high = 0.006, 0.015
-    per_min_transcribe = 0.003
+    per_min_transcribe = 0.0045
     synth_low, synth_high = 0.03, 0.15
 
     low = (
@@ -417,7 +417,9 @@ def _account() -> dict | None:
         except ManagedError as exc:
             if exc.status in (401, 403):
                 _disconnect()
-                st.session_state["account_notice"] = "Your VideoLens session expired. Connect again to continue."
+                st.session_state["account_notice"] = (
+                    "Your VideoLens session expired. Connect again to continue."
+                )
                 return None
             raise
     return st.session_state["account"]
@@ -535,7 +537,9 @@ def _render_account_panel() -> None:
             )
             pairing: Pairing | None = st.session_state.get("pairing")
             if pairing is None:
-                if st.button("Connect my VideoLens account", type="primary", use_container_width=True):
+                if st.button(
+                    "Connect my VideoLens account", type="primary", use_container_width=True
+                ):
                     _start_pairing()
                     st.rerun()
                 st.markdown(
@@ -545,7 +549,10 @@ def _render_account_panel() -> None:
                 )
             else:
                 st.link_button(
-                    "Approve in VideoLens ↗", pairing.approve_url(), type="primary", use_container_width=True
+                    "Approve in VideoLens ↗",
+                    pairing.approve_url(),
+                    type="primary",
+                    use_container_width=True,
                 )
                 _pairing_watcher()
                 if st.button("Cancel", use_container_width=True):
@@ -645,7 +652,9 @@ def main() -> None:
     prompt = st.session_state.get("prompt_input", preset_for_mode(mode).prompt)
 
     if st.session_state.pop("run_requested", False):
-        _start_report(source_path, upload_path, prompt, mode, max_frames, frame_interval, force, access)
+        _start_report(
+            source_path, upload_path, prompt, mode, max_frames, frame_interval, force, access
+        )
 
     if "result" in st.session_state:
         st.divider()
@@ -691,7 +700,9 @@ def _render_composer() -> tuple[str | None, Path | None]:
 
     mode = st.session_state.get("mode", "general")
     if mode == "recipe":
-        st.caption("Recipes use evidence from the video only; missing quantities stay marked unknown.")
+        st.caption(
+            "Recipes use evidence from the video only; missing quantities stay marked unknown."
+        )
 
     if "prompt_input" not in st.session_state:
         st.session_state["prompt_input"] = preset_for_mode(mode).prompt
@@ -706,6 +717,11 @@ def _render_composer() -> tuple[str | None, Path | None]:
             _render_enhance_prompt(mode)
         _render_advanced_settings(mode)
 
+    if _connection() is not None and _access_mode() == "account":
+        st.checkbox(
+            "Use optimized general reports: send images and report text through Vercel AI Gateway to OpenAI and Baseten (GLM by Z.ai), with OpenAI as a fallback. Audio uses OpenAI.",
+            key="managed_provider_consent",
+        )
     _step(3, "Create your report")
     run_col, note_col = st.columns([1.1, 1.4])
     if run_col.button("Create report", type="primary", use_container_width=True):
@@ -716,7 +732,9 @@ def _render_composer() -> tuple[str | None, Path | None]:
 
 def _run_note(mode: str) -> str:
     if _access_mode() == "byok":
-        max_frames = 120 if mode in ("recipe", "tutorial") else st.session_state.get("max_frames", 20)
+        max_frames = (
+            120 if mode in ("recipe", "tutorial") else st.session_state.get("max_frames", 20)
+        )
         low, high = _estimate_cost(max_frames)
         return (
             f'<div class="vl-small" style="padding-top:10px">Estimated OpenAI cost '
@@ -731,7 +749,10 @@ def _run_note(mode: str) -> str:
 
 
 def _render_enhance_prompt(mode: str) -> None:
-    if not st.button("✨ Sharpen this prompt", help="Rewrites your prompt for this report type. Costs less than a cent."):
+    if not st.button(
+        "✨ Sharpen this prompt",
+        help="Rewrites your prompt for this report type. Costs less than a cent.",
+    ):
         return
     api_key = st.session_state.get("api_key", "")
     prompt = st.session_state.get("prompt_input", "")
@@ -747,7 +768,9 @@ def _render_enhance_prompt(mode: str) -> None:
         from videolens.analysis.enhance_prompt import EnhancePromptError as _EnhancePromptError
 
         try:
-            new_prompt = _enhance_prompt(prompt, AnalysisMode(mode), _OpenAI(api_key=api_key), Models())
+            new_prompt = _enhance_prompt(
+                prompt, AnalysisMode(mode), _OpenAI(api_key=api_key), Models()
+            )
             st.session_state["prompt_input"] = new_prompt
             st.rerun()
         except _EnhancePromptError as exc:
@@ -790,13 +813,13 @@ def _render_header() -> None:
     st.markdown(
         f"""
         <nav class="vl-nav">
-          <a class="vl-brand" href="{_site_link('/', 'web_app_nav')}" target="_blank">
+          <a class="vl-brand" href="{_site_link("/", "web_app_nav")}" target="_blank">
             <img src="{_logo_data_url()}" alt=""><span>VideoLens</span>
           </a>
           <div class="vl-links">
-            <a href="{_site_link('/', 'web_app_nav')}#pricing" target="_blank">Pricing</a>
-            <a href="{_site_link('/chrome', 'web_app_nav')}" target="_blank">Browser extension</a>
-            <a class="vl-cta" href="{_site_link('/account', 'web_app_nav')}" target="_blank">My account</a>
+            <a href="{_site_link("/", "web_app_nav")}#pricing" target="_blank">Pricing</a>
+            <a href="{_site_link("/chrome", "web_app_nav")}" target="_blank">Browser extension</a>
+            <a class="vl-cta" href="{_site_link("/account", "web_app_nav")}" target="_blank">My account</a>
           </div>
         </nav>
         <div class="vl-hero">
@@ -821,9 +844,9 @@ def _render_footer() -> None:
         <div class="vl-footer">
           <span>Videos and reports are processed for this session and are not stored. Usage
           analytics never include videos, links, prompts, or report text.</span>
-          <span><a href="{_site_link('/privacy', 'web_app_footer')}" target="_blank">Privacy</a> ·
-          <a href="{_site_link('/terms', 'web_app_footer')}" target="_blank">Terms</a> ·
-          <a href="{_site_link('/support', 'web_app_footer')}" target="_blank">Support</a></span>
+          <span><a href="{_site_link("/privacy", "web_app_footer")}" target="_blank">Privacy</a> ·
+          <a href="{_site_link("/terms", "web_app_footer")}" target="_blank">Terms</a> ·
+          <a href="{_site_link("/support", "web_app_footer")}" target="_blank">Support</a></span>
         </div>
         """,
         unsafe_allow_html=True,
@@ -995,7 +1018,9 @@ def _start_report(
             return
         if _remaining_reports(_account()) <= 0:
             _track_event("validation_failed", mode=mode, error_code="allowance_used")
-            st.error("You have used your available reports. See the Pro options in the panel on the right.")
+            st.error(
+                "You have used your available reports. See the Pro options in the panel on the right."
+            )
             return
 
     st.session_state.pop("result", None)
@@ -1061,13 +1086,23 @@ def _run_pipeline(
     client = None
     if connection is not None:
         try:
-            report_id = reserve_report(connection)
+            report_id = reserve_report(
+                connection,
+                title=Path(source_path).name if "://" not in source_path else None,
+                source_type=_source_type(source_path),
+                mode=mode,
+            )
         except ManagedError as exc:
             st.error(str(exc))
             st.session_state["account"] = None
             _track_event("analysis_failed", mode=mode, error_code=exc.code, access=access)
             return
-        client = ManagedClient(connection, report_id)
+        client = ManagedClient(
+            connection,
+            report_id,
+            mode=mode,
+            multimodel=bool(st.session_state.get("managed_provider_consent")),
+        )
         st.session_state["report_id"] = report_id
 
     state: list[str] = ["pending"] * len(STEP_KEYS)
@@ -1137,10 +1172,15 @@ def _run_pipeline(
                     failure_code=code,
                 )
             except ManagedError:
-                pass
+                st.warning(
+                    "We could not confirm allowance recovery. Refresh account access before retrying; interrupted reservations are released after an hour without activity."
+                )
+            else:
+                st.info(
+                    "Your report allowance was restored. You can try again or choose another video."
+                )
             st.session_state["account"] = None
             st.error(f"This report could not be created: {exc}")
-            st.info("Your report allowance was not used. You can try again or choose another video.")
         else:
             st.error(f"This report could not be created: {exc}")
         with st.expander("Technical details"):
@@ -1154,6 +1194,24 @@ def _run_pipeline(
             latency_bucket=latency_bucket((monotonic() - started_at) * 1000),
         )
         return
+    except BaseException:
+        # Streamlit reruns/disconnections do not inherit Exception. Preserve the
+        # interruption while releasing the reservation, even during synthesis.
+        if connection is not None and report_id is not None:
+            try:
+                complete_report(
+                    connection,
+                    report_id,
+                    failed=True,
+                    title="Untitled video",
+                    source_type=_source_type(source_path),
+                    mode=mode,
+                    failure_stage="analysis",
+                    failure_code="interrupted",
+                )
+            except ManagedError:
+                pass  # Server-side idle expiry is the final recovery path.
+        raise
 
     if connection is not None and report_id is not None:
         try:
@@ -1166,7 +1224,9 @@ def _run_pipeline(
                 mode=mode,
             )
         except ManagedError:
-            pass
+            st.warning(
+                "Your report is ready, but account synchronization failed. Download it now. Interrupted reservations are released after an hour without activity."
+            )
         st.session_state["account"] = None
 
     state = ["complete"] * len(STEP_KEYS)

@@ -77,7 +77,7 @@ test("the actual side-panel bundle renders every new interface locale", async ()
 });
 
 test("new users see account creation first with a secondary key path and progressive report setup", async () => {
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4 });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5 });
   try {
     await importBundle(sidePanelSource, "progressive-home");
     await waitFor(() => document.querySelector(".source-start"));
@@ -117,7 +117,7 @@ test("new users see account creation first with a secondary key path and progres
 });
 
 test("the home account CTA connects the free account without asking for a key or capturing media", async () => {
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4 });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5 });
   const originalFetch = globalThis.fetch;
   let opened;
   chrome.tabs.create = async (options) => { opened = new URL(options.url); };
@@ -141,7 +141,7 @@ test("the home account CTA connects the free account without asking for a key or
 });
 
 test("the secondary home key link opens the existing private settings", async () => {
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4 });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5 });
   try {
     await importBundle(sidePanelSource, "home-private-secondary");
     await waitFor(() => document.querySelector("#home-use-key"));
@@ -153,7 +153,7 @@ test("the secondary home key link opens the existing private settings", async ()
 });
 
 test("local-file cancellation stays home and a valid file reaches confirmation", async () => {
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4 });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5 });
   const createElement = document.createElement.bind(document);
   const createObjectUrl = URL.createObjectURL;
   const revokeObjectUrl = URL.revokeObjectURL;
@@ -195,7 +195,7 @@ test("local-file cancellation stays home and a valid file reaches confirmation",
 
 test("returning users get a compact home and configured access starts from the final click", async () => {
   const restore = installBrowserEnvironment({
-    privacyDisclosureVersion: 4,
+    privacyDisclosureVersion: 5,
     hasCompletedFirstReport: true,
     analysisProvider: "byok",
     openaiApiKey: "sk-test",
@@ -219,7 +219,7 @@ test("returning users get a compact home and configured access starts from the f
 
 test("configured Managed access is reused and disclosed on report setup", async () => {
   const restore = installBrowserEnvironment({
-    privacyDisclosureVersion: 4,
+    privacyDisclosureVersion: 5,
     hasCompletedFirstReport: true,
     analysisProvider: "pro",
     proToken: "managed-token",
@@ -251,7 +251,7 @@ test("configured Managed access is reused and disclosed on report setup", async 
 
 test("an unavailable preferred access method is not silently switched", async () => {
   const restore = installBrowserEnvironment({
-    privacyDisclosureVersion: 4,
+    privacyDisclosureVersion: 5,
     hasCompletedFirstReport: true,
     analysisProvider: "pro",
     proToken: "expired-token",
@@ -292,7 +292,7 @@ test("an unavailable preferred access method is not silently switched", async ()
 });
 
 test("a rejected private key stays on the focused access screen", async () => {
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4 });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5 });
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (input) => {
     if (String(input).includes("api.openai.com/v1/models")) return new Response("Unauthorized", { status: 401 });
@@ -323,7 +323,7 @@ test("a rejected private key stays on the focused access screen", async () => {
 });
 
 test("the library is a dedicated header destination with an explicit empty state", async () => {
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4, hasCompletedFirstReport: true });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5, hasCompletedFirstReport: true });
   try {
     await importBundle(sidePanelSource, "library-destination");
     await waitFor(() => document.querySelector(".compact-home"));
@@ -394,7 +394,7 @@ test("startup failures stay visible and localized in every new interface locale"
 
 test("the actual side-panel bundle renders before pending Pro recovery finishes", async () => {
   const restore = installBrowserEnvironment({
-    privacyDisclosureVersion: 4,
+    privacyDisclosureVersion: 5,
     proPairingNonce: "pending-pairing",
     proDeviceId: "device-1",
   }, true);
@@ -423,7 +423,7 @@ test("the actual side-panel bundle renders before pending Pro recovery finishes"
 });
 
 test("startup uses one targeted storage read and opens the report library only when requested", async () => {
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4, hasCompletedFirstReport: true });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5, hasCompletedFirstReport: true });
   const originalGet = chrome.storage.local.get;
   const originalOpen = indexedDB.open;
   let startupReads = 0;
@@ -513,7 +513,7 @@ test("the Firefox background script opens the sidebar from the toolbar action", 
 });
 
 test("recipe preview runs through the sidebar and preserves the draft when optional lookup fails", async () => {
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4, openaiApiKey: "test-key" });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5, openaiApiKey: "test-key" });
   const originalFetch = globalThis.fetch;
   const fixture = JSON.parse(readFileSync("test/fixtures/recipe.json", "utf8"));
   let capturedTimes = [], searches = 0;
@@ -558,7 +558,7 @@ test("recipe preview runs through the sidebar and preserves the draft when optio
 });
 
 test("procedure runs through the actual sidebar bundle with caption-guided capture and a checklist", async () => {
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4, openaiApiKey: "test-key" });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5, openaiApiKey: "test-key" });
   const originalFetch = globalThis.fetch;
   const fixture = JSON.parse(readFileSync("test/fixtures/procedure.json", "utf8"));
   let capturedTimes = [], searches = 0;
@@ -600,7 +600,7 @@ test("procedure runs through the actual sidebar bundle with caption-guided captu
 });
 
 test("lesson runs through the actual sidebar bundle with questions and study controls", async () => {
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4, openaiApiKey: "test-key" });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5, openaiApiKey: "test-key" });
   const originalFetch = globalThis.fetch;
   const fixture = JSON.parse(readFileSync("test/fixtures/lesson.json", "utf8"));
   let capturedTimes = [], searches = 0;
@@ -643,7 +643,7 @@ test("lesson runs through the actual sidebar bundle with questions and study con
 });
 
 test("checkout return refreshes exhausted managed access without losing the chosen report", async () => {
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4, analysisProvider: "pro", proToken: "test", proEmail: "test@example.invalid" });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5, analysisProvider: "pro", proToken: "test", proEmail: "test@example.invalid" });
   const originalFetch = globalThis.fetch;
   let entitlement = managedEntitlement({ managedReportsRemaining: 0, canUseManagedAi: false });
   globalThis.fetch = async () => jsonResponse({ entitlement });
@@ -667,7 +667,7 @@ test("checkout return refreshes exhausted managed access without losing the chos
 
 test("a report saved before checkout reopens after the sidebar restarts", async () => {
   const fixture = JSON.parse(readFileSync("test/fixtures/recipe.json", "utf8"));
-  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 4 });
+  const restore = installBrowserEnvironment({ privacyDisclosureVersion: 5 });
   try {
     const bundle = await build({ entryPoints: ["src/lib/reportLibrary.ts"], bundle: true, format: "esm", platform: "browser", write: false });
     const library = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString("base64")}`);

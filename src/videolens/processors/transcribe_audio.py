@@ -23,10 +23,9 @@ def transcribe(
 ) -> Transcript:
     """Transcribe pre-chunked audio with rough per-chunk timestamps.
 
-    The new gpt-4o-(mini-)transcribe family only supports response_format='json'
-    or 'text' (no verbose_json). Per-segment timestamps are therefore reconstructed
-    from chunk boundaries, not from the model itself. Diarize variant is used for
-    meeting mode.
+    gpt-transcribe returns JSON. Timestamps are reconstructed from chunk
+    boundaries, not inferred as word-level timing. The legacy diarization model
+    remains restricted to the explicitly speaker-labelled meeting workflow.
     """
     if not audio_chunks:
         return Transcript(segments=[])

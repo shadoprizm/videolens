@@ -99,11 +99,11 @@ export async function fetchProEntitlement(token?: string): Promise<ProEntitlemen
   return data.entitlement;
 }
 
-export async function reserveManagedReport(token: string, cloudSave: boolean): Promise<ManagedReservation> {
+export async function reserveManagedReport(token: string, cloudSave: boolean, context?: { title?: string; sourceType: string; mode: string }): Promise<ManagedReservation> {
   const deviceId = await getOrCreateProDeviceId();
   const data = await proJson<{ reservation: ManagedReservation }>("/api/reports", token, {
     method: "POST",
-    body: JSON.stringify({ action: "reserve", deviceId, cloudSave }),
+    body: JSON.stringify({ action: "reserve", deviceId, cloudSave, ...context }),
   });
   return data.reservation;
 }
@@ -119,7 +119,9 @@ export async function completeManagedReport(
   // Firefox's optional interaction-data choice never blocks report completion
   // or allowance recovery. Inspect it here; never prompt after a failed scan.
   const includeDiagnostic=failed && diagnostic && await technicalDataAllowed();
-  await proJson("/api/reports", token, {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await proJson("/api/reports", token, {
     method: "POST",
     body: JSON.stringify({
       action: "complete",
@@ -133,6 +135,13 @@ export async function completeManagedReport(
       reportData: !failed && cloudSave ? analysis : undefined,
     }),
   });
+      return;
+    } catch (error) {
+      const status = (error as { status?: number }).status;
+      if (attempt === 2 || (status !== undefined && status < 500 && status !== 429)) throw error;
+      await delay(1000 * (attempt + 1));
+    }
+  }
 }
 
 export async function submitReportFeedback(token: string, reportId: string, rating: "helpful" | "partial" | "unhelpful"): Promise<void> {
@@ -167,7 +176,7 @@ async function proJson<T = Record<string, unknown>>(path: string, token: string,
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     if (response.status === 401) await setProSession(null);
-    throw new Error(data.message || `VideoLens Pro request failed (${response.status}).`);
+    throw Object.assign(new Error(data.message || `VideoLens Pro request failed (${response.status}).`), { status: response.status });
   }
   return data as T;
 }

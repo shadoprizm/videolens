@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 type Member = { complimentary?: { state: string; expiresAt: string | null } | null; id: string; email: string | null; created_at: string; last_sign_in_at: string | null; verified: boolean; membership: string; subscription_status: string; cancel_at_period_end: boolean; current_period_end: string | null; scans: number; managed_scans: number; library_uploads: number; scans_this_month: number; last_scan_at: string | null };
-type Activity = { allowance_released: boolean; ai_request_count: number; recovered_requests: number; last_ai_error: { stage: string; code: string; httpStatus: number | null; model: string; at: string } | null; kind: string; title: string; email: string | null; source_type: string | null; mode: string | null; status: string; created_at: string; completed_at: string | null; cloud_saved: boolean };
+type Activity = { ai_succeeded?: number; ai_failed?: number; ai_models?: { kind: string; model: string; requests: number }[]; failure_code?: string | null; allowance_released: boolean; ai_request_count: number; recovered_requests: number; last_ai_error: { stage: string; code: string; httpStatus: number | null; model: string; at: string } | null; kind: string; title: string; email: string | null; source_type: string | null; mode: string | null; status: string; created_at: string; completed_at: string | null; cloud_saved: boolean };
 type Snapshot = { generatedAt: string; summary: { members: number; paid: number; free: number; trial: number; complimentary: number; active30Days: number }; scans: { total: number; libraryUploads: number; last30Days: number; complete: number; failed: number; pending: number }; members: Member[]; memberCount: number; activity: Activity[]; activityCount: number; sources: { label: string; count: number }[]; modes: { label: string; count: number }[]; daily: { day: string; count: number }[] };
 const el = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 let client: SupabaseClient;
@@ -19,7 +19,7 @@ const errorLabels: Record<string, string> = {
   model_access_denied: "Provider blocked the requested model", rate_limited: "AI provider rate limit",
   provider_authentication: "AI provider authentication failed", provider_unavailable: "AI provider unavailable",
   invalid_provider_response: "AI returned an invalid response", invalid_ai_input: "AI request rejected",
-  network_error: "AI connection failed", request_timeout: "AI request timed out", configuration_error: "Managed AI configuration failed",
+  network_error: "AI transport or SDK error", request_timeout: "AI request timed out", configuration_error: "Managed AI configuration failed",
 };
 const date = (value: string | null) => value ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "Never";
 
@@ -177,11 +177,14 @@ function render(data: Snapshot): void {
     if (scan.allowance_released) status.append(text("small", "Credit returned"));
     const diagnostic = text("td", "");
     if (scan.last_ai_error) {
+      if (scan.status === "complete") diagnostic.append(text("span", "Report completed with a component warning"));
       const error = scan.last_ai_error;
       diagnostic.append(text("span", errorLabels[error.code] || "AI request failed"), text("small", `${error.stage} · ${error.model}${error.httpStatus ? ` · HTTP ${error.httpStatus}` : ""}`));
     } else if (scan.status === "failed") {
-      diagnostic.append(text("span", scan.ai_request_count === 0 ? "Failed before any recorded AI request" : "Historical error not recorded"));
+      diagnostic.append(text("span", scan.failure_code === "interrupted" ? "Session interrupted · credit returned" : scan.ai_request_count === 0 ? "Stopped before AI processing · client cause unavailable" : "Client failure · historical detail unavailable"));
     } else diagnostic.append(text("span", scan.recovered_requests ? "Recovered automatically" : "—"));
+    if (scan.ai_succeeded !== undefined) diagnostic.append(text("small", `${scan.ai_succeeded} succeeded · ${scan.ai_failed || 0} failed`));
+    for (const role of scan.ai_models || []) diagnostic.append(text("small", `${role.kind === "transcription" ? "Speech" : "Visual/report"}: ${role.model} · ${role.requests}`));
     diagnostic.append(text("small", `${scan.ai_request_count} AI requests${scan.recovered_requests ? ` · ${scan.recovered_requests} model fallbacks` : ""}`));
     row.append(text("td", scan.title === "Untitled video" ? "Title not reported" : scan.title), text("td", scan.email || "No email"), text("td", scan.kind), text("td", scan.source_type || "Not reported"), text("td", scan.mode || "Not reported"), status, diagnostic, text("td", date(scan.created_at)), text("td", scan.completed_at ? date(scan.completed_at) : "—"), text("td", scan.cloud_saved ? "Yes" : "No"));
     return row;

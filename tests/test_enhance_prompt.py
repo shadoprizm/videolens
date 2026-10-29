@@ -19,6 +19,6 @@ def test_enhance_prompt_omits_optional_sampling_parameters() -> None:
     result = enhance_prompt("Summarize it", AnalysisMode.GENERAL, client, Models())
 
     assert result == "Focus on the main claim and supporting evidence."
-    assert captured["model"] == "gpt-5.6-terra"
-    assert captured["reasoning_effort"] == "none"
+    assert captured["model"] == "gpt-6-luna"
+    assert captured["reasoning_effort"] == "high"
     assert "temperature" not in captured

@@ -70,6 +70,13 @@ export async function handler(request: Request): Promise<Response> {
       const deviceId = user.deviceId || body.deviceId?.trim() || "";
       if (deviceId.length < 8) throw new ApiError(400, "device_id_required", "A valid extension device ID is required.");
       const reservation = await reserveReport(user.id, deviceId, Boolean(body.cloudSave));
+      if (body.title || body.sourceType || body.mode) {
+        // Metadata must never turn a successful reservation into another attempt.
+        const { error } = await admin.from("reports").update({ title: safeText(body.title, "Untitled video", 300),
+          source_type: safeText(body.sourceType, "video", 80), mode: safeText(body.mode, "general", 80) })
+          .eq("id", reservation.reportId).eq("user_id", user.id).eq("status", "pending");
+        if (error) console.error("Reserved report metadata unavailable");
+      }
       return json(request, { reservation, entitlement: await getEntitlement(user.id) }, 201);
     }
 
