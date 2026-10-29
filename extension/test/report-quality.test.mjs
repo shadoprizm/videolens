@@ -14,3 +14,13 @@ test("an empty AI result cannot consume a successful report allowance",async()=>
  const originalFetch=globalThis.fetch;globalThis.fetch=async()=>Response.json({choices:[{message:{content:'{"summary":"","findings":[]}'}}]});
  try {await assert.rejects(()=>analyzeTimeline({kind:"byok",apiKey:"fixture"},timeline,source,"general","Summarize"),/empty report/);}finally{globalThis.fetch=originalFetch;}
 });
+test("the final reviewer receives original timestamped images, with request size bounded",async()=>{
+ const originalFetch=globalThis.fetch;let body;
+ globalThis.fetch=async(_url,init)=>{body=JSON.parse(init.body);return Response.json({choices:[{message:{content:'{"summary":"Direct evidence reviewed.","findings":[],"limitations":[],"confidence":"high"}'}}]});};
+ try {
+  const frames=[{timestamp:10,dataUrl:'data:image/jpeg;base64,fixture'}];
+  await analyzeTimeline({kind:'byok',apiKey:'fixture'},timeline,{...source,limitations:[]},'general','Review movement','en',undefined,frames);
+  assert.equal(body.messages[1].content[2].image_url.url,frames[0].dataUrl);
+  assert.match(body.messages[1].content[1].text,/10.000/);
+ }finally{globalThis.fetch=originalFetch;}
+});

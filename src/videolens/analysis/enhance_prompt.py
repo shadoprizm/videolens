@@ -44,7 +44,7 @@ def enhance_prompt(
 ) -> str:
     """Return a sharper version of the user's prompt, tuned to the selected mode.
 
-    Uses the frame model with reasoning disabled since this is a small,
+    Uses the configured extraction model for this small,
     tightly-scoped rewrite that seeds the larger synthesis call.
     """
     prompt = (prompt or "").strip()

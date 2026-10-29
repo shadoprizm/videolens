@@ -13,19 +13,21 @@ describe("managed AI recovery", () => {
     expect(providerException({ cause: new DOMException("secret", "TimeoutError") })).toEqual({ status: null, code: "request_timeout" });
     const circular: { cause?: unknown } = {}; circular.cause = circular;
     expect(providerException(circular)).toEqual({ status: null, code: "network_error" });
+    expect(providerException({name:"AI_TypeValidationError"})).toEqual({status:null,code:"invalid_provider_response"});
+    expect(providerException({cause:{name:"AI_NoSuchModelError"}})).toEqual({status:null,code:"configuration_error"});
   });
   it("recovers the production gateway access denial without changing the prompt or JSON format", async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(denied()).mockResolvedValueOnce(success()); vi.stubGlobal("fetch", fetcher);
     const result = await requestManagedChat(provider, payload, "gpt-5.6-terra");
-    expect(result).toMatchObject({ status: 200, model: "gpt-5.4-mini", fallbackUsed: true, errorCode: null });
+    expect(result).toMatchObject({ status: 200, model: "gpt-6-luna", fallbackUsed: true, errorCode: null });
     expect(fetcher).toHaveBeenCalledTimes(2);
-    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ ...payload, model: "openai/gpt-5.6-terra" });
-    expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual({ ...payload, model: "openai/gpt-5.4-mini" });
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ messages: payload.messages, response_format: payload.response_format, max_tokens: 12000, model: "openai/gpt-5.6-terra" });
+    expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual({ messages: payload.messages, response_format: payload.response_format, max_tokens: 12000, model: "openai/gpt-6-luna" });
     expect(fetcher.mock.calls[1][0]).toBe("https://ai-gateway.vercel.sh/v1/chat/completions");
   });
   it("uses the available model if the primary model is rate limited", async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(new Response("rate limited", { status: 429 })).mockResolvedValueOnce(success()); vi.stubGlobal("fetch", fetcher);
-    expect(await requestManagedChat(provider, payload, "gpt-5.6-terra")).toMatchObject({ status: 200, model: "gpt-5.4-mini", fallbackUsed: true });
+    expect(await requestManagedChat(provider, payload, "gpt-5.6-terra")).toMatchObject({ status: 200, model: "gpt-6-luna", fallbackUsed: true });
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
   it("honors Retry-After within the function's bounded waiting budget", () => {
@@ -40,13 +42,13 @@ describe("managed AI recovery", () => {
       expect(result.errorCode).not.toBeNull(); expect(fetcher).toHaveBeenCalledTimes(1);
     }
     const fetcher = vi.fn().mockResolvedValue(denied()); vi.stubGlobal("fetch", fetcher);
-    const result = await requestManagedChat(provider, payload, "gpt-5.4-mini");
+    const result = await requestManagedChat(provider, payload, "gpt-6-luna");
     expect(result.errorCode).toBe("model_access_denied"); expect(fetcher).toHaveBeenCalledTimes(1);
   });
   it("bounds transient retries and strips provider error bodies", async () => {
     vi.useFakeTimers();
     const fetcher = vi.fn().mockImplementation(async () => Response.json({ error: { message: "secret user input" } }, { status: 503 })); vi.stubGlobal("fetch", fetcher);
-    const pending = requestManagedChat(provider, payload, "gpt-5.4-mini"); await vi.runAllTimersAsync();
+    const pending = requestManagedChat(provider, payload, "gpt-6-luna"); await vi.runAllTimersAsync();
     expect(await pending).toMatchObject({ status: 503, errorCode: "provider_unavailable", body: "" });
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
@@ -58,10 +60,18 @@ describe("managed AI recovery", () => {
   });
   it.each(["", "not json", "[]", "null"])("rejects malformed synthesis content: %s", async content => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ choices: [{ message: { content } }] })));
-    expect(await requestManagedChat(provider, payload, "gpt-5.4-mini")).toMatchObject({ status: 502, errorCode: "invalid_provider_response" });
+    expect(await requestManagedChat(provider, payload, "gpt-6-luna")).toMatchObject({ status: 502, errorCode: "invalid_provider_response" });
   });
   it("classifies transport timeouts without leaking exception text", async () => {
+    vi.useFakeTimers();
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("sensitive url", "TimeoutError")));
-    expect(await requestManagedChat(provider, payload, "gpt-5.4-mini")).toMatchObject({ status: 502, errorCode: "request_timeout", body: "" });
+    const pending = requestManagedChat(provider, payload, "gpt-6-luna"); await vi.runAllTimersAsync();
+    expect(await pending).toMatchObject({ status: 502, errorCode: "request_timeout", body: "" });
   });
+});
+it('normalizes a single JSON fence without another provider call',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(Response.json({choices:[{message:{content:'```json\n{"summary":"Useful report"}\n```'},finish_reason:'stop'}]}));vi.stubGlobal('fetch',fetcher);
+ const result=await requestManagedChat(provider,payload,'zai/glm-5.3-flash');
+ expect(result.errorCode).toBeNull();expect(fetcher).toHaveBeenCalledOnce();
+ expect(JSON.parse(result.body).choices[0].message.content).toBe('{"summary":"Useful report"}');
 });

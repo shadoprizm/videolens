@@ -200,10 +200,14 @@ Defaults are in `src/videolens/config.py`:
 
 | Stage | Model |
 |---|---|
-| Transcription (general/bug) | `gpt-4o-mini-transcribe` |
+| Transcription (general/bug) | `gpt-transcribe` |
 | Transcription (meeting) | `gpt-4o-transcribe-diarize` |
-| Prompt enhancement + frame OCR | `gpt-5.6-terra` (no reasoning) |
-| Final analysis + follow-up Q&A | `gpt-5.6-terra` (medium reasoning) |
+| Private / BYOK extraction, analysis and Q&A | `gpt-6-luna` (high reasoning) |
+| Optimized Managed general-report extraction | `gpt-6-luna`, high reasoning, through OpenAI on Vercel AI Gateway |
+| Optimized Managed general-report final review | GLM 5.3 Flash, high reasoning, restricted to Baseten on Vercel AI Gateway |
+| Managed compatibility and recovery | `gpt-6-luna`; older clients keep their disclosed OpenAI destination |
+
+General reports compare overlapping frame sequences using the user’s focus. The final reviewer also receives bounded timestamped images, so it can check the captions against the video evidence. Sparse evidence is disclosed; missing observations are not proof of absence. Managed legacy transcription requests are routed to `gpt-transcribe`; direct BYOK meeting diarization retains its specialized model until an equivalent capability is validated.
 
 Swap the model IDs, reasoning effort, and image detail by editing the `Models` dataclass. Frames
 are bounded to 1920x1080 before using original-detail vision input, preserving OCR quality without
@@ -211,13 +215,9 @@ letting 4K uploads create unbounded image-token costs.
 
 ## Cost guide
 
-Rough order-of-magnitude:
+The October 29 validation used the public 17.585-second dashcam clip: the optimized Managed general pipeline analyzed 40 frames in 15 AI requests for **US$0.018569**, excluding transcription. This is one measured example, not a fixed per-video price or an all-topic quality benchmark. Audio, longer prompts, image detail, provider retries and reasoning output change the total. The default speech model is listed at $0.0045 per audio minute in the checked Gateway catalogue; specialized meeting diarization has separate pricing.
 
-- A 30-second video with 5 frames → typically under $0.15
-- A 5-minute video with 20 frames → typically under $0.50
-- A 30-minute meeting with 40 frames → typically $0.75–$2.00
-
-Per-prompt analysis cache means asking a second question of an already-extracted video costs only the synthesis call (cents).
+Extraction caching avoids repeating video processing for a new prompt on the same evidence. A follow-up still incurs its analysis-model charge. Full comparison and limitations: [scan reliability and model economics](docs/verification/scan-reliability-quality.md).
 
 ## Session replays (PostHog / Hotjar / Clarity / FullStory / LogRocket / OpenReplay)
 

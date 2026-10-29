@@ -32,7 +32,7 @@ test("follow-up requests use the model's supported default sampling settings", a
     );
 
     assert.equal(answer, "The answer [00:00].");
-    assert.equal(requestBody.model, "gpt-5.6-terra");
+    assert.equal(requestBody.model, "gpt-6-luna");
     assert.equal(requestBody.temperature, undefined);
     assert.match(requestBody.messages[1].content, /NEW QUESTION: What happened\?/);
   } finally {

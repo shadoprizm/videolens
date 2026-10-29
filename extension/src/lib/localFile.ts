@@ -4,6 +4,8 @@
 import { DEFAULTS, MODELS } from "./config";
 import { transcribeChunk, type AiAccess } from "./openai";
 import type { CapturedFrame, SourceInfo, Transcript, TranscriptSegment } from "./types";
+import { seekVideoFrame, VideoFrameTimeout } from "./videoFrame";
+import { planFrameTimestamps } from "./capture";
 
 // decodeAudioData materialises the whole audio track in memory; beyond about
 // this duration, decoding risks OOM in the side panel. We degrade to
@@ -22,26 +24,49 @@ export async function openLocalVideo(file: File): Promise<LocalVideo> {
   const video = document.createElement("video");
   video.preload = "auto";
   video.muted = true;
-  video.src = objectUrl;
+  video.playsInline = true;
 
-  await new Promise<void>((resolve, reject) => {
-    video.addEventListener("loadedmetadata", () => resolve(), { once: true });
-    video.addEventListener(
-      "error",
-      () => reject(new Error("Could not open this file as a video (unsupported codec or corrupt file).")),
-      { once: true },
-    );
-  });
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const cleanup = () => {
+        clearTimeout(timer);
+        video.removeEventListener("loadedmetadata", loaded);
+        video.removeEventListener("error", failed);
+      };
+      const loaded = () => { cleanup(); resolve(); };
+      const failed = () => { cleanup(); reject(new Error("Could not open this file as a video (unsupported codec or corrupt file).")); };
+      const timer = setTimeout(() => { cleanup(); reject(new Error("The browser could not read the video metadata.")); }, 60_000);
+      video.addEventListener("loadedmetadata", loaded);
+      video.addEventListener("error", failed);
+      try {
+        video.src = objectUrl;
+        video.load();
+      } catch (error) { cleanup(); reject(error); }
+    });
+  } catch (error) {
+    video.removeAttribute("src");
+    video.load();
+    URL.revokeObjectURL(objectUrl);
+    throw error;
+  }
 
   if (!Number.isFinite(video.duration) || video.duration <= 0) {
+    video.removeAttribute("src");
+    video.load();
     URL.revokeObjectURL(objectUrl);
     throw new Error("This file has no readable duration.");
   }
   return { file, objectUrl, video, duration: video.duration };
 }
 
+export function localFrameTimestamps(duration: number, maxFrames: number): number[] {
+  return planFrameTimestamps(duration, maxFrames, Math.min(DEFAULTS.frameIntervalSeconds, duration / Math.max(1, maxFrames)));
+}
+
 export function closeLocalVideo(local: LocalVideo): void {
-  local.video.src = "";
+  local.video.pause();
+  local.video.removeAttribute("src");
+  local.video.load();
   URL.revokeObjectURL(local.objectUrl);
 }
 
@@ -50,41 +75,36 @@ export async function captureLocalFrames(
   timestamps: number[],
   onProgress: (done: number, total: number) => void,
 ): Promise<CapturedFrame[]> {
-  const v = local.video;
-  const scale = Math.min(1, DEFAULTS.maxFrameEdgePx / Math.max(v.videoWidth, v.videoHeight, 1));
+  let v = local.video;
   const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(v.videoWidth * scale));
-  canvas.height = Math.max(1, Math.round(v.videoHeight * scale));
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas unavailable.");
 
   const frames: CapturedFrame[] = [];
+  let recoveredDecoder = false;
   for (let i = 0; i < timestamps.length; i++) {
     const t = timestamps[i];
-    await seek(v, t);
+    try {
+      await seekVideoFrame(v, t);
+    } catch (error) {
+      if (!(error instanceof VideoFrameTimeout) || recoveredDecoder) throw error;
+      // Recover once automatically without reserving another managed report.
+      // Already captured frames are retained; never silently omit this moment.
+      recoveredDecoder = true;
+      const reopened = await openLocalVideo(local.file);
+      closeLocalVideo(local);
+      Object.assign(local, reopened);
+      v = local.video;
+      await seekVideoFrame(v, t);
+    }
+    const scale = Math.min(1, DEFAULTS.maxFrameEdgePx / Math.max(v.videoWidth, v.videoHeight, 1));
+    canvas.width = Math.max(1, Math.round(v.videoWidth * scale));
+    canvas.height = Math.max(1, Math.round(v.videoHeight * scale));
     ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
     frames.push({ timestamp: t, dataUrl: canvas.toDataURL("image/jpeg", DEFAULTS.frameJpegQuality) });
     onProgress(i + 1, timestamps.length);
   }
   return frames;
-}
-
-function seek(v: HTMLVideoElement, t: number): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const ready = () => !v.seeking && v.readyState >= 2 && Math.abs(v.currentTime - t) < 0.1;
-    if (ready()) { resolve(); return; }
-    const done = () => {
-      v.removeEventListener("seeked", done);
-      clearTimeout(timer);
-      requestAnimationFrame(() => setTimeout(() => ready() ? resolve() : reject(new Error("The video could not be read at the requested time. Please retry.")), 30));
-    };
-    const timer = setTimeout(() => {
-      v.removeEventListener("seeked", done);
-      reject(new Error("The video took too long to seek. Please retry."));
-    }, 3000);
-    v.addEventListener("seeked", done);
-    v.currentTime = t;
-  });
 }
 
 export async function transcribeLocalFile(
@@ -132,6 +152,7 @@ export async function transcribeLocalFile(
   const segments: (TranscriptSegment | null)[] = new Array(chunks.length).fill(null);
   let next = 0;
   let done = 0;
+  let failed = 0;
   async function worker(): Promise<void> {
     while (next < chunks.length) {
       const idx = next++;
@@ -145,7 +166,7 @@ export async function transcribeLocalFile(
         );
         if (text) segments[idx] = { start: chunk.start, end: chunk.end, text };
       } catch {
-        // A failed chunk leaves a gap; the synthesis model handles gaps.
+        failed += 1;
       }
       done += 1;
       onProgress(done, chunks.length);
@@ -155,9 +176,9 @@ export async function transcribeLocalFile(
 
   const kept = segments.filter((s): s is TranscriptSegment => s !== null);
   if (kept.length === 0) {
-    return { transcript: null, limitation: "Audio not transcribed: all transcription calls failed." };
+    return { transcript: null, limitation: failed === chunks.length ? "Audio not transcribed: all transcription calls failed." : "No intelligible speech was returned. Non-speech audio events were not analyzed." };
   }
-  return { transcript: { language: null, segments: kept }, limitation: null };
+  return { transcript: { language: null, segments: kept }, limitation: failed ? `${failed} of ${chunks.length} audio chunks could not be transcribed; speech coverage is incomplete.` : null };
 }
 
 async function resampleToMono(audio: AudioBuffer, targetRate: number): Promise<Float32Array> {

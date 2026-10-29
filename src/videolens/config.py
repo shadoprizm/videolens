@@ -12,12 +12,12 @@ ImageDetail = Literal["low", "high", "original"]
 
 @dataclass(frozen=True)
 class Models:
-    transcribe_default: str = "gpt-4o-mini-transcribe"
+    transcribe_default: str = "gpt-transcribe"
     transcribe_diarize: str = "gpt-4o-transcribe-diarize"
-    frame_describe: str = "gpt-5.6-terra"
-    synthesize: str = "gpt-5.6-terra"
-    frame_reasoning_effort: ReasoningEffort = "none"
-    synthesize_reasoning_effort: ReasoningEffort = "medium"
+    frame_describe: str = "gpt-6-luna"
+    synthesize: str = "gpt-6-luna"
+    frame_reasoning_effort: ReasoningEffort = "high"
+    synthesize_reasoning_effort: ReasoningEffort = "high"
     frame_image_detail: ImageDetail = "original"
 
 

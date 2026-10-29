@@ -16,6 +16,7 @@ from types import SimpleNamespace
 from typing import Any
 from urllib.parse import urlencode
 from uuid import uuid4
+from time import sleep
 
 import httpx
 
@@ -109,7 +110,9 @@ def poll_pairing(pairing: Pairing) -> Connection | None:
     if response.status_code == 202:
         return None
     data = response.json()
-    return Connection(token=str(data["token"]), email=str(data["email"]), device_id=pairing.device_id)
+    return Connection(
+        token=str(data["token"]), email=str(data["email"]), device_id=pairing.device_id
+    )
 
 
 def fetch_account(connection: Connection) -> dict[str, Any]:
@@ -117,12 +120,23 @@ def fetch_account(connection: Connection) -> dict[str, Any]:
     return _request("GET", "/api/entitlement", connection.token).json()
 
 
-def reserve_report(connection: Connection) -> str:
+def reserve_report(
+    connection: Connection,
+    *,
+    title: str | None = None,
+    source_type: str | None = None,
+    mode: str | None = None,
+) -> str:
     response = _request(
         "POST",
         "/api/reports",
         connection.token,
-        json={"action": "reserve", "deviceId": connection.device_id, "cloudSave": False},
+        json={
+            "action": "reserve",
+            "deviceId": connection.device_id,
+            "cloudSave": False,
+            **({"title": title, "sourceType": source_type, "mode": mode} if source_type else {}),
+        },
     )
     return str(response.json()["reservation"]["reportId"])
 
@@ -150,7 +164,14 @@ def complete_report(
     if failed and failure_stage and failure_code:
         body["failureStage"] = failure_stage
         body["failureCode"] = failure_code
-    _request("POST", "/api/reports", connection.token, json=body)
+    for attempt in range(3):
+        try:
+            _request("POST", "/api/reports", connection.token, json=body)
+            return
+        except ManagedError as exc:
+            if attempt == 2 or (exc.status is not None and exc.status < 500 and exc.status != 429):
+                raise
+            sleep(attempt + 1)
 
 
 def _namespace(value: Any) -> Any:
@@ -180,6 +201,12 @@ class _Completions:
             "model": model,
             "messages": messages,
         }
+        if self._client.multimodel and self._client.mode == "general":
+            body.update(
+                processingPolicy="managed-providers-2026-10",
+                analysisMode="general",
+                purpose=self._client.purpose,
+            )
         if response_format and response_format.get("type") == "json_object":
             body["jsonObject"] = True
         if temperature is not None:
@@ -209,8 +236,21 @@ class _Transcriptions:
 class ManagedClient:
     """The subset of the OpenAI client the pipeline uses, billed to one report."""
 
-    def __init__(self, connection: Connection, report_id: str):
+    def __init__(
+        self,
+        connection: Connection,
+        report_id: str,
+        *,
+        mode: str | None = None,
+        multimodel: bool = False,
+    ):
         self.token = connection.token
         self.report_id = report_id
+        self.mode = mode
+        self.multimodel = multimodel
+        self.purpose = "report"
+        self.cache_identity = (
+            "managed-providers-2026-10" if multimodel and mode == "general" else "openai"
+        )
         self.chat = SimpleNamespace(completions=_Completions(self))
         self.audio = SimpleNamespace(transcriptions=_Transcriptions(self))

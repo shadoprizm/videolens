@@ -1,6 +1,5 @@
-import { createGateway } from "@ai-sdk/gateway";
 import { getVercelOidcToken } from "@vercel/oidc";
-import { transcribe } from "ai";
+import { managedTranscriptionModel, requestManagedTranscription } from "./_lib/transcription.js";
 import { authenticate } from "./_lib/auth.js";
 import { recordAiRequest } from "./_lib/entitlements.js";
 import { optionalEnv } from "./_lib/env.js";
@@ -8,16 +7,23 @@ import { providerException, failureCode, finishAiRequest, requestManagedChat, ty
 import { ApiError, corsHeaders, errorResponse, json, options } from "./_lib/http.js";
 import { parseRecipeResearch, recipeResearchPayload } from "../shared/recipeResearch.js";
 
-// Accept GPT-5.5 temporarily for published extension versions, but route those
-// legacy requests to Terra so the managed service no longer spends on GPT-5.5.
-const CHAT_MODELS = new Set(["gpt-5.4-mini", "gpt-5.5", "gpt-5.6-terra"]);
-const TRANSCRIPTION_MODELS = new Set(["gpt-4o-mini-transcribe"]);
+// Keep published clients compatible while routing legacy defaults to the
+// current review model. New clients use explicit extraction/review roles.
+const CHAT_MODELS = new Set(["gpt-5.4-mini", "gpt-5.5", "gpt-5.6-terra", "gpt-6-luna", "gpt-6-sol"]);
+const TRANSCRIPTION_MODELS = new Set(["gpt-4o-mini-transcribe", "gpt-transcribe"]);
 
-export function managedChatModel(requestedModel: string): string {
-  return requestedModel === "gpt-5.5" ? "gpt-5.6-terra" : requestedModel;
+export function managedChatModel(requestedModel: string, policy?: string, mode?: string, purpose?: string): string {
+  if (policy === "managed-providers-2026-10" && mode === "general") {
+    return purpose === "frames" ? "gpt-6-luna" : "zai/glm-5.3-flash";
+  }
+  // Older clients retain their disclosed OpenAI destination.
+  return ["gpt-5.5", "gpt-5.6-terra", "gpt-6-sol"].includes(requestedModel) ? "gpt-6-luna" : requestedModel;
 }
 
 interface ManagedChatRequest {
+  processingPolicy?: string;
+  analysisMode?: string;
+  purpose?: "frames" | "report" | "followup";
   kind?: "chat" | "recipe_research";
   input?: string;
   reportId?: string;
@@ -28,9 +34,9 @@ interface ManagedChatRequest {
   reasoning_effort?: string;
 }
 
-async function managedAiProvider(): Promise<ManagedAiProvider> {
+async function managedAiProvider(model = ""): Promise<ManagedAiProvider> {
   const openAiKey = optionalEnv("OPENAI_API_KEY");
-  if (openAiKey) return { kind: "openai", token: openAiKey };
+  if (openAiKey && !model.includes("/")) return { kind: "openai", token: openAiKey };
 
   const gatewayKey = optionalEnv("AI_GATEWAY_API_KEY");
   if (gatewayKey) return { kind: "gateway", token: gatewayKey, authMethod: "api-key" };
@@ -62,12 +68,12 @@ async function proxyChat(request: Request, userId: string): Promise<Response> {
   }
   const requestId = await recordAiRequest(userId, body.reportId, "chat");
   const started = Date.now();
+  const model = managedChatModel(body.model, body.processingPolicy, body.analysisMode, body.purpose);
   let provider: ManagedAiProvider;
-  try { provider = await managedAiProvider(); } catch {
+  try { provider = await managedAiProvider(model); } catch {
     await finishAiRequest(requestId, { requested_model: body.model, effective_model: body.model, provider: "gateway", outcome: "failed", http_status: null, error_code: "configuration_error", fallback_used: false, duration_ms: Date.now() - started });
     return managedFailure(request, "configuration_error");
   }
-  const model = managedChatModel(body.model);
 
   const openAiBody: Record<string, unknown> = {
     messages: body.messages,
@@ -137,34 +143,13 @@ async function proxyTranscription(request: Request, userId: string): Promise<Res
   let provider: ManagedAiProvider | undefined;
   try {
     provider = await managedAiProvider();
-    let result: Record<string, unknown>;
-    if (provider.kind === "gateway") {
-      const gateway = createGateway({ apiKey: provider.token, headers: { "ai-gateway-auth-method": provider.authMethod } });
-      const transcript = await transcribe({
-        model: gateway.transcription(`openai/${model}`),
-        audio: new Uint8Array(await file.arrayBuffer()), maxRetries: 1, abortSignal: AbortSignal.timeout(90_000),
-      });
-      result = { text: transcript.text, language: transcript.language, duration: transcript.durationInSeconds };
-    } else {
-      const upstreamForm = new FormData();
-      upstreamForm.append("model", model);
-      upstreamForm.append("file", file, file.name || "chunk.wav");
-      upstreamForm.append("response_format", "json");
-      const upstream = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-        method: "POST", headers: { Authorization: `Bearer ${provider.token}` }, body: upstreamForm,
-        signal: AbortSignal.timeout(90_000),
-      });
-      const raw = await upstream.text();
-      if (!upstream.ok) {
-        const code = failureCode(upstream.status, raw);
-        await finishAiRequest(requestId, { requested_model: model, effective_model: model, provider: provider.kind, outcome: "failed", http_status: upstream.status, error_code: code, fallback_used: false, duration_ms: Date.now() - started });
-        return managedFailure(request, code);
-      }
-      result = JSON.parse(raw);
-    }
-    if (typeof result.text !== "string") throw new Error("Invalid transcription response");
-    await finishAiRequest(requestId, { requested_model: model, effective_model: model, provider: provider.kind, outcome: "succeeded", http_status: 200, error_code: null, fallback_used: false, duration_ms: Date.now() - started });
-    return json(request, result);
+    const effectiveModel = managedTranscriptionModel(model);
+    const response = await requestManagedTranscription(provider, file, effectiveModel);
+    await finishAiRequest(requestId, { requested_model: model, effective_model: effectiveModel, provider: provider.kind,
+      outcome: response.errorCode ? "failed" : "succeeded", http_status: response.status, error_code: response.errorCode,
+      fallback_used: false, duration_ms: Date.now() - started });
+    return response.errorCode ? managedFailure(request, response.errorCode) : json(request, response.result);
+
   } catch (error) {
     const failure = providerException(error);
     const status = failure.status;

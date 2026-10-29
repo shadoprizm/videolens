@@ -59,7 +59,7 @@ describe("managed recipe lookup", () => {
         const response = await handler(request({ kind: "chat", reportId: "report", model: "gpt-5.6-terra", messages: [{ role: "user", content: "Analyze" }], jsonObject: true, reasoning_effort }));
         expect(response.status).toBe(200);
         const sent = JSON.parse(fetch.mock.calls.at(-1)![1]?.body as string);
-        expect(sent).toMatchObject({ model: "gpt-5.6-terra", reasoning_effort, response_format: { type: "json_object" } });
+        expect(sent).toMatchObject({ model: "gpt-6-luna", reasoning_effort, response_format: { type: "json_object" } });
         expect(sent).not.toHaveProperty("temperature");
       }
     } finally { vi.unstubAllEnvs(); }
@@ -77,4 +77,22 @@ describe("managed recipe lookup", () => {
       expect(mocks.finish).toHaveBeenCalledWith(42, expect.objectContaining({ outcome: "failed" }));
     } finally { vi.unstubAllEnvs(); }
   });
+});
+
+it('keeps provider credentials and approved inference destinations separate', async () => {
+  vi.stubEnv('OPENAI_API_KEY','openai-fixture'); vi.stubEnv('AI_GATEWAY_API_KEY','gateway-fixture');
+  const fetch=vi.spyOn(globalThis,'fetch').mockResolvedValue(Response.json({choices:[{message:{content:'{"summary":"Reviewed"}'}}]}));
+  try {
+    const response=await handler(request({reportId:'report',model:'gpt-6-luna',messages:[],jsonObject:true,reasoning_effort:'high',processingPolicy:'managed-providers-2026-10',analysisMode:'general',purpose:'report'}));
+    expect(response.status).toBe(200);
+    const init=fetch.mock.calls.at(-1)![1]!;const body=JSON.parse(init.body as string);
+    expect(body.model).toBe('zai/glm-5.3-flash');
+    expect(body.providerOptions.gateway.only).toEqual(['baseten']);
+    expect((init.headers as Record<string,string>).Authorization).toBe('Bearer gateway-fixture');
+  } finally { vi.unstubAllEnvs(); }
+});
+it('rejects GPT-6.1 Sol before recording a billable managed request',async()=>{
+  mocks.record.mockClear();
+  const response=await handler(request({reportId:'report',model:'gpt-6.1-sol',messages:[]}));
+  expect(response.status).toBe(400);expect(mocks.record).not.toHaveBeenCalled();
 });

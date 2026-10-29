@@ -17,17 +17,20 @@ type ReasoningEffort = "none" | "low" | "medium" | "high" | "xhigh" | "max";
 
 export type AiAccess =
   | { kind: "byok"; apiKey: string }
-  | { kind: "pro"; token: string; reportId: string };
+  | { kind: "pro"; token: string; reportId: string; mode?: string };
 
 export async function chatCompletion(
   access: AiAccess,
   model: string,
   messages: ChatMessage[],
-  opts: { jsonObject?: boolean; reasoningEffort?: ReasoningEffort } = {},
+  opts: { jsonObject?: boolean; reasoningEffort?: ReasoningEffort; purpose?: "frames" | "report" | "followup" } = {},
 ): Promise<string> {
   const body: Record<string, unknown> = { model, messages };
   if (access.kind === "pro") {
     body.kind = "chat";
+    body.processingPolicy = "managed-providers-2026-10";
+    body.analysisMode = access.mode;
+    body.purpose = opts.purpose || "report";
     body.reportId = access.reportId;
     body.jsonObject = Boolean(opts.jsonObject);
   } else if (opts.jsonObject) body.response_format = { type: "json_object" };

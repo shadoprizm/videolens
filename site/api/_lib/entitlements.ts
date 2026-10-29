@@ -18,7 +18,14 @@ export interface Entitlement {
   complimentary: { state: "pending" | "active" | "expired"; activatedAt: string | null; expiresAt: string | null } | null;
 }
 
+export async function releaseStaleReports(userId: string | null = null): Promise<number> {
+  const { data, error } = await supabaseAdmin().rpc("release_stale_managed_reports", { p_user_id: userId });
+  if (error) throw error;
+  return Number(data || 0);
+}
+
 export async function getEntitlement(userId: string): Promise<Entitlement> {
+  await releaseStaleReports(userId);
   const { data, error } = await supabaseAdmin().rpc("get_managed_entitlement", { p_user_id: userId });
   if (error || !data) throw error || new Error("Entitlement unavailable.");
   // Internal quota identifiers are used only by the database reservation function.
@@ -34,6 +41,7 @@ export interface Reservation {
 }
 
 export async function reserveReport(userId: string, deviceId: string, cloudSave: boolean): Promise<Reservation> {
+  await releaseStaleReports(userId);
   const { data, error } = await supabaseAdmin().rpc("reserve_managed_report", {
     p_user_id: userId,
     p_device_id: deviceId,

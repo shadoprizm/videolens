@@ -58,7 +58,11 @@ def test_poll_pairing_waits_then_connects(recorder) -> None:
 
 
 def test_expired_pairing_raises_user_message(recorder) -> None:
-    recorder(_response(410, {"error": "pairing_expired", "message": "This extension connection has expired."}))
+    recorder(
+        _response(
+            410, {"error": "pairing_expired", "message": "This extension connection has expired."}
+        )
+    )
     with pytest.raises(ManagedError, match="expired") as info:
         managed.poll_pairing(Pairing.new())
     assert info.value.code == "pairing_expired"
@@ -71,8 +75,14 @@ def test_reserve_and_complete_never_cloud_save(recorder) -> None:
     )
     assert managed.reserve_report(CONNECTION) == "r-1"
     managed.complete_report(
-        CONNECTION, "r-1", failed=True, title="T", source_type="youtube", mode="general",
-        failure_stage="source", failure_code="source",
+        CONNECTION,
+        "r-1",
+        failed=True,
+        title="T",
+        source_type="youtube",
+        mode="general",
+        failure_stage="source",
+        failure_code="source",
     )
     reserve, complete = rec.calls
     assert reserve["headers"]["Authorization"] == "Bearer jwt"
@@ -83,7 +93,15 @@ def test_reserve_and_complete_never_cloud_save(recorder) -> None:
 
 
 def test_quota_exhausted_surfaces_status(recorder) -> None:
-    recorder(_response(402, {"error": "managed_report_quota_exhausted", "message": "Your managed-report allowance is used up."}))
+    recorder(
+        _response(
+            402,
+            {
+                "error": "managed_report_quota_exhausted",
+                "message": "Your managed-report allowance is used up.",
+            },
+        )
+    )
     with pytest.raises(ManagedError) as info:
         managed.reserve_report(CONNECTION)
     assert info.value.status == 402
@@ -127,4 +145,27 @@ def test_managed_defaults_fit_proxy_limits() -> None:
     # must leave chat headroom under the 90-request per-report cap.
     assert managed.MANAGED_DEFAULTS.audio_chunk_seconds * 64_000 / 8 < 4_000_000
     assert managed.MANAGED_MAX_FRAMES + 10 <= 90
-    assert managed.MANAGED_MODELS.transcribe_diarize == "gpt-4o-mini-transcribe"
+    assert managed.MANAGED_MODELS.transcribe_diarize == "gpt-transcribe"
+
+
+def test_completion_retries_transport_failure_without_new_reservation(monkeypatch) -> None:
+    calls = []
+
+    def request(method, path, token=None, **kwargs):
+        calls.append((path, kwargs["json"]))
+        if len(calls) == 1:
+            raise ManagedError("Disconnected", code="network")
+        return _response(200, {"reportId": "existing-report"})
+
+    monkeypatch.setattr(managed, "_request", request)
+    monkeypatch.setattr(managed, "sleep", lambda _: None)
+    managed.complete_report(
+        CONNECTION,
+        "existing-report",
+        failed=False,
+        title="Report",
+        source_type="local_file",
+        mode="general",
+    )
+    assert len(calls) == 2
+    assert calls[0] == calls[1]
