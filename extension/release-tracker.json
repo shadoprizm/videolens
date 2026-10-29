@@ -606,22 +606,25 @@
   "chrome": {
     "artifact": "releases/chrome/videolens-chrome-v0.8.3.zip",
     "packageVersion": "0.8.3",
-    "status": "ready_to_submit",
+    "status": "publisher_access_pending",
     "publishedVersion": null,
     "checkedAt": "2026-10-29",
     "sha256": "81fd901933dd146e8700b8c5395b57f7d24f616472c4cb021ab0f3ffa7217b32",
-    "blockedReason": null
+    "blockedReason": "Browser tool returned Not allowed when opening the publisher console. 0.8.3 has not been uploaded or submitted."
   },
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.8.3.zip",
     "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.3.zip",
     "packageVersion": "0.8.3",
-    "status": "ready_to_submit",
+    "status": "source_upload_pending",
     "publishedVersion": null,
     "sourceSubmitted": false,
     "checkedAt": "2026-10-29",
     "sha256": "a277397dddd06973bcd49eefdd4c005b6b4f454159db1752ea8a247b520e596d",
-    "blockedReason": null
+    "blockedReason": "Package validated with zero errors/warnings; source attachment and final submission interrupted by locked Mac. Local unlock required.",
+    "stagedVersionId": 6640080,
+    "stagingUrl": "https://addons.mozilla.org/en-US/developers/addon/videolens-video-reports/versions/submit/6640080/source",
+    "sourceSha256": "d900f8973b63c48331514cf0cea5d3a99d7c8de846bf60dc5901d84327288c14"
   },
   "validation": {
     "releaseCheck": "passed",
@@ -633,6 +636,30 @@
       "warnings": 0,
       "notices": 0
     },
-    "evidence": "Public 17.585-second dashcam: 40/40 observations, 15 requests, US$0.018569 excluding audio, 151.5 seconds. Luna extraction + Baseten GLM review. Short non-incident control passed. Broader topic and native end-to-end acceptance remain limited."
+    "evidence": "Public 17.585-second dashcam: 40/40 observations, 15 requests, US$0.018569 excluding audio, 151.5 seconds. Luna extraction + Baseten GLM review. Short non-incident control passed. Broader topic and native end-to-end acceptance remain limited.",
+    "reviewerSourceRebuild": {
+      "exactMatch": true,
+      "filesCompared": 19
+    },
+    "ci": {
+      "extension": "https://github.com/shadoprizm/videolens/actions/runs/40960069762",
+      "hostedWebsite": "https://github.com/shadoprizm/videolens/actions/runs/40960069747",
+      "status": "passed"
+    }
+  },
+  "website": {
+    "status": "deployed_live_verified",
+    "url": "https://videolens.io",
+    "deployment": "dpl_3vxudKCCN8HKYkKAdCNGCigVvnYT",
+    "deploymentUrl": "https://videolens-site-kjkb45cj9-shadoprizms-projects.vercel.app",
+    "sourceCommit": "1e7ad34f19557e5dcbdab44e2fa3b09d0aeae792",
+    "pullRequest": "https://github.com/shadoprizm/videolens/pull/38",
+    "verification": "READY exact merged commit; home/account/admin/privacy 200; entitlement/reports/maintenance unauthenticated 401; AI GET 405; new provider disclosure live. Authenticated full report acceptance remains pending."
+  },
+  "hostedApp": {
+    "status": "deployment_verification_pending",
+    "url": "https://app.videolens.io",
+    "deployment": "8d2512c2-64ed-45ae-8459-8b1676d1f2da",
+    "verification": "Health returned ok; Railway showed new main build in progress. Mac locked before final active-version verification."
   }
 }
