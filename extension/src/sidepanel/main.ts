@@ -36,6 +36,7 @@ import {
 } from "../lib/languages";
 import {
   captureLocalFrames,
+  localFrameTimestamps,
   closeLocalVideo,
   makeLocalSource,
   openLocalVideo,
@@ -1842,7 +1843,9 @@ async function runFileAnalysis(access: AiAccess, prompt: string): Promise<void> 
   steps.set(frameStep, "active");
   analysisStage = "frames";
   const maxFrames = state.analysisProvider === "pro" ? Math.min(state.setupMaxFrames, 40) : state.setupMaxFrames;
-  const timestamps = state.mode === "recipe" ? recipeFrameTimestamps(local.duration) : state.mode === "tutorial" ? procedureFrameTimestamps(local.duration, earlyTranscript?.transcript) : planFrameTimestamps(local.duration, maxFrames, DEFAULTS.frameIntervalSeconds);
+  // For short local recordings, spend the requested frame budget instead of
+  // reducing a 17-second incident to just 0/5/10/15-second snapshots.
+  const timestamps = state.mode === "recipe" ? recipeFrameTimestamps(local.duration) : state.mode === "tutorial" ? procedureFrameTimestamps(local.duration, earlyTranscript?.transcript) : localFrameTimestamps(local.duration, maxFrames);
   const frames = await captureLocalFrames(local, timestamps, (done, total) =>
     steps.set(frameStep, "active", t("samplingProgress", { done, total })),
   );
