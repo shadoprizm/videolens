@@ -610,7 +610,7 @@
     "chrome": {
       "artifact": "releases/chrome/videolens-chrome-v0.8.3.zip",
       "packageVersion": "0.8.3",
-      "status": "in_review",
+      "status": "superseded",
       "publishedVersion": "0.8.1",
       "checkedAt": "2026-10-29",
       "sha256": "81fd901933dd146e8700b8c5395b57f7d24f616472c4cb021ab0f3ffa7217b32",
@@ -620,7 +620,9 @@
       "publisherId": "81acfbdc-e9d8-4cf3-a675-b206d88c4255",
       "reviewUrl": "https://chrome.google.com/webstore/devconsole/81acfbdc-e9d8-4cf3-a675-b206d88c4255/plhohhmnkfidolnjnmdaenhdjkbbledl/edit/status",
       "automaticPublication": true,
-      "note": "Native browser controls worked despite bridge navigation restriction. Verified draft 0.8.3 and unchanged manifest permissions; updated starter allowance and OpenAI/Baseten disclosures, corrected old BYOK-only declarations. Submission confirmation and Pending review verified. Public version remains 0.8.1 until Google approves."
+      "note": "Native browser controls worked despite bridge navigation restriction. Verified draft 0.8.3 and unchanged manifest permissions; updated starter allowance and OpenAI/Baseten disclosures, corrected old BYOK-only declarations. Submission confirmation and Pending review verified. Public version remains 0.8.1 until Google approves. Review cancelled to submit the tested 0.8.4 replacement; see current release record.",
+      "supersededBy": "0.8.4",
+      "reviewCancelledAt": "2026-10-29T23:58:43.103515+00:00"
     },
     "firefox": {
       "artifact": "releases/firefox/videolens-firefox-v0.8.3.zip",
@@ -682,20 +684,47 @@
   "chrome": {
     "artifact": "releases/chrome/videolens-chrome-v0.8.4.zip",
     "packageVersion": "0.8.4",
-    "status": "not_submitted",
+    "status": "in_review",
     "publishedVersion": "0.8.1",
-    "blockedReason": "The Mac locked again during the Firefox native file chooser. Both 0.8.4 packages and the verified reviewer source are prepared; native browser access needs owner unlock to complete uploads.",
-    "sha256": "02961f6a469a2fcd97252d000c362b1601450dbd4756e49dcae8fe6f7d0d5a2e"
+    "blockedReason": null,
+    "sha256": "02961f6a469a2fcd97252d000c362b1601450dbd4756e49dcae8fe6f7d0d5a2e",
+    "checkedAt": "2026-10-29T23:58:43.103515+00:00",
+    "submittedAt": "2026-10-29T23:58:43.103515+00:00",
+    "itemId": "plhohhmnkfidolnjnmdaenhdjkbbledl",
+    "publisherId": "81acfbdc-e9d8-4cf3-a675-b206d88c4255",
+    "reviewUrl": "https://chrome.google.com/webstore/devconsole/81acfbdc-e9d8-4cf3-a675-b206d88c4255/plhohhmnkfidolnjnmdaenhdjkbbledl/edit/status",
+    "automaticPublication": true,
+    "note": "Cancelled the superseded 0.8.3 review, uploaded the tested 0.8.4 archive, and verified draft 0.8.4 with unchanged manifest permissions. Updated the listing and host-permission justification to name DeepInfra/MiMo sound processing after fresh consent. Submission confirmation and Pending review verified. Automatic publication after approval is enabled; published version remains 0.8.1."
   },
   "firefox": {
     "artifact": "releases/firefox/videolens-firefox-v0.8.4.zip",
     "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.4.zip",
     "packageVersion": "0.8.4",
-    "status": "not_submitted",
-    "publishedVersion": "0.8.3",
-    "blockedReason": "The Mac locked again during the Firefox native file chooser. Both 0.8.4 packages and the verified reviewer source are prepared; native browser access needs owner unlock to complete uploads.",
+    "status": "published",
+    "publishedVersion": "0.8.4",
+    "blockedReason": null,
     "sha256": "539181a3fce1a109267fd56b5db10b20716e377d678f035a4cb31f14c5b43094",
-    "sourceSha256": "4375952f0655a25e5bdd0292fff9a5f1dcc1c730332934a83f50bccfa854ef53"
+    "sourceSha256": "4375952f0655a25e5bdd0292fff9a5f1dcc1c730332934a83f50bccfa854ef53",
+    "sourceSubmitted": true,
+    "versionId": 6640415,
+    "fileId": 5184515,
+    "reviewUrl": "https://addons.mozilla.org/en-US/developers/addon/videolens-video-reports/versions/6640415",
+    "publicVersionHistoryUrl": "https://addons.mozilla.org/en-US/firefox/addon/videolens-video-reports/versions/",
+    "submittedAt": "2026-10-29T23:49:09.505391+00:00",
+    "publishedVersionCheckedAt": "2026-10-29T23:49:09.505391+00:00",
+    "checkedAt": "2026-10-29T23:49:09.505391+00:00",
+    "note": "Submitted through the native browser upload flow with the matching reviewer source archive. AMO reported no package errors/warnings. Public API and public version history confirm 0.8.4, file 5184515, status public.",
+    "publicPackageVerification": {
+      "version": "0.8.4",
+      "versionId": 6640415,
+      "fileId": 5184515,
+      "status": "public",
+      "exactContentFiles": 18,
+      "manifestSemanticMatch": true,
+      "manifestDifference": "Mozilla removed trailing newline; JSON is identical.",
+      "addedSigningFiles": 5
+    },
+    "listingDescription": "Updated public en-US description to name OpenAI, Baseten/GLM and consent-gated DeepInfra/MiMo; distinguish timestamped evidence from exact event onset and disclose Managed local-file sound scope, browser-tab/Private limitations and provisional acoustic observations. Public API and listing verified; source/privacy links retained."
   },
   "validation": {
     "releaseCheck": "passed",
