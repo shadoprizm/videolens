@@ -684,7 +684,7 @@
     "packageVersion": "0.8.4",
     "status": "not_submitted",
     "publishedVersion": "0.8.1",
-    "blockedReason": null,
+    "blockedReason": "The Mac locked again during the Firefox native file chooser. Both 0.8.4 packages and the verified reviewer source are prepared; native browser access needs owner unlock to complete uploads.",
     "sha256": "02961f6a469a2fcd97252d000c362b1601450dbd4756e49dcae8fe6f7d0d5a2e"
   },
   "firefox": {
@@ -693,7 +693,7 @@
     "packageVersion": "0.8.4",
     "status": "not_submitted",
     "publishedVersion": "0.8.3",
-    "blockedReason": null,
+    "blockedReason": "The Mac locked again during the Firefox native file chooser. Both 0.8.4 packages and the verified reviewer source are prepared; native browser access needs owner unlock to complete uploads.",
     "sha256": "539181a3fce1a109267fd56b5db10b20716e377d678f035a4cb31f14c5b43094",
     "sourceSha256": "4375952f0655a25e5bdd0292fff9a5f1dcc1c730332934a83f50bccfa854ef53"
   },
@@ -708,6 +708,30 @@
       "notices": 0
     },
     "evidence": "Guarded MiMo acoustic observations + Luna visuals + GLM joint review tested on the original public Highway 400 clip. Empty gpt-transcribe output now succeeds without retry. Synthetic silence/tone and six ESC-10 environmental holdouts evaluated; sparse transients can remain uncertain. This is an initial acoustic-description feature, not a validated event detector.",
-    "database": "sound_evidence_budget applied; rollback test confirms independent 20-operation sound limit, cross-account isolation, and no anon/member RPC execution."
+    "database": "sound_evidence_budget applied; rollback test confirms independent 20-operation sound limit, cross-account isolation, and no anon/member RPC execution.",
+    "reviewerSourceRebuild": {
+      "exactMatch": true,
+      "filesCompared": 19
+    },
+    "ci": {
+      "status": "passed",
+      "extension": "https://github.com/shadoprizm/videolens/actions/runs/40970642447",
+      "hostedWebsite": "https://github.com/shadoprizm/videolens/actions/runs/40970642627"
+    }
+  },
+  "website": {
+    "status": "deployed_live_verified",
+    "url": "https://videolens.io",
+    "deployment": "dpl_tZTiZFKzZxhnvKwVHyDbcAev9ZBE",
+    "sourceCommit": "99ca3cbb9bee1478b9aef4ad43946c59fc015cdb",
+    "pullRequest": "https://github.com/shadoprizm/videolens/pull/41",
+    "verification": "Vercel READY exact merged commit; production aliases verified. Privacy names DeepInfra; deployed admin bundle labels processing requests and Sounds; unauthenticated APIs remain protected. Full authenticated native-client acceptance remains pending."
+  },
+  "hostedApp": {
+    "status": "deployed_live_verified",
+    "url": "https://app.videolens.io",
+    "sourceCommit": "99ca3cbb9bee1478b9aef4ad43946c59fc015cdb",
+    "githubDeploymentId": 7426358688,
+    "verification": "Railway GitHub deployment 7426358688 for exact merged commit reports success at 2026-10-29T23:08:40Z; public health returns ok. Full authenticated hosted report acceptance remains pending."
   }
 }

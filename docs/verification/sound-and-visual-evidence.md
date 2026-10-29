@@ -58,3 +58,9 @@ vercel env run -e production -- node /path/to/videolens/scripts/evaluate-sounds.
 ```
 
 The script uses the production helper and prints observations, elapsed time and measured Gateway cost. It never prints credentials or raw audio.
+
+## Release state
+
+[PR #41](https://github.com/shadoprizm/videolens/pull/41) merged as `99ca3cbb9bee1478b9aef4ad43946c59fc015cdb`. Both CI workflows passed. The exact commit is live on the website/API (Vercel `dpl_tZTiZFKzZxhnvKwVHyDbcAev9ZBE`, READY, production aliases verified). Railway's GitHub deployment for the exact commit reports success at 23:08:40Z; hosted health returns `ok`.
+
+Chrome and Firefox 0.8.4 packages and the separate Firefox source archive are ready. A fresh source-archive build reproduces all 19 Firefox files exactly. Store uploads remain unfinished because the Mac locked again when the native upload chooser opened. An owner unlock has been requested. No 0.8.4 store submission or publication is claimed; the release tracker preserves the prior versions and records the block. Authenticated native-client acceptance remains an explicit verification gap.
