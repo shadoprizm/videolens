@@ -51,3 +51,9 @@ test("account-first defaults preserve explicit choices and legacy key-only insta
     }
   } finally { globalThis.chrome = originalChrome; }
 });
+
+test("sound processing requires accepting the new processor notice",async()=>{
+ const before=globalThis.chrome;let state={privacyDisclosureVersion:5};
+ globalThis.chrome={storage:{local:{get:async()=>({...state}),set:async v=>Object.assign(state,v)}}};
+ try {assert.equal(await storage.hasAcceptedPrivacyDisclosure(),false);await storage.acceptPrivacyDisclosure();assert.equal(await storage.hasAcceptedPrivacyDisclosure(),true);assert.equal(state.privacyDisclosureVersion,6);}finally{globalThis.chrome=before;}
+});

@@ -452,6 +452,7 @@ function isAnalysis(value: unknown): value is Analysis {
       && (segment.transcript == null || typeof segment.transcript === "string")
       && isStringArray(segment.ocr)
       && (segment.visualSummary == null || typeof segment.visualSummary === "string")
+      && (segment.audioSummary == null || typeof segment.audioSummary === "string")
       && CONFIDENCE_VALUES.has(segment.confidence as Confidence))
     || !Array.isArray(value.findings)
     || !value.findings.every((finding) => isObject(finding)
@@ -512,6 +513,7 @@ function searchableReportText(report: SavedReport): string {
       segment.sceneType,
       segment.transcript,
       segment.visualSummary,
+      segment.audioSummary,
       ...segment.ocr,
     ]),
     ...analysis.findings.flatMap((finding) => [

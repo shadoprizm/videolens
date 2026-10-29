@@ -20,6 +20,8 @@ from videolens.processors.extract_audio import chunk_audio, extract_audio
 from videolens.processors.extract_frames import FRAME_PROCESSING_VERSION, extract_frames
 from videolens.processors.extract_metadata import probe_metadata
 from videolens.processors.transcribe_audio import transcribe
+from videolens.processors.transcribe_audio import TranscriptionError
+from videolens.processors.analyze_sounds import analyze_sounds
 from videolens.processors.structured_frames import extract_structured_frames
 from videolens.resolvers import resolve_source
 from videolens.types import (
@@ -103,6 +105,7 @@ def run_extraction(
             "evidence_contract": CONTRACT_VERSION,
             "visual_focus": prompt if mode == AnalysisMode.GENERAL else None,
             "sequence_evidence": 1,
+            "sound_contract": "windowed-mimo-1" if getattr(client, "sound_consent", False) else "no-sound",
             "processing_policy": getattr(client, "cache_identity", "openai"),
         },
     )
@@ -119,9 +122,14 @@ def run_extraction(
 
     transcript: Transcript | None = None
     if metadata.has_audio:
-        transcript = _ensure_transcript(
-            video_path, cache, force, mode, config, client, metadata.duration_seconds, console
-        )
+        try:
+            transcript = _ensure_transcript(
+                video_path, cache, force, mode, config, client, metadata.duration_seconds, console
+            )
+        except TranscriptionError:
+            resolved.limitations.append("Speech transcription failed; spoken content may be missing. Non-speech sound analysis is a separate stage.")
+        if transcript is not None and not transcript.segments:
+            resolved.limitations.append("Speech transcription returned no recognized words; this does not prove speech was absent.")
     else:
         console.print("[yellow]no audio track — skipping transcription[/yellow]")
 
@@ -159,6 +167,20 @@ def run_extraction(
     timeline = _ensure_timeline(
         frame_summaries, transcript, metadata.duration_seconds, cache, force, console
     )
+    if metadata.has_audio:
+        console.print("[cyan]analyzing non-speech sounds…[/cyan]")
+        sound_file = "sound-evidence.json"
+        cached_sound = None if force else cache.read_json(sound_file)
+        if cached_sound is None:
+            sound_segments, sound_limits = analyze_sounds(video_path, metadata.duration_seconds, cache.path("sound"), client)
+            cache.write_json(sound_file, {"segments": [s.model_dump(mode="json") for s in sound_segments], "limitations": sound_limits})
+        else:
+            from videolens.types import TimelineSegment
+            sound_segments = [TimelineSegment.model_validate(s) for s in cached_sound["segments"]]
+            sound_limits = cached_sound["limitations"]
+        timeline.segments.extend(sound_segments)
+        timeline.segments.sort(key=lambda s: s.start)
+        resolved.limitations.extend(sound_limits)
 
     analysis: Analysis | None = None
     report_html: str | None = None

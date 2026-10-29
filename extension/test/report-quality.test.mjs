@@ -24,3 +24,10 @@ test("the final reviewer receives original timestamped images, with request size
   assert.match(body.messages[1].content[1].text,/10.000/);
  }finally{globalThis.fetch=originalFetch;}
 });
+test('heard evidence reaches the reviewer independently from speech and vision',async()=>{
+ const previous=globalThis.fetch;let body;
+ globalThis.fetch=async(_url,init)=>{body=JSON.parse(init.body);return Response.json({choices:[{message:{content:'{"summary":"Seen and heard evidence reviewed.","findings":[],"limitations":[],"confidence":"medium"}'}}]});};
+ try { await analyzeTimeline({kind:'byok',apiKey:'fixture'},{segments:[{start:6,end:8,visualSummary:null,audioSummary:'A faint click.',transcript:null,ocr:[],confidence:'medium'}]},source,'general','Explain the event');
+ assert.match(JSON.stringify(body.messages),/heard \(provisional, within this window\): A faint click/); assert.match(JSON.stringify(body.messages),/not exact event onsets/);
+ }finally{globalThis.fetch=previous;}
+});

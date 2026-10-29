@@ -34,6 +34,8 @@ should cite at least one timestamp from the timeline.
 Timeline captions are provisional model-generated observations, not verified facts. Direct images take precedence. Do not promote caption claims of sliding, stationary vehicles, lane crossings, braking or identity to facts without clear image support. Distinguish traffic beyond a separating barrier. Date, GPS and speed overlays are unverified readings, not independent measurements.
 The timeline is sampled evidence, not continuous video. Missing observations are not proof an event did not occur. Describe visible changes separately from uncertainty about their cause. Scope negative findings to the supplied evidence and state what cannot be ruled out.
 
+When heard observations are present, include a concise sound assessment in the summary and at least one timestamped acoustic finding. State whether the sounds independently corroborate the visible event or remain inconclusive. Describe only the supported acoustic qualities. Do not propose wipers, fabric, paper, braking or impact as the source of generic clicks, rumble or rustling, even as a recommendation. Never manufacture agreement between modalities. Unreported sounds do not establish absence. Do not suggest generated enhancement can recover missing factual detail; recommend inspecting the original full-resolution recording.
+
 Mode-specific guidance:
 {mode_instructions}
 
@@ -189,6 +191,7 @@ def _build_user_message(
     lines.append("")
     lines.append(f"FINDINGS GUIDANCE: {findings_guidance}")
     lines.append("")
+    lines.append("Heard observations are independent provisional sound descriptions. Window ranges are coverage, not exact event onsets. Correlate seen and heard evidence explicitly, but generic rumble/clicks do not establish collision, braking, identity or causation. Unreported sounds are not proof of absence. If no heard observations exist, say non-speech sounds were not analyzed; captions are not sound evidence.")
     lines.append("TIMELINE:")
 
     if not timeline.segments:
@@ -196,6 +199,8 @@ def _build_user_message(
     else:
         for seg in timeline.segments:
             lines.append(f"[{seg.start:.1f}s — {seg.end:.1f}s] scene={seg.scene_type or '—'}")
+            if seg.audio_summary:
+                lines.append(f"  heard (provisional, within this window): {seg.audio_summary}")
             if seg.visual_summary:
                 lines.append(f"  visual: {seg.visual_summary}")
             if seg.ocr:

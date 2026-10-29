@@ -66,7 +66,7 @@ export async function reserveReport(userId: string, deviceId: string, cloudSave:
   };
 }
 
-export async function recordAiRequest(userId: string, reportId: string, kind: "chat" | "transcription"): Promise<number> {
+export async function recordAiRequest(userId: string, reportId: string, kind: "chat" | "transcription" | "sound"): Promise<number> {
   const { data, error } = await supabaseAdmin().rpc("begin_managed_ai_request", {
     p_user_id: userId,
     p_report_id: reportId,

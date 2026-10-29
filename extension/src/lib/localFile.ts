@@ -2,8 +2,8 @@
 // offscreen <video>, and audio decode → 16 kHz mono WAV chunks → OpenAI
 // transcription. Replaces ffmpeg/yt-dlp from the Python pipeline.
 import { DEFAULTS, MODELS } from "./config";
-import { transcribeChunk, type AiAccess } from "./openai";
-import type { CapturedFrame, SourceInfo, Transcript, TranscriptSegment } from "./types";
+import { transcribeChunk, analyzeSoundChunk, type AiAccess } from "./openai";
+import type { CapturedFrame, SourceInfo, Transcript, TranscriptSegment, TimelineSegment } from "./types";
 import { seekVideoFrame, VideoFrameTimeout } from "./videoFrame";
 import { planFrameTimestamps } from "./capture";
 
@@ -11,6 +11,37 @@ import { planFrameTimestamps } from "./capture";
 // this duration, decoding risks OOM in the side panel. We degrade to
 // frames-only rather than crash.
 const TRANSCRIBE_MAX_SECONDS = 20 * 60;
+const decodedAudio = new WeakMap<File, Promise<Float32Array>>();
+
+async function localMono(local: LocalVideo): Promise<Float32Array> {
+  let decoded = decodedAudio.get(local.file);
+  if (!decoded) {
+    decoded = (async () => {
+      const ctx = new OfflineAudioContext(1, 1, DEFAULTS.transcriptionSampleRate);
+      return resampleToMono(await ctx.decodeAudioData(await local.file.arrayBuffer()), DEFAULTS.transcriptionSampleRate);
+    })();
+    decodedAudio.set(local.file, decoded);
+  }
+  return decoded;
+}
+
+export async function analyzeLocalSounds(access: AiAccess, local: LocalVideo): Promise<{ segments: TimelineSegment[]; limitations: string[] }> {
+  if (access.kind !== "pro") return { segments: [], limitations: ["Non-speech sounds were not analyzed: Private mode currently supports OpenAI speech transcription only."] };
+  if (local.duration > TRANSCRIBE_MAX_SECONDS) return { segments: [], limitations: ["Non-speech sounds were not analyzed: browser audio decoding supports files up to 20 minutes. Use the hosted app for longer files."] };
+  let mono: Float32Array;
+  try { mono = await localMono(local); } catch {
+    return { segments: [], limitations: ["Non-speech sounds were not analyzed: the browser could not decode an audio track."] };
+  }
+  const rate = DEFAULTS.transcriptionSampleRate, segments: TimelineSegment[] = [];
+  for (let offset = 0; offset < mono.length; offset += rate * 60) {
+    const result = await analyzeSoundChunk(access, encodeWav(mono.subarray(offset, Math.min(offset + rate * 60, mono.length)), rate));
+    for (const w of result.windows) segments.push({ start: offset / rate + w.start, end: offset / rate + w.end,
+      sceneType: "sound observation", transcript: null, visualSummary: null, ocr: [], audioSummary: w.description, confidence: w.confidence });
+  }
+  return { segments, limitations: [segments.length
+    ? "Non-speech sounds were analyzed independently in short audio windows. Time ranges show window coverage, not exact event onsets. Audio is downmixed to mono; sound direction is not measured. Sound descriptions are provisional; source identity, contact and causation are not established by audio alone."
+    : "The decoded audio contains digital silence; no sound model calls were needed."] };
+}
 
 export interface LocalVideo {
   file: File;
@@ -119,11 +150,9 @@ export async function transcribeLocalFile(
     };
   }
 
-  let audio: AudioBuffer;
+  let mono: Float32Array;
   try {
-    const bytes = await local.file.arrayBuffer();
-    const ctx = new OfflineAudioContext(1, 1, DEFAULTS.transcriptionSampleRate);
-    audio = await ctx.decodeAudioData(bytes);
+    mono = await localMono(local);
   } catch {
     return {
       transcript: null,
@@ -131,7 +160,6 @@ export async function transcribeLocalFile(
     };
   }
 
-  const mono = await resampleToMono(audio, DEFAULTS.transcriptionSampleRate);
   const chunkSamples = DEFAULTS.transcriptionChunkSeconds * DEFAULTS.transcriptionSampleRate;
   const chunks: { start: number; end: number; samples: Float32Array }[] = [];
   for (let offset = 0; offset < mono.length; offset += chunkSamples) {
@@ -176,7 +204,7 @@ export async function transcribeLocalFile(
 
   const kept = segments.filter((s): s is TranscriptSegment => s !== null);
   if (kept.length === 0) {
-    return { transcript: null, limitation: failed === chunks.length ? "Audio not transcribed: all transcription calls failed." : "No intelligible speech was returned. Non-speech audio events were not analyzed." };
+    return { transcript: null, limitation: failed === chunks.length ? "Audio not transcribed: all transcription calls failed." : "No intelligible speech was returned by the speech transcriber." };
   }
   return { transcript: { language: null, segments: kept }, limitation: failed ? `${failed} of ${chunks.length} audio chunks could not be transcribed; speech coverage is incomplete.` : null };
 }

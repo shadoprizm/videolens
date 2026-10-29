@@ -56,6 +56,7 @@ export interface TimelineSegment {
   transcript: string | null;
   ocr: string[];
   visualSummary: string | null;
+  audioSummary?: string | null;
   confidence: Confidence;
 }
 

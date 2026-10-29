@@ -204,6 +204,7 @@ Defaults are in `src/videolens/config.py`:
 | Transcription (meeting) | `gpt-4o-transcribe-diarize` |
 | Private / BYOK extraction, analysis and Q&A | `gpt-6-luna` (high reasoning) |
 | Optimized Managed general-report extraction | `gpt-6-luna`, high reasoning, through OpenAI on Vercel AI Gateway |
+| Managed local-file/hosted sound observations | Xiaomi MiMo V2.6 Flash, pinned to DeepInfra; independent 2-second windows, alternate-encoding agreement check, digital-silence gate, updated consent required |
 | Optimized Managed general-report final review | GLM 5.3 Flash, high reasoning, restricted to Baseten on Vercel AI Gateway |
 | Managed compatibility and recovery | `gpt-6-luna`; older clients keep their disclosed OpenAI destination |
 
@@ -215,7 +216,7 @@ letting 4K uploads create unbounded image-token costs.
 
 ## Cost guide
 
-The October 29 validation used the public 17.585-second dashcam clip: the optimized Managed general pipeline analyzed 40 frames in 15 AI requests for **US$0.018569**, excluding transcription. This is one measured example, not a fixed per-video price or an all-topic quality benchmark. Audio, longer prompts, image detail, provider retries and reasoning output change the total. The default speech model is listed at $0.0045 per audio minute in the checked Gateway catalogue; specialized meeting diarization has separate pricing.
+The October 29 validation used the public 17.585-second dashcam clip: the optimized Managed general pipeline analyzed 40 frames in 15 AI requests for **US$0.018569**, excluding transcription. This is one measured example, not a fixed per-video price or an all-topic quality benchmark. A separate October 29 sound-and-visual test added US$0.001669 for guarded MiMo sound observations and US$0.007922 for a fresh GLM final review, reusing the same extracted visual evidence. This sound route is an initial acoustic-description feature, not a validated sound-event detector. Audio, longer prompts, image detail, provider retries and reasoning output change the total. The default speech model is listed at $0.0045 per audio minute in the checked Gateway catalogue; specialized meeting diarization has separate pricing.
 
 Extraction caching avoids repeating video processing for a new prompt on the same evidence. A follow-up still incurs its analysis-model charge. Full comparison and limitations: [scan reliability and model economics](docs/verification/scan-reliability-quality.md).
 
@@ -266,7 +267,7 @@ The VideoLens side-panel extension offers two explicit processing modes:
 - **Private / BYOK (free forever):** the pipeline runs inside the browser and calls OpenAI directly with the user's key. VideoLens receives no analysis content.
 - **Pro / Managed:** the user connects a VideoLens account, no OpenAI key is required, and managed calls run through Vercel AI Gateway to the configured provider (currently OpenAI) while counting against the account allowance. Completed reports enter the cloud library only when the user enables cloud saving.
 
-Both modes analyze the current tab (YouTube captions + canvas frame sampling) or a local file (in-browser audio decode → transcription). The OpenAI key used by Private mode never leaves the device.
+Both modes analyze the current tab (YouTube captions + canvas frame sampling) or a local file (in-browser audio decode → speech transcription, plus independent sound observations in Managed mode after the updated notice is accepted). The OpenAI key used by Private mode is sent only to OpenAI, never to VideoLens.
 
 - Free and open source Private mode — unlimited analyses and no VideoLens account
 - Three managed starter reports for signed-in users; Pro includes 20 managed reports per calendar month

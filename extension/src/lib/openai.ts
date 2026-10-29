@@ -75,6 +75,18 @@ export async function transcribeChunk(
   return (data?.text ?? "").trim();
 }
 
+export async function analyzeSoundChunk(access: AiAccess, wav: Blob): Promise<{ windows: { start: number; end: number; description: string; confidence: "medium" | "low" }[] }> {
+  if (access.kind !== "pro") throw new OpenAIError("Sound analysis requires Managed mode.");
+  const form = new FormData();
+  form.append("kind", "sound"); form.append("processingPolicy", "managed-sounds-2026-10");
+  form.append("reportId", access.reportId); form.append("file", wav, "sound.wav");
+  const res = await fetch(PRO_BASE, { method: "POST", headers: { Authorization: `Bearer ${access.token}` }, body: form, signal: AbortSignal.timeout(290_000) });
+  if (!res.ok) throw new OpenAIError(`Sound analysis failed: ${await safeErrorText(res)}`);
+  const data = await res.json();
+  if (!Array.isArray(data.windows)) throw new OpenAIError("No valid sound evidence was returned.");
+  return data;
+}
+
 export async function researchRecipe(access: AiAccess, input: string): Promise<RecipeResearch> {
   const res = await fetch(access.kind === "byok" ? `${BASE}/responses` : PRO_BASE, {
     method: "POST",

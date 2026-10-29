@@ -11,7 +11,7 @@ const report: CloudReport = {
     recommendations: [{ recommendation: "Try again", rationale: "A good reason", confidence: "medium" }],
     tasks: [{ title: "Next action", detail: "Action details" }], limitations: ["Limited sample"],
     qa: [{ question: "Why?", answer: "Because of the follow-up evidence." }],
-    timeline: { segments: [{ start: 12, end: 20, transcript: "Transcript-only search term", visualSummary: "Visual context", ocr: ["On-screen text"] }] },
+    timeline: { segments: [{ start: 12, end: 20, transcript: "Transcript-only search term", visualSummary: "Visual context", audioSummary: "Independent acoustic evidence", ocr: ["On-screen text"] }] },
   },
 };
 
@@ -23,7 +23,7 @@ describe("cloud report reader and exports", () => {
   });
   it("keeps every saved report section in the reader and portable exports", () => {
     for (const content of [reportBody(report), reportHtml(report, "body { margin: 0; }"), reportMarkdown(report)]) {
-      for (const value of ["First paragraph.", "Second paragraph.", "Finding one", "Visible proof", "Try again", "A good reason", "Next action", "Limited sample", "Why?", "Because of the follow-up evidence.", "Transcript-only search term", "Visual context", "On-screen text", "Explain the results"]) expect(content).toContain(value);
+      for (const value of ["First paragraph.", "Second paragraph.", "Finding one", "Visible proof", "Try again", "A good reason", "Next action", "Limited sample", "Why?", "Because of the follow-up evidence.", "Transcript-only search term", "Visual context", "On-screen text", "Independent acoustic evidence", "Explain the results"]) expect(content).toContain(value);
     }
     expect(reportBody(report)).toContain("t=12s");
     expect(reportHtml(report, "")).toContain('class="cr-timeline" open');

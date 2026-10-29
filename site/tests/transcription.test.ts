@@ -1,6 +1,7 @@
 import { beforeEach, expect, it, vi } from "vitest";
+import { NoTranscriptGeneratedError } from "ai";
 const mocks = vi.hoisted(() => ({ transcribe: vi.fn() }));
-vi.mock("ai", () => ({ transcribe: mocks.transcribe }));
+vi.mock("ai", async original => ({ ...await original<typeof import("ai")>(), transcribe: mocks.transcribe }));
 vi.mock("@ai-sdk/gateway", () => ({ createGateway: () => ({ transcription: (id: string) => id }) }));
 import { managedTranscriptionModel, requestManagedTranscription } from "../api/_lib/transcription.js";
 const provider = { kind: "gateway", token: "fixture", authMethod: "oidc" } as const;
@@ -29,4 +30,10 @@ it("does not mark a malformed transcription response as successful", async () =>
   mocks.transcribe.mockResolvedValue({ text: undefined });
   expect(await requestManagedTranscription(provider, new File(["audio"], "chunk.wav"), "gpt-transcribe"))
     .toMatchObject({ result: null, errorCode: "invalid_provider_response" });
+});
+
+it("a valid empty transcript is not a network failure and is never retried", async()=>{
+ mocks.transcribe.mockRejectedValue(new NoTranscriptGeneratedError({responses:[]}));
+ expect(await requestManagedTranscription(provider,new File(['audio'],'chunk.wav'),'gpt-transcribe')).toEqual({result:{text:''},status:200,errorCode:null});
+ expect(mocks.transcribe).toHaveBeenCalledTimes(1);
 });

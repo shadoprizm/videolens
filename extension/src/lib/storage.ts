@@ -24,7 +24,7 @@ export interface StoredProSession {
   email: string;
 }
 
-export const PRIVACY_DISCLOSURE_VERSION = 5;
+export const PRIVACY_DISCLOSURE_VERSION = 6;
 
 export interface StartupSettings {
   privacyDisclosureAccepted: boolean;

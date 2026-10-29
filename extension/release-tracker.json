@@ -1,59 +1,601 @@
 {
-  "targetVersion": "0.8.3",
-  "channel": "scan_reliability_and_evidence_review",
+  "targetVersion": "0.8.4",
+  "channel": "sound_and_visual_evidence",
   "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
   "previousRelease": {
-    "targetVersion": "0.8.2",
-    "channel": "local_file_reliability",
+    "targetVersion": "0.8.3",
+    "channel": "scan_reliability_and_evidence_review",
     "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
     "previousRelease": {
-      "targetVersion": "0.8.1",
-      "channel": "starter_allowance",
+      "targetVersion": "0.8.2",
+      "channel": "local_file_reliability",
       "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
+      "previousRelease": {
+        "targetVersion": "0.8.1",
+        "channel": "starter_allowance",
+        "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
+        "chrome": {
+          "artifact": "releases/chrome/videolens-chrome-v0.8.1.zip",
+          "packageVersion": "0.8.1",
+          "status": "pending_review",
+          "publishedVersion": null,
+          "checkedAt": "2026-10-25",
+          "blockedReason": null,
+          "sha256": "a8032e46ad56f885a6dfb1e107bb53bc991576525a27ed287c3a8fe60ec2dfce",
+          "submittedAt": "2026-10-25",
+          "itemId": "plhohhmnkfidolnjnmdaenhdjkbbledl",
+          "note": "Owner uploaded the Mac-built 0.8.1 package, updated the listing description to three free starter reports, and submitted for review in the Chrome Web Store console on 2026-10-25. Publication not yet verified."
+        },
+        "firefox": {
+          "artifact": "releases/firefox/videolens-firefox-v0.8.1.zip",
+          "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.1.zip",
+          "packageVersion": "0.8.1",
+          "status": "published",
+          "publishedVersion": "0.8.1",
+          "checkedAt": "2026-10-25",
+          "blockedReason": null,
+          "sourceSubmitted": true,
+          "sha256": "3ea6e3b0df1cbef7e95f7e51ae25a3172d5eb76a44194c641e6d2f1eb2177717",
+          "sourceSha256": "fdac99c80d81f8de7f6b8d5005f44ff82ac19476d10075992db6201df73b82f5",
+          "submittedAt": "2026-10-25T16:10:42Z",
+          "publishedVersionCheckedAt": "2026-10-25",
+          "versionId": 6620893,
+          "fileId": 5165007,
+          "reviewUrl": "https://addons.mozilla.org/en-US/developers/addon/videolens-video-reports/versions/6620893",
+          "publicListingUrl": "https://addons.mozilla.org/en-US/firefox/addon/videolens-video-reports/",
+          "note": "Submitted through the AMO upload API with the Mac-built package and reviewer source. AMO reports 0.8.1 as the current public version (status public). The live file manifest matches dist-firefox and contains the three-report copy. AMO re-signs uploads, so its file hash differs from the local archive hash.",
+          "listingDescription": "2026-10-25: en-US AMO description updated to say a free account includes three managed starter reports. A first PATCH wrote back the rendered (linkified) text and corrupted the GitHub and privacy links for a few minutes; restored to plain URLs and verified (2529 -> 2532 characters, only the intended sentence changed)."
+        },
+        "validation": {
+          "releaseCheck": "passed",
+          "extensionTests": 101,
+          "siteTests": 138,
+          "firefoxLint": {
+            "errors": 0,
+            "warnings": 0,
+            "notices": 0
+          },
+          "database": "Migration 20261025150000_three_starter_reports.sql applied to the production project on 2026-10-25 (free limit verified 1 -> 3; anon/authenticated still cannot execute get_managed_entitlement). managed_failure_recovery, complimentary_pro_recovery and administrator_dashboard fixtures all passed against production with rollback; no synthetic rows persisted. 72 free accounts have reports remaining, 0 exhausted.",
+          "copy": "English, Spanish, Romanian, Hindi, Simplified and Traditional Chinese extension strings, store listings and site copy now say three free reports. Account page shows remaining free reports while the allowance lasts.",
+          "macBuild": "release:check passed on the owner Mac: 101 extension tests, Chrome and Firefox packages, Firefox lint 0 errors/warnings/notices. Submitted hashes are the Mac-built archives."
+        },
+        "website": {
+          "status": "deployed_live_verified",
+          "url": "https://videolens.io",
+          "deployment": "dpl_53fdCMwP9uWDuhmBBEKth8EUTRro",
+          "deploymentUrl": "https://videolens-site-k71fg442w-shadoprizms-projects.vercel.app",
+          "sourceCommit": "06b969350d2e0461d66d49b427fc093a5ea43a19",
+          "deployedAt": "2026-10-25",
+          "verification": "Production aliases videolens.io and www.videolens.io. Home, account and llms.txt return 200 with three-report copy and no one-report copy; unauthenticated entitlement and reports return 401, AI GET returns 405."
+        },
+        "previousRelease": {
+          "targetVersion": "0.8.0",
+          "channel": "conversion_workflow",
+          "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
+          "previousRelease": {
+            "targetVersion": "0.7.2",
+            "channel": "startup_performance",
+            "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
+            "previousRelease": {
+              "targetVersion": "0.7.1",
+              "channel": "account_first",
+              "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
+              "previousRelease": {
+                "targetVersion": "0.7.0",
+                "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
+                "channel": "store_release",
+                "previousRelease": {
+                  "targetVersion": "0.6.0",
+                  "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
+                  "channel": "store_release",
+                  "previousRelease": {
+                    "targetVersion": "0.5.1",
+                    "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
+                    "channel": "store_release",
+                    "previousRelease": {
+                      "targetVersion": "0.5.0",
+                      "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
+                      "channel": "store_release",
+                      "chrome": {
+                        "artifact": "releases/chrome/videolens-chrome-v0.5.0.zip",
+                        "packageVersion": "0.5.0",
+                        "status": "uploaded_by_owner",
+                        "publishedVersion": "0.4.1.1",
+                        "blockedReason": null,
+                        "sha256": "5137976a3701cf96eb5000833305c989f67f84143b64ca00466ee179fdc5649a",
+                        "checkedAt": "2026-09-16",
+                        "publishedVersionCheckedAt": "2026-09-12",
+                        "uploadedAt": "2026-09-16",
+                        "note": "User confirmed upload; review and publication unverified."
+                      },
+                      "firefox": {
+                        "artifact": "releases/firefox/videolens-firefox-v0.5.0.zip",
+                        "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.5.0.zip",
+                        "packageVersion": "0.5.0",
+                        "status": "published",
+                        "publishedVersion": "0.5.0",
+                        "blockedReason": null,
+                        "sha256": "a5547a728851390a452ae63410693aedf102a31e5fa3735c326b5d7e6b647fb1",
+                        "checkedAt": "2026-09-16",
+                        "submittedAt": "2026-09-16",
+                        "versionId": 6491649,
+                        "fileId": 5035809,
+                        "sourceSubmitted": true,
+                        "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6491649",
+                        "publishedVersionCheckedAt": "2026-09-17",
+                        "note": "AMO listed 0.5.0 while submitting 0.6.0; 0.5.1 was still awaiting review."
+                      },
+                      "previousRelease": {
+                        "targetVersion": "0.4.6",
+                        "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
+                        "chrome": {
+                          "artifact": "releases/chrome/videolens-chrome-v0.4.6.zip",
+                          "packageVersion": "0.4.6",
+                          "status": "ready_to_submit",
+                          "publishedVersion": "0.4.1.1",
+                          "sha256": "f9b505335612dd9f039c401262b7241d98d59bd3e251e0f6b296c91e28e089e4",
+                          "blockedReason": "0.4.6 has not been submitted. The 2026-09-14 upload attempt selected the Firefox reviewer-source archive; use the tracked Chrome artifact instead.",
+                          "checkedAt": "2026-09-14"
+                        },
+                        "firefox": {
+                          "artifact": "releases/firefox/videolens-firefox-v0.4.6.zip",
+                          "packageVersion": "0.4.6",
+                          "status": "blocked_by_two_factor",
+                          "publishedVersion": null,
+                          "sha256": "de6ae814077fe789f1962a17fd54c43d24d37d44208308e6868e218f71377810",
+                          "blockedReason": "Mozilla publisher sign-in reached the six-digit authenticator-code screen on 2026-09-14. User action is required before the 0.4.6 upload can continue.",
+                          "checkedAt": "2026-09-14",
+                          "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.4.6.zip"
+                        },
+                        "validation": {
+                          "releaseCheck": "passed",
+                          "extensionTests": 59,
+                          "firefoxLint": {
+                            "errors": 0,
+                            "warnings": 0,
+                            "notices": 0
+                          },
+                          "productionUpload": "Historical 0.4.5 check passed in Chrome Profile J: two existing BYOK reports uploaded and visible at https://videolens.io/account; two local copies and the then-current 20 managed credits were preserved.",
+                          "reader": "0.4.6 unpacked Chrome reloaded in place: both saved reports retained; clicking a sidebar Library title opened the shared full reader from local IndexedDB. Results also expose Open full report. Offline reader tests pass for Chrome and Firefox; live website reader verified with the existing account reports."
+                        },
+                        "website": {
+                          "status": "deployed",
+                          "url": "https://videolens.io",
+                          "deployment": "dpl_9MiR61LNqsDd89Ven1kFp9a9LWsh",
+                          "deploymentNote": "Deployment observed with the reader and print load-listener fix; subsequent deployments may include unrelated changes."
+                        }
+                      },
+                      "releaseHistory": [
+                        {
+                          "version": "0.4.4",
+                          "chrome": {
+                            "artifact": "releases/chrome/videolens-chrome-v0.4.4.zip",
+                            "packageVersion": "0.4.4",
+                            "status": "pending_review",
+                            "publishedVersion": "0.4.1.1"
+                          },
+                          "firefox": {
+                            "artifact": null,
+                            "artifactNote": "The historical Firefox 0.4.4 add-on package is unavailable; its reviewer source remains under releases/firefox/source/.",
+                            "packageVersion": "0.4.4",
+                            "status": "awaiting_review",
+                            "publishedVersion": null
+                          }
+                        }
+                      ],
+                      "validation": {
+                        "releaseCheck": "passed",
+                        "extensionTests": 71,
+                        "siteTests": 61,
+                        "firefoxLint": {
+                          "errors": 0,
+                          "warnings": 0,
+                          "notices": 0
+                        },
+                        "recipeEvidenceCases": {
+                          "passed": 20,
+                          "total": 20,
+                          "type": "controlled inputs through real synthesis model"
+                        },
+                        "recipeRealClips": {
+                          "completed": 3,
+                          "analyzedFrames": 275,
+                          "providerRequests": 74,
+                          "providerReportedCostUsd": 0.46937275,
+                          "note": "720px local frame extraction, audio withheld; not a browser capture or kitchen trial."
+                        },
+                        "browser": "Cookie report visually checked at desktop and narrow width with no horizontal overflow. Full sidebar analysis and optional-research failure covered by the bundle test. Chrome extension reload was blocked by browser URL policy; user reload required.",
+                        "live": "Production homepage, recipe preview, account, privacy and recipe reader bundle return HTTP 200. AI GET returns 405; unauthenticated AI POST and report GET return 401. Full authenticated recipe round trip was not run in this release session; recipe and managed authentication/storage tests pass.",
+                        "ci": "https://github.com/shadoprizm/videolens/actions/runs/35160682312"
+                      },
+                      "website": {
+                        "status": "deployed",
+                        "url": "https://videolens.io",
+                        "deployment": "dpl_GCXwVpzbcLU7xa29EwCbW6mqPsnr",
+                        "deploymentUrl": "https://videolens-site-60lc1flww-shadoprizms-projects.vercel.app",
+                        "deploymentNote": "Merged recipe release and existing production model/downloader updates into main, then deployed the linked videolens-site project to production. Ready; aliases videolens.io and www.videolens.io verified.",
+                        "previewUrl": "https://videolens.io/recipe-preview",
+                        "sourceCommit": "1e1cfa52ee82bb642a09d36bcee29b14d25d6c8a",
+                        "deployedAt": "2026-09-16"
+                      }
+                    },
+                    "validation": {
+                      "releaseCheck": "passed",
+                      "extensionTests": 75,
+                      "siteTests": 85,
+                      "firefoxLint": {
+                        "errors": 0,
+                        "warnings": 0,
+                        "notices": 0
+                      },
+                      "database": "Applied activation_funnel; transactionally verified starter failure, Pro completion and deduplication. anon/authenticated cannot access metrics. Test users rolled back. Service-role regression SQL passes, including trigger writes and aggregate reads.",
+                      "checkout": "Verified subscription state, report restoration and safe retry tests; no live payment made.",
+                      "ci": "https://github.com/shadoprizm/videolens/actions/runs/35172531382",
+                      "live": "Homepage, Firefox landing, account, admin and privacy HTTP 200; protected APIs return 401 without credentials. Signed-in account refresh preserves five existing reports and allowance. Desktop and 390px viewport checked; footer overflow fixed. Live administrator activation panel verified after correcting aggregate privileges to use public.profiles; metrics remain administrator-only."
+                    },
+                    "website": {
+                      "status": "deployed",
+                      "url": "https://videolens.io",
+                      "deployment": "dpl_GYTVfaW75ixRKi7Sb9SFauVR3bM9",
+                      "deploymentUrl": "https://videolens-site-b061evc23-shadoprizms-projects.vercel.app",
+                      "sourceCommit": "de67373be80a9843de13b792ba86a6f15eb62a08",
+                      "deployedAt": "2026-09-17T01:58:00Z"
+                    },
+                    "chrome": {
+                      "artifact": "releases/chrome/videolens-chrome-v0.5.1.zip",
+                      "packageVersion": "0.5.1",
+                      "status": "blocked_by_browser_automation",
+                      "publishedVersion": "0.4.1.1",
+                      "blockedReason": "Existing publisher tab refused by browser tool: The extensions gallery cannot be scripted. Owner upload required.",
+                      "sha256": "0a41e5ec9c0418e7acecd652b5b54c4a27bdcd283278be3e9764557b1bf8db85",
+                      "checkedAt": "2026-09-16"
+                    },
+                    "firefox": {
+                      "artifact": "releases/firefox/videolens-firefox-v0.5.1.zip",
+                      "packageVersion": "0.5.1",
+                      "status": "awaiting_review",
+                      "publishedVersion": "0.4.4",
+                      "blockedReason": null,
+                      "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.5.1.zip",
+                      "sha256": "669b6a71eaba7c3dd39a045f0ad0ccdbacf642ab419afcb92c3d23ce401f910c",
+                      "checkedAt": "2026-09-16",
+                      "submittedAt": "2026-09-17T02:00:00Z",
+                      "versionId": 6491833,
+                      "fileId": 5035993,
+                      "sourceSubmitted": true,
+                      "sourceSha256": "aa7a15c483edb7c838824fbe8322670a5452cb481f1a46f65d3c318108af0f78",
+                      "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6491833"
+                    },
+                    "artifactRelease": "https://github.com/shadoprizm/videolens/releases/tag/v0.5.1"
+                  },
+                  "chrome": {
+                    "artifact": "releases/chrome/videolens-chrome-v0.6.0.zip",
+                    "packageVersion": "0.6.0",
+                    "status": "blocked_by_publisher_automation_policy",
+                    "publishedVersion": "0.4.1.1",
+                    "checkedAt": "2026-09-17",
+                    "blockedReason": "Chrome Web Store publisher automation was explicitly rejected during the coordinated 0.5.1 release: The extensions gallery cannot be scripted. No bypass attempted. The validated 0.6.0 Chrome archive requires owner submission.",
+                    "sha256": "5a933d37841854197244a289a4d1e53e7c9021113750da2384ffce68f5b626c5",
+                    "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.6.0/videolens-chrome-v0.6.0.zip"
+                  },
+                  "firefox": {
+                    "artifact": "releases/firefox/videolens-firefox-v0.6.0.zip",
+                    "packageVersion": "0.6.0",
+                    "status": "awaiting_review",
+                    "publishedVersion": "0.5.0",
+                    "checkedAt": "2026-09-17",
+                    "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.6.0.zip",
+                    "publishedVersionCheckedAt": "2026-09-17",
+                    "sha256": "3637503bed46e7b1b6efc27359c476a9bc5957f293ffd9bd7d6063f9fe6f55f5",
+                    "sourceSha256": "01586c65c136f267b053c42889fc5aa3402885f68035cf0d73a78316d9bc3dd8",
+                    "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.6.0/videolens-firefox-v0.6.0.zip",
+                    "sourceDownloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.6.0/videolens-firefox-source-v0.6.0.zip",
+                    "submittedAt": "2026-09-17",
+                    "versionId": 6491861,
+                    "fileId": 5036021,
+                    "sourceSubmitted": true,
+                    "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6491861"
+                  },
+                  "validation": {
+                    "releaseCheck": "passed",
+                    "procedureEvidenceCases": {
+                      "passed": 8,
+                      "total": 8,
+                      "type": "controlled inputs through real synthesis model"
+                    },
+                    "procedureRealVideos": {
+                      "completed": 10,
+                      "sampledFrames": 1090,
+                      "analyzedFrames": 1090,
+                      "initialProviderRequests": 375,
+                      "initialProviderCostUsd": 6.4454068,
+                      "finalSynthesisCostUsd": 0.7536018,
+                      "note": "Downloaded real videos through shipping sampling, vision, timeline and synthesis code; manual source-frame spot review, not task-execution or native browser-capture trials."
+                    },
+                    "extensionTests": 84,
+                    "siteTests": 87,
+                    "firefoxLint": {
+                      "errors": 0,
+                      "warnings": 0,
+                      "notices": 0
+                    },
+                    "browser": "Illustrative procedure page checked on desktop and 390px mobile with no horizontal overflow or browser errors. Checklist toggles work. Compiled-sidebar test covers caption-guided capture, synthesis and checklist rendering; native Chrome/Firefox capture and user task completion were not tested in this session.",
+                    "reviewerSource": "Clean npm install and Firefox build from the reviewer archive reproduce the packaged files.",
+                    "live": "Production procedure example renders at 390px with no overflow or browser errors; copy-checklist confirmation and checkbox toggle verified. AI GET 405, unauthenticated AI POST and reports GET 401. Authenticated procedure upload round trip not performed; local/cloud serialization tests pass.",
+                    "ci": "https://github.com/shadoprizm/videolens/actions/runs/35173629738"
+                  },
+                  "website": {
+                    "status": "deployed",
+                    "url": "https://videolens.io",
+                    "previewUrl": "https://videolens.io/procedure-preview",
+                    "deployment": "dpl_2ujK9RghxMjVbJnk3dNZ1gqy3QZE",
+                    "deploymentUrl": "https://videolens-site-9a84xynmq-shadoprizms-projects.vercel.app",
+                    "sourceCommit": "97534114c41e1de99fc043d24d1909b3dd565654",
+                    "deployedAt": "2026-09-17",
+                    "deploymentNote": "Ready production deployment includes Procedure and the latest activation/account improvements. HTTPS procedure example, homepage, Firefox page, account and privacy return 200."
+                  },
+                  "githubRelease": "https://github.com/shadoprizm/videolens/releases/tag/v0.6.0",
+                  "artifactProvenance": "GitHub release asset digests match local packaged Chrome, Firefox and reviewer-source archives. Reviewer source was built and compared before submission; do not regenerate submitted artifacts."
+                },
+                "chrome": {
+                  "artifact": "releases/chrome/videolens-chrome-v0.7.0.zip",
+                  "packageVersion": "0.7.0",
+                  "status": "blocked_by_publisher_automation_policy",
+                  "publishedVersion": "0.4.1.1",
+                  "checkedAt": "2026-09-17",
+                  "blockedReason": "Chrome publisher automation was explicitly rejected: The extensions gallery cannot be scripted. No bypass attempted. The validated Chrome archive requires owner submission.",
+                  "sha256": "e4c8d31c47c080034c44fb39a62ae71c58c236a78551996c0489eef811ea970a",
+                  "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.7.0/videolens-chrome-v0.7.0.zip"
+                },
+                "firefox": {
+                  "artifact": "releases/firefox/videolens-firefox-v0.7.0.zip",
+                  "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.7.0.zip",
+                  "packageVersion": "0.7.0",
+                  "status": "published",
+                  "publishedVersion": "0.7.0",
+                  "checkedAt": "2026-09-17",
+                  "sha256": "c8063755819e7f9857f9b5fbc8b76309e69404a3600d7596539c00b439a894b8",
+                  "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.7.0/videolens-firefox-v0.7.0.zip",
+                  "sourceSha256": "a77e744e368ffc111555b67e5f586b2dfe996fdd87df090aef00ba45010c7948",
+                  "sourceDownloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.7.0/videolens-firefox-source-v0.7.0.zip",
+                  "publishedVersionCheckedAt": "2026-09-17",
+                  "submittedAt": "2026-09-17",
+                  "versionId": 6492410,
+                  "fileId": 5036570,
+                  "sourceSubmitted": true,
+                  "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6492410",
+                  "blockedReason": null
+                },
+                "validation": {
+                  "releaseCheck": "passed",
+                  "lessonEvidenceCases": {
+                    "passed": 8,
+                    "total": 8,
+                    "note": "Live synthesis on controlled evidence. One network failure retried; one cropped-formula checker false positive manually reviewed and corrected."
+                  },
+                  "lessonRealVideos": {
+                    "completed": 2,
+                    "sampledFrames": 48,
+                    "analyzedFrames": 48,
+                    "costUsd": 0.371677,
+                    "note": "Downloaded YouTube video frames through shipping sampling, lesson vision, timeline and synthesis. Sheets includes captions; Excel is visual-only. This does not test native video capture or educational outcomes."
+                  },
+                  "browser": "Mobile 390px reader, reload persistence, account/report isolation, content-change reset and storage failure disclosure verified.",
+                  "extensionTests": 92,
+                  "siteTests": 89,
+                  "firefoxLint": {
+                    "errors": 0,
+                    "warnings": 0,
+                    "notices": 0
+                  },
+                  "reviewerSource": "Clean npm install and Firefox build from the reviewer-source ZIP reproduce the packaged Firefox files.",
+                  "ci": [
+                    "https://github.com/shadoprizm/videolens/actions/runs/35199220769",
+                    "https://github.com/shadoprizm/videolens/actions/runs/35199220739"
+                  ],
+                  "live": "Production clean lesson URL and account return HTTP 200; unauthenticated report API returns 401. At 390px the lesson has no horizontal overflow, study controls render, and responses/review marks survive reload. Authenticated cloud round trip was covered by serialization tests, not a live account upload."
+                },
+                "website": {
+                  "status": "deployed",
+                  "url": "https://videolens.io",
+                  "previewUrl": "https://videolens.io/lesson-preview",
+                  "deployment": "dpl_4ZXvrcJ7qfST4LN3ViJ4yd4m8aN6",
+                  "deploymentUrl": "https://videolens-site-1cojlrwad-shadoprizms-projects.vercel.app",
+                  "sourceCommit": "616b72fbe5ab6ed4084e47096b75a955bb0bd90d",
+                  "deployedAt": "2026-09-17"
+                },
+                "githubRelease": "https://github.com/shadoprizm/videolens/releases/tag/v0.7.0",
+                "artifactProvenance": "GitHub release asset digests match the packaged Chrome, Firefox and reviewer-source archives. Source was rebuilt and compared before Firefox submission. Submitted archives are unchanged."
+              },
+              "validation": {
+                "releaseCheck": "passed",
+                "extensionTests": 95,
+                "siteTests": 96,
+                "firefoxLint": {
+                  "errors": 0,
+                  "warnings": 0,
+                  "notices": 0
+                },
+                "browser": "Desktop homepage and 390px mobile homepage/extension access flow visually checked. Browser bundle tests cover free account pairing, existing BYOK settings, checkout restoration; account tests cover first-report setup, exhausted allowance, subscription management and pairing redirects. No live purchase or new production account was created.",
+                "sourceRebuild": "Clean extracted reviewer source reproduced all 19 packaged Firefox files byte for byte.",
+                "ci": {
+                  "extension": "https://github.com/shadoprizm/videolens/actions/runs/35276565029",
+                  "website": "https://github.com/shadoprizm/videolens/actions/runs/35276565193",
+                  "status": "passed"
+                }
+              },
+              "website": {
+                "status": "deployed",
+                "url": "https://videolens.io",
+                "deployment": "dpl_B68jYijRSnGY6BsaoJHCjmm8Gwz1",
+                "deploymentUrl": "https://videolens-site-b81cgox9e-shadoprizms-projects.vercel.app",
+                "sourceCommit": "eb01dc0ebf1dd02d6f145a4f3e150129ed4bb113",
+                "verification": "Live primary signup CTA opens /account; signed-out form renders at phone width. Production configuration reports accounts and checkout available. No real email or purchase sent."
+              },
+              "chrome": {
+                "artifact": "releases/chrome/videolens-chrome-v0.7.1.zip",
+                "packageVersion": "0.7.1",
+                "status": "published",
+                "publishedVersion": "0.7.1",
+                "checkedAt": "2026-09-24",
+                "blockedReason": null,
+                "sha256": "af021b623e292dd623bdda024713c1fd1ba01624027f55f2c2e1b524309aff6e"
+              },
+              "firefox": {
+                "artifact": "releases/firefox/videolens-firefox-v0.7.1.zip",
+                "packageVersion": "0.7.1",
+                "status": "published",
+                "publishedVersion": "0.7.1",
+                "checkedAt": "2026-09-24",
+                "blockedReason": null,
+                "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.7.1.zip",
+                "sha256": "580d0ec0329d461383318c0bf39307efd40cd2b356900a0a3d1a1a4ca4a2dfe0",
+                "submittedAt": "2026-09-17",
+                "versionId": 6493892,
+                "fileId": 5038051,
+                "sourceSubmitted": true,
+                "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6493892",
+                "publishedVersionCheckedAt": "2026-09-24",
+                "sourceSha256": "3f66a29d657f7025aba12d998f3606cdbc7ec911eedc25210b6ad1dbd6f921c1"
+              },
+              "releaseUrl": "https://github.com/shadoprizm/videolens/releases/tag/v0.7.1"
+            },
+            "chrome": {
+              "artifact": "releases/chrome/videolens-chrome-v0.7.2.zip",
+              "packageVersion": "0.7.2",
+              "status": "ready_to_submit",
+              "publishedVersion": "0.7.1",
+              "checkedAt": "2026-09-24",
+              "blockedReason": null,
+              "sha256": "9c3f7032fd69a07d0bbdd004f2e4a1cd8c3d5bc8987afd87f577e51aa83d1d53"
+            },
+            "firefox": {
+              "artifact": "releases/firefox/videolens-firefox-v0.7.2.zip",
+              "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.7.2.zip",
+              "packageVersion": "0.7.2",
+              "status": "ready_to_submit",
+              "publishedVersion": "0.7.1",
+              "checkedAt": "2026-09-24",
+              "blockedReason": null,
+              "sourceSubmitted": false,
+              "sha256": "1bf4b5621ecbc1f570f36fabc5b1536e3ea149d197139278e966405d04dd9b20"
+            },
+            "validation": {
+              "releaseCheck": "passed",
+              "extensionTests": 96,
+              "firefoxLint": {
+                "errors": 0,
+                "warnings": 0,
+                "notices": 0
+              },
+              "startup": "One targeted settings read before first render; report-library database opens only when Library is requested; pending account recovery does not block home.",
+              "sidebarBundleBytes": {
+                "previous": 512539,
+                "current": 427578
+              },
+              "browser": "Automated Chrome and Firefox bundle tests pass. Native browser startup timing of this 0.7.2 package has not yet been measured."
+            }
+          },
+          "chrome": {
+            "artifact": "releases/chrome/videolens-chrome-v0.8.0.zip",
+            "packageVersion": "0.8.0",
+            "status": "publisher_authentication_pending",
+            "publishedVersion": null,
+            "checkedAt": "2026-10-11T20:06:03Z",
+            "blockedReason": "Native Mac access is working. The existing publisher passkey attempt failed; a refreshed Touch ID check for the existing Google publisher account is pending. The Chrome 0.8.0 package has not been uploaded or submitted.",
+            "sha256": "0fc8e3400d50b335e07ca35c8d60af261290ae3c24a88b3c34902ccc7830e33a"
+          },
+          "firefox": {
+            "artifact": "releases/firefox/videolens-firefox-v0.8.0.zip",
+            "packageVersion": "0.8.0",
+            "status": "published",
+            "publishedVersion": "0.8.0",
+            "checkedAt": "2026-10-11",
+            "blockedReason": null,
+            "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.0.zip",
+            "sourceSubmitted": true,
+            "sha256": "b71b2d0d106dd5b68e8602fbf0259299d46ca4fbb9bdb62b4fb96e7996fdf12d",
+            "sourceSha256": "c93729095d5d4a9e7623222fa279f90e9663a0954a7401c3a33173efd036a4e8",
+            "publishedVersionCheckedAt": "2026-10-11T20:06:03Z",
+            "submittedAt": "2026-10-11T20:06:03Z",
+            "versionId": 6565914,
+            "fileId": 5110051,
+            "reviewUrl": "https://addons.mozilla.org/en-US/developers/addon/videolens-video-reports/versions/6565914",
+            "publicVersionHistoryUrl": "https://addons.mozilla.org/en-US/firefox/addon/videolens-video-reports/versions/",
+            "note": "Native Mac file picker uploaded the verified package and reviewer source. Mozilla validation had no errors or warnings. Approved and listed as latest version 0.8.0 on the public version-history page."
+          },
+          "validation": {
+            "releaseCheck": "passed",
+            "extensionTests": 101,
+            "siteTests": 137,
+            "firefoxLint": {
+              "errors": 0,
+              "warnings": 0,
+              "notices": 0
+            },
+            "database": "Cohort, recovered failure, explicit test exclusion, zero versus positive invoice, paid-then-delayed-failure ordering and service-only access passed in production rollback fixtures.",
+            "browser": "Live account/admin and full reader verified. Mobile paid-account desktop handoff passed at 390px with no overflow, install links hidden and copy success message; desktop setup restored and compact. Live synthetic API checks verified allowance recovery, retry, event deduplication and explicit feedback; synthetic database data cleaned up. Unpaid monthly/annual checkout totals match advertised USD 12 / USD 99 and retain Free access. Native extension capture, native export receipt and completed-payment acceptance remain pending.",
+            "reviewerSourceRebuild": {
+              "exactMatch": true,
+              "filesCompared": 19,
+              "sourceSha256": "c93729095d5d4a9e7623222fa279f90e9663a0954a7401c3a33173efd036a4e8",
+              "originalVerifiedSourceSha256": "683f64b78511d6381a93e9f3b1ef765181aa8655c48a029353786dd419520db7",
+              "note": "Source archive was updated only in extension/AMO_SOURCE_README.md to specify the verified macOS 26.5, Node.js 22.22.3 and npm 10.9.8 build environment. All build inputs match the clean archive that reproduced all 19 packaged files byte for byte; extension package ZIPs are unchanged."
+            }
+          },
+          "website": {
+            "status": "deployed_live_verified",
+            "url": "https://videolens.io",
+            "candidateUrl": "https://videolens-site-qr99sfoqc-shadoprizms-projects.vercel.app",
+            "deployment": "dpl_G62SMLhfLwdozBZhFXtyBgTEyDC7",
+            "sourceCommit": "33619c4b67de73b6e07f57dda461b4bb6bf2dd25",
+            "pullRequest": "https://github.com/shadoprizm/videolens/pull/26",
+            "verification": "Protected candidate account returned 200 and signed-out administrator audit returned 401. The same build was promoted and its live owner audit verified subscription read access and the recorded remaining permission gaps."
+          },
+          "billing": {
+            "pricesAtLiveCheckoutVerified": true,
+            "restrictedKeyAuditMissingPermissions": [
+              "Prices: Read",
+              "Invoices: Read",
+              "Webhook Endpoints: Read"
+            ],
+            "webhookEventCoverage": "owner_verification_pending",
+            "confirmedPaymentAcceptance": "pending",
+            "note": "Checkout totals verified without creating a payment or subscription. Customer-scoped subscription read succeeded; invoice read, independent price verification and webhook configuration access remain unavailable. Completed-payment acceptance remains pending owner access.",
+            "subscriptionReadVerified": true
+          }
+        }
+      },
       "chrome": {
-        "artifact": "releases/chrome/videolens-chrome-v0.8.1.zip",
-        "packageVersion": "0.8.1",
-        "status": "pending_review",
+        "artifact": "releases/chrome/videolens-chrome-v0.8.2.zip",
+        "packageVersion": "0.8.2",
+        "status": "not_submitted",
         "publishedVersion": null,
-        "checkedAt": "2026-10-25",
+        "checkedAt": "2026-10-28",
         "blockedReason": null,
-        "sha256": "a8032e46ad56f885a6dfb1e107bb53bc991576525a27ed287c3a8fe60ec2dfce",
-        "submittedAt": "2026-10-25",
         "itemId": "plhohhmnkfidolnjnmdaenhdjkbbledl",
-        "note": "Owner uploaded the Mac-built 0.8.1 package, updated the listing description to three free starter reports, and submitted for review in the Chrome Web Store console on 2026-10-25. Publication not yet verified."
+        "sha256": "e58b2886fcc3ada3fd3f6d12e7187a911c024dad765a2e77c265f24dab3d3c31"
       },
       "firefox": {
-        "artifact": "releases/firefox/videolens-firefox-v0.8.1.zip",
-        "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.1.zip",
-        "packageVersion": "0.8.1",
-        "status": "published",
-        "publishedVersion": "0.8.1",
-        "checkedAt": "2026-10-25",
+        "artifact": "releases/firefox/videolens-firefox-v0.8.2.zip",
+        "packageVersion": "0.8.2",
+        "status": "not_submitted",
+        "publishedVersion": null,
+        "checkedAt": "2026-10-28",
         "blockedReason": null,
-        "sourceSubmitted": true,
-        "sha256": "3ea6e3b0df1cbef7e95f7e51ae25a3172d5eb76a44194c641e6d2f1eb2177717",
-        "sourceSha256": "fdac99c80d81f8de7f6b8d5005f44ff82ac19476d10075992db6201df73b82f5",
-        "submittedAt": "2026-10-25T16:10:42Z",
-        "publishedVersionCheckedAt": "2026-10-25",
-        "versionId": 6620893,
-        "fileId": 5165007,
-        "reviewUrl": "https://addons.mozilla.org/en-US/developers/addon/videolens-video-reports/versions/6620893",
-        "publicListingUrl": "https://addons.mozilla.org/en-US/firefox/addon/videolens-video-reports/",
-        "note": "Submitted through the AMO upload API with the Mac-built package and reviewer source. AMO reports 0.8.1 as the current public version (status public). The live file manifest matches dist-firefox and contains the three-report copy. AMO re-signs uploads, so its file hash differs from the local archive hash.",
-        "listingDescription": "2026-10-25: en-US AMO description updated to say a free account includes three managed starter reports. A first PATCH wrote back the rendered (linkified) text and corrupted the GitHub and privacy links for a few minutes; restored to plain URLs and verified (2529 -> 2532 characters, only the intended sentence changed)."
+        "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.2.zip",
+        "sha256": "d51b27ea2a646f1526df90207f39e7865de729bb13a4a92aa641ad9e2ef2bd35",
+        "sourceSha256": "57baf3464ae9c1b7fa82b8fa55494a7c3ebba436632ee16d9bc377ccdef7a417"
       },
       "validation": {
         "releaseCheck": "passed",
-        "extensionTests": 101,
-        "siteTests": 138,
+        "browser": "Exact original 17.585-second AV1/Opus WebM produced 40 frames in isolated Chrome and Firefox browser harnesses. Controlled no-paint regression hung with the previous reader and completed with the updated reader. Managed extension report acceptance pending.",
+        "extensionTests": 109,
         "firefoxLint": {
           "errors": 0,
           "warnings": 0,
           "notices": 0
-        },
-        "database": "Migration 20261025150000_three_starter_reports.sql applied to the production project on 2026-10-25 (free limit verified 1 -> 3; anon/authenticated still cannot execute get_managed_entitlement). managed_failure_recovery, complimentary_pro_recovery and administrator_dashboard fixtures all passed against production with rollback; no synthetic rows persisted. 72 free accounts have reports remaining, 0 exhausted.",
-        "copy": "English, Spanish, Romanian, Hindi, Simplified and Traditional Chinese extension strings, store listings and site copy now say three free reports. Account page shows remaining free reports while the allowance lasts.",
-        "macBuild": "release:check passed on the owner Mac: 101 extension tests, Chrome and Firefox packages, Firefox lint 0 errors/warnings/notices. Submitted hashes are the Mac-built archives."
+        }
       },
       "website": {
         "status": "deployed_live_verified",
@@ -63,615 +605,109 @@
         "sourceCommit": "06b969350d2e0461d66d49b427fc093a5ea43a19",
         "deployedAt": "2026-10-25",
         "verification": "Production aliases videolens.io and www.videolens.io. Home, account and llms.txt return 200 with three-report copy and no one-report copy; unauthenticated entitlement and reports return 401, AI GET returns 405."
-      },
-      "previousRelease": {
-        "targetVersion": "0.8.0",
-        "channel": "conversion_workflow",
-        "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
-        "previousRelease": {
-          "targetVersion": "0.7.2",
-          "channel": "startup_performance",
-          "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
-          "previousRelease": {
-            "targetVersion": "0.7.1",
-            "channel": "account_first",
-            "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
-            "previousRelease": {
-              "targetVersion": "0.7.0",
-              "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
-              "channel": "store_release",
-              "previousRelease": {
-                "targetVersion": "0.6.0",
-                "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
-                "channel": "store_release",
-                "previousRelease": {
-                  "targetVersion": "0.5.1",
-                  "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
-                  "channel": "store_release",
-                  "previousRelease": {
-                    "targetVersion": "0.5.0",
-                    "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
-                    "channel": "store_release",
-                    "chrome": {
-                      "artifact": "releases/chrome/videolens-chrome-v0.5.0.zip",
-                      "packageVersion": "0.5.0",
-                      "status": "uploaded_by_owner",
-                      "publishedVersion": "0.4.1.1",
-                      "blockedReason": null,
-                      "sha256": "5137976a3701cf96eb5000833305c989f67f84143b64ca00466ee179fdc5649a",
-                      "checkedAt": "2026-09-16",
-                      "publishedVersionCheckedAt": "2026-09-12",
-                      "uploadedAt": "2026-09-16",
-                      "note": "User confirmed upload; review and publication unverified."
-                    },
-                    "firefox": {
-                      "artifact": "releases/firefox/videolens-firefox-v0.5.0.zip",
-                      "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.5.0.zip",
-                      "packageVersion": "0.5.0",
-                      "status": "published",
-                      "publishedVersion": "0.5.0",
-                      "blockedReason": null,
-                      "sha256": "a5547a728851390a452ae63410693aedf102a31e5fa3735c326b5d7e6b647fb1",
-                      "checkedAt": "2026-09-16",
-                      "submittedAt": "2026-09-16",
-                      "versionId": 6491649,
-                      "fileId": 5035809,
-                      "sourceSubmitted": true,
-                      "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6491649",
-                      "publishedVersionCheckedAt": "2026-09-17",
-                      "note": "AMO listed 0.5.0 while submitting 0.6.0; 0.5.1 was still awaiting review."
-                    },
-                    "previousRelease": {
-                      "targetVersion": "0.4.6",
-                      "releaseCompleteWhen": "The target version is published in both the Chrome Web Store and Firefox Add-ons.",
-                      "chrome": {
-                        "artifact": "releases/chrome/videolens-chrome-v0.4.6.zip",
-                        "packageVersion": "0.4.6",
-                        "status": "ready_to_submit",
-                        "publishedVersion": "0.4.1.1",
-                        "sha256": "f9b505335612dd9f039c401262b7241d98d59bd3e251e0f6b296c91e28e089e4",
-                        "blockedReason": "0.4.6 has not been submitted. The 2026-09-14 upload attempt selected the Firefox reviewer-source archive; use the tracked Chrome artifact instead.",
-                        "checkedAt": "2026-09-14"
-                      },
-                      "firefox": {
-                        "artifact": "releases/firefox/videolens-firefox-v0.4.6.zip",
-                        "packageVersion": "0.4.6",
-                        "status": "blocked_by_two_factor",
-                        "publishedVersion": null,
-                        "sha256": "de6ae814077fe789f1962a17fd54c43d24d37d44208308e6868e218f71377810",
-                        "blockedReason": "Mozilla publisher sign-in reached the six-digit authenticator-code screen on 2026-09-14. User action is required before the 0.4.6 upload can continue.",
-                        "checkedAt": "2026-09-14",
-                        "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.4.6.zip"
-                      },
-                      "validation": {
-                        "releaseCheck": "passed",
-                        "extensionTests": 59,
-                        "firefoxLint": {
-                          "errors": 0,
-                          "warnings": 0,
-                          "notices": 0
-                        },
-                        "productionUpload": "Historical 0.4.5 check passed in Chrome Profile J: two existing BYOK reports uploaded and visible at https://videolens.io/account; two local copies and the then-current 20 managed credits were preserved.",
-                        "reader": "0.4.6 unpacked Chrome reloaded in place: both saved reports retained; clicking a sidebar Library title opened the shared full reader from local IndexedDB. Results also expose Open full report. Offline reader tests pass for Chrome and Firefox; live website reader verified with the existing account reports."
-                      },
-                      "website": {
-                        "status": "deployed",
-                        "url": "https://videolens.io",
-                        "deployment": "dpl_9MiR61LNqsDd89Ven1kFp9a9LWsh",
-                        "deploymentNote": "Deployment observed with the reader and print load-listener fix; subsequent deployments may include unrelated changes."
-                      }
-                    },
-                    "releaseHistory": [
-                      {
-                        "version": "0.4.4",
-                        "chrome": {
-                          "artifact": "releases/chrome/videolens-chrome-v0.4.4.zip",
-                          "packageVersion": "0.4.4",
-                          "status": "pending_review",
-                          "publishedVersion": "0.4.1.1"
-                        },
-                        "firefox": {
-                          "artifact": null,
-                          "artifactNote": "The historical Firefox 0.4.4 add-on package is unavailable; its reviewer source remains under releases/firefox/source/.",
-                          "packageVersion": "0.4.4",
-                          "status": "awaiting_review",
-                          "publishedVersion": null
-                        }
-                      }
-                    ],
-                    "validation": {
-                      "releaseCheck": "passed",
-                      "extensionTests": 71,
-                      "siteTests": 61,
-                      "firefoxLint": {
-                        "errors": 0,
-                        "warnings": 0,
-                        "notices": 0
-                      },
-                      "recipeEvidenceCases": {
-                        "passed": 20,
-                        "total": 20,
-                        "type": "controlled inputs through real synthesis model"
-                      },
-                      "recipeRealClips": {
-                        "completed": 3,
-                        "analyzedFrames": 275,
-                        "providerRequests": 74,
-                        "providerReportedCostUsd": 0.46937275,
-                        "note": "720px local frame extraction, audio withheld; not a browser capture or kitchen trial."
-                      },
-                      "browser": "Cookie report visually checked at desktop and narrow width with no horizontal overflow. Full sidebar analysis and optional-research failure covered by the bundle test. Chrome extension reload was blocked by browser URL policy; user reload required.",
-                      "live": "Production homepage, recipe preview, account, privacy and recipe reader bundle return HTTP 200. AI GET returns 405; unauthenticated AI POST and report GET return 401. Full authenticated recipe round trip was not run in this release session; recipe and managed authentication/storage tests pass.",
-                      "ci": "https://github.com/shadoprizm/videolens/actions/runs/35160682312"
-                    },
-                    "website": {
-                      "status": "deployed",
-                      "url": "https://videolens.io",
-                      "deployment": "dpl_GCXwVpzbcLU7xa29EwCbW6mqPsnr",
-                      "deploymentUrl": "https://videolens-site-60lc1flww-shadoprizms-projects.vercel.app",
-                      "deploymentNote": "Merged recipe release and existing production model/downloader updates into main, then deployed the linked videolens-site project to production. Ready; aliases videolens.io and www.videolens.io verified.",
-                      "previewUrl": "https://videolens.io/recipe-preview",
-                      "sourceCommit": "1e1cfa52ee82bb642a09d36bcee29b14d25d6c8a",
-                      "deployedAt": "2026-09-16"
-                    }
-                  },
-                  "validation": {
-                    "releaseCheck": "passed",
-                    "extensionTests": 75,
-                    "siteTests": 85,
-                    "firefoxLint": {
-                      "errors": 0,
-                      "warnings": 0,
-                      "notices": 0
-                    },
-                    "database": "Applied activation_funnel; transactionally verified starter failure, Pro completion and deduplication. anon/authenticated cannot access metrics. Test users rolled back. Service-role regression SQL passes, including trigger writes and aggregate reads.",
-                    "checkout": "Verified subscription state, report restoration and safe retry tests; no live payment made.",
-                    "ci": "https://github.com/shadoprizm/videolens/actions/runs/35172531382",
-                    "live": "Homepage, Firefox landing, account, admin and privacy HTTP 200; protected APIs return 401 without credentials. Signed-in account refresh preserves five existing reports and allowance. Desktop and 390px viewport checked; footer overflow fixed. Live administrator activation panel verified after correcting aggregate privileges to use public.profiles; metrics remain administrator-only."
-                  },
-                  "website": {
-                    "status": "deployed",
-                    "url": "https://videolens.io",
-                    "deployment": "dpl_GYTVfaW75ixRKi7Sb9SFauVR3bM9",
-                    "deploymentUrl": "https://videolens-site-b061evc23-shadoprizms-projects.vercel.app",
-                    "sourceCommit": "de67373be80a9843de13b792ba86a6f15eb62a08",
-                    "deployedAt": "2026-09-17T01:58:00Z"
-                  },
-                  "chrome": {
-                    "artifact": "releases/chrome/videolens-chrome-v0.5.1.zip",
-                    "packageVersion": "0.5.1",
-                    "status": "blocked_by_browser_automation",
-                    "publishedVersion": "0.4.1.1",
-                    "blockedReason": "Existing publisher tab refused by browser tool: The extensions gallery cannot be scripted. Owner upload required.",
-                    "sha256": "0a41e5ec9c0418e7acecd652b5b54c4a27bdcd283278be3e9764557b1bf8db85",
-                    "checkedAt": "2026-09-16"
-                  },
-                  "firefox": {
-                    "artifact": "releases/firefox/videolens-firefox-v0.5.1.zip",
-                    "packageVersion": "0.5.1",
-                    "status": "awaiting_review",
-                    "publishedVersion": "0.4.4",
-                    "blockedReason": null,
-                    "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.5.1.zip",
-                    "sha256": "669b6a71eaba7c3dd39a045f0ad0ccdbacf642ab419afcb92c3d23ce401f910c",
-                    "checkedAt": "2026-09-16",
-                    "submittedAt": "2026-09-17T02:00:00Z",
-                    "versionId": 6491833,
-                    "fileId": 5035993,
-                    "sourceSubmitted": true,
-                    "sourceSha256": "aa7a15c483edb7c838824fbe8322670a5452cb481f1a46f65d3c318108af0f78",
-                    "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6491833"
-                  },
-                  "artifactRelease": "https://github.com/shadoprizm/videolens/releases/tag/v0.5.1"
-                },
-                "chrome": {
-                  "artifact": "releases/chrome/videolens-chrome-v0.6.0.zip",
-                  "packageVersion": "0.6.0",
-                  "status": "blocked_by_publisher_automation_policy",
-                  "publishedVersion": "0.4.1.1",
-                  "checkedAt": "2026-09-17",
-                  "blockedReason": "Chrome Web Store publisher automation was explicitly rejected during the coordinated 0.5.1 release: The extensions gallery cannot be scripted. No bypass attempted. The validated 0.6.0 Chrome archive requires owner submission.",
-                  "sha256": "5a933d37841854197244a289a4d1e53e7c9021113750da2384ffce68f5b626c5",
-                  "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.6.0/videolens-chrome-v0.6.0.zip"
-                },
-                "firefox": {
-                  "artifact": "releases/firefox/videolens-firefox-v0.6.0.zip",
-                  "packageVersion": "0.6.0",
-                  "status": "awaiting_review",
-                  "publishedVersion": "0.5.0",
-                  "checkedAt": "2026-09-17",
-                  "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.6.0.zip",
-                  "publishedVersionCheckedAt": "2026-09-17",
-                  "sha256": "3637503bed46e7b1b6efc27359c476a9bc5957f293ffd9bd7d6063f9fe6f55f5",
-                  "sourceSha256": "01586c65c136f267b053c42889fc5aa3402885f68035cf0d73a78316d9bc3dd8",
-                  "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.6.0/videolens-firefox-v0.6.0.zip",
-                  "sourceDownloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.6.0/videolens-firefox-source-v0.6.0.zip",
-                  "submittedAt": "2026-09-17",
-                  "versionId": 6491861,
-                  "fileId": 5036021,
-                  "sourceSubmitted": true,
-                  "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6491861"
-                },
-                "validation": {
-                  "releaseCheck": "passed",
-                  "procedureEvidenceCases": {
-                    "passed": 8,
-                    "total": 8,
-                    "type": "controlled inputs through real synthesis model"
-                  },
-                  "procedureRealVideos": {
-                    "completed": 10,
-                    "sampledFrames": 1090,
-                    "analyzedFrames": 1090,
-                    "initialProviderRequests": 375,
-                    "initialProviderCostUsd": 6.4454068,
-                    "finalSynthesisCostUsd": 0.7536018,
-                    "note": "Downloaded real videos through shipping sampling, vision, timeline and synthesis code; manual source-frame spot review, not task-execution or native browser-capture trials."
-                  },
-                  "extensionTests": 84,
-                  "siteTests": 87,
-                  "firefoxLint": {
-                    "errors": 0,
-                    "warnings": 0,
-                    "notices": 0
-                  },
-                  "browser": "Illustrative procedure page checked on desktop and 390px mobile with no horizontal overflow or browser errors. Checklist toggles work. Compiled-sidebar test covers caption-guided capture, synthesis and checklist rendering; native Chrome/Firefox capture and user task completion were not tested in this session.",
-                  "reviewerSource": "Clean npm install and Firefox build from the reviewer archive reproduce the packaged files.",
-                  "live": "Production procedure example renders at 390px with no overflow or browser errors; copy-checklist confirmation and checkbox toggle verified. AI GET 405, unauthenticated AI POST and reports GET 401. Authenticated procedure upload round trip not performed; local/cloud serialization tests pass.",
-                  "ci": "https://github.com/shadoprizm/videolens/actions/runs/35173629738"
-                },
-                "website": {
-                  "status": "deployed",
-                  "url": "https://videolens.io",
-                  "previewUrl": "https://videolens.io/procedure-preview",
-                  "deployment": "dpl_2ujK9RghxMjVbJnk3dNZ1gqy3QZE",
-                  "deploymentUrl": "https://videolens-site-9a84xynmq-shadoprizms-projects.vercel.app",
-                  "sourceCommit": "97534114c41e1de99fc043d24d1909b3dd565654",
-                  "deployedAt": "2026-09-17",
-                  "deploymentNote": "Ready production deployment includes Procedure and the latest activation/account improvements. HTTPS procedure example, homepage, Firefox page, account and privacy return 200."
-                },
-                "githubRelease": "https://github.com/shadoprizm/videolens/releases/tag/v0.6.0",
-                "artifactProvenance": "GitHub release asset digests match local packaged Chrome, Firefox and reviewer-source archives. Reviewer source was built and compared before submission; do not regenerate submitted artifacts."
-              },
-              "chrome": {
-                "artifact": "releases/chrome/videolens-chrome-v0.7.0.zip",
-                "packageVersion": "0.7.0",
-                "status": "blocked_by_publisher_automation_policy",
-                "publishedVersion": "0.4.1.1",
-                "checkedAt": "2026-09-17",
-                "blockedReason": "Chrome publisher automation was explicitly rejected: The extensions gallery cannot be scripted. No bypass attempted. The validated Chrome archive requires owner submission.",
-                "sha256": "e4c8d31c47c080034c44fb39a62ae71c58c236a78551996c0489eef811ea970a",
-                "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.7.0/videolens-chrome-v0.7.0.zip"
-              },
-              "firefox": {
-                "artifact": "releases/firefox/videolens-firefox-v0.7.0.zip",
-                "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.7.0.zip",
-                "packageVersion": "0.7.0",
-                "status": "published",
-                "publishedVersion": "0.7.0",
-                "checkedAt": "2026-09-17",
-                "sha256": "c8063755819e7f9857f9b5fbc8b76309e69404a3600d7596539c00b439a894b8",
-                "downloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.7.0/videolens-firefox-v0.7.0.zip",
-                "sourceSha256": "a77e744e368ffc111555b67e5f586b2dfe996fdd87df090aef00ba45010c7948",
-                "sourceDownloadUrl": "https://github.com/shadoprizm/videolens/releases/download/v0.7.0/videolens-firefox-source-v0.7.0.zip",
-                "publishedVersionCheckedAt": "2026-09-17",
-                "submittedAt": "2026-09-17",
-                "versionId": 6492410,
-                "fileId": 5036570,
-                "sourceSubmitted": true,
-                "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6492410",
-                "blockedReason": null
-              },
-              "validation": {
-                "releaseCheck": "passed",
-                "lessonEvidenceCases": {
-                  "passed": 8,
-                  "total": 8,
-                  "note": "Live synthesis on controlled evidence. One network failure retried; one cropped-formula checker false positive manually reviewed and corrected."
-                },
-                "lessonRealVideos": {
-                  "completed": 2,
-                  "sampledFrames": 48,
-                  "analyzedFrames": 48,
-                  "costUsd": 0.371677,
-                  "note": "Downloaded YouTube video frames through shipping sampling, lesson vision, timeline and synthesis. Sheets includes captions; Excel is visual-only. This does not test native video capture or educational outcomes."
-                },
-                "browser": "Mobile 390px reader, reload persistence, account/report isolation, content-change reset and storage failure disclosure verified.",
-                "extensionTests": 92,
-                "siteTests": 89,
-                "firefoxLint": {
-                  "errors": 0,
-                  "warnings": 0,
-                  "notices": 0
-                },
-                "reviewerSource": "Clean npm install and Firefox build from the reviewer-source ZIP reproduce the packaged Firefox files.",
-                "ci": [
-                  "https://github.com/shadoprizm/videolens/actions/runs/35199220769",
-                  "https://github.com/shadoprizm/videolens/actions/runs/35199220739"
-                ],
-                "live": "Production clean lesson URL and account return HTTP 200; unauthenticated report API returns 401. At 390px the lesson has no horizontal overflow, study controls render, and responses/review marks survive reload. Authenticated cloud round trip was covered by serialization tests, not a live account upload."
-              },
-              "website": {
-                "status": "deployed",
-                "url": "https://videolens.io",
-                "previewUrl": "https://videolens.io/lesson-preview",
-                "deployment": "dpl_4ZXvrcJ7qfST4LN3ViJ4yd4m8aN6",
-                "deploymentUrl": "https://videolens-site-1cojlrwad-shadoprizms-projects.vercel.app",
-                "sourceCommit": "616b72fbe5ab6ed4084e47096b75a955bb0bd90d",
-                "deployedAt": "2026-09-17"
-              },
-              "githubRelease": "https://github.com/shadoprizm/videolens/releases/tag/v0.7.0",
-              "artifactProvenance": "GitHub release asset digests match the packaged Chrome, Firefox and reviewer-source archives. Source was rebuilt and compared before Firefox submission. Submitted archives are unchanged."
-            },
-            "validation": {
-              "releaseCheck": "passed",
-              "extensionTests": 95,
-              "siteTests": 96,
-              "firefoxLint": {
-                "errors": 0,
-                "warnings": 0,
-                "notices": 0
-              },
-              "browser": "Desktop homepage and 390px mobile homepage/extension access flow visually checked. Browser bundle tests cover free account pairing, existing BYOK settings, checkout restoration; account tests cover first-report setup, exhausted allowance, subscription management and pairing redirects. No live purchase or new production account was created.",
-              "sourceRebuild": "Clean extracted reviewer source reproduced all 19 packaged Firefox files byte for byte.",
-              "ci": {
-                "extension": "https://github.com/shadoprizm/videolens/actions/runs/35276565029",
-                "website": "https://github.com/shadoprizm/videolens/actions/runs/35276565193",
-                "status": "passed"
-              }
-            },
-            "website": {
-              "status": "deployed",
-              "url": "https://videolens.io",
-              "deployment": "dpl_B68jYijRSnGY6BsaoJHCjmm8Gwz1",
-              "deploymentUrl": "https://videolens-site-b81cgox9e-shadoprizms-projects.vercel.app",
-              "sourceCommit": "eb01dc0ebf1dd02d6f145a4f3e150129ed4bb113",
-              "verification": "Live primary signup CTA opens /account; signed-out form renders at phone width. Production configuration reports accounts and checkout available. No real email or purchase sent."
-            },
-            "chrome": {
-              "artifact": "releases/chrome/videolens-chrome-v0.7.1.zip",
-              "packageVersion": "0.7.1",
-              "status": "published",
-              "publishedVersion": "0.7.1",
-              "checkedAt": "2026-09-24",
-              "blockedReason": null,
-              "sha256": "af021b623e292dd623bdda024713c1fd1ba01624027f55f2c2e1b524309aff6e"
-            },
-            "firefox": {
-              "artifact": "releases/firefox/videolens-firefox-v0.7.1.zip",
-              "packageVersion": "0.7.1",
-              "status": "published",
-              "publishedVersion": "0.7.1",
-              "checkedAt": "2026-09-24",
-              "blockedReason": null,
-              "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.7.1.zip",
-              "sha256": "580d0ec0329d461383318c0bf39307efd40cd2b356900a0a3d1a1a4ca4a2dfe0",
-              "submittedAt": "2026-09-17",
-              "versionId": 6493892,
-              "fileId": 5038051,
-              "sourceSubmitted": true,
-              "reviewUrl": "https://addons.mozilla.org/en-CA/developers/addon/videolens-video-reports/versions/6493892",
-              "publishedVersionCheckedAt": "2026-09-24",
-              "sourceSha256": "3f66a29d657f7025aba12d998f3606cdbc7ec911eedc25210b6ad1dbd6f921c1"
-            },
-            "releaseUrl": "https://github.com/shadoprizm/videolens/releases/tag/v0.7.1"
-          },
-          "chrome": {
-            "artifact": "releases/chrome/videolens-chrome-v0.7.2.zip",
-            "packageVersion": "0.7.2",
-            "status": "ready_to_submit",
-            "publishedVersion": "0.7.1",
-            "checkedAt": "2026-09-24",
-            "blockedReason": null,
-            "sha256": "9c3f7032fd69a07d0bbdd004f2e4a1cd8c3d5bc8987afd87f577e51aa83d1d53"
-          },
-          "firefox": {
-            "artifact": "releases/firefox/videolens-firefox-v0.7.2.zip",
-            "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.7.2.zip",
-            "packageVersion": "0.7.2",
-            "status": "ready_to_submit",
-            "publishedVersion": "0.7.1",
-            "checkedAt": "2026-09-24",
-            "blockedReason": null,
-            "sourceSubmitted": false,
-            "sha256": "1bf4b5621ecbc1f570f36fabc5b1536e3ea149d197139278e966405d04dd9b20"
-          },
-          "validation": {
-            "releaseCheck": "passed",
-            "extensionTests": 96,
-            "firefoxLint": {
-              "errors": 0,
-              "warnings": 0,
-              "notices": 0
-            },
-            "startup": "One targeted settings read before first render; report-library database opens only when Library is requested; pending account recovery does not block home.",
-            "sidebarBundleBytes": {
-              "previous": 512539,
-              "current": 427578
-            },
-            "browser": "Automated Chrome and Firefox bundle tests pass. Native browser startup timing of this 0.7.2 package has not yet been measured."
-          }
-        },
-        "chrome": {
-          "artifact": "releases/chrome/videolens-chrome-v0.8.0.zip",
-          "packageVersion": "0.8.0",
-          "status": "publisher_authentication_pending",
-          "publishedVersion": null,
-          "checkedAt": "2026-10-11T20:06:03Z",
-          "blockedReason": "Native Mac access is working. The existing publisher passkey attempt failed; a refreshed Touch ID check for the existing Google publisher account is pending. The Chrome 0.8.0 package has not been uploaded or submitted.",
-          "sha256": "0fc8e3400d50b335e07ca35c8d60af261290ae3c24a88b3c34902ccc7830e33a"
-        },
-        "firefox": {
-          "artifact": "releases/firefox/videolens-firefox-v0.8.0.zip",
-          "packageVersion": "0.8.0",
-          "status": "published",
-          "publishedVersion": "0.8.0",
-          "checkedAt": "2026-10-11",
-          "blockedReason": null,
-          "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.0.zip",
-          "sourceSubmitted": true,
-          "sha256": "b71b2d0d106dd5b68e8602fbf0259299d46ca4fbb9bdb62b4fb96e7996fdf12d",
-          "sourceSha256": "c93729095d5d4a9e7623222fa279f90e9663a0954a7401c3a33173efd036a4e8",
-          "publishedVersionCheckedAt": "2026-10-11T20:06:03Z",
-          "submittedAt": "2026-10-11T20:06:03Z",
-          "versionId": 6565914,
-          "fileId": 5110051,
-          "reviewUrl": "https://addons.mozilla.org/en-US/developers/addon/videolens-video-reports/versions/6565914",
-          "publicVersionHistoryUrl": "https://addons.mozilla.org/en-US/firefox/addon/videolens-video-reports/versions/",
-          "note": "Native Mac file picker uploaded the verified package and reviewer source. Mozilla validation had no errors or warnings. Approved and listed as latest version 0.8.0 on the public version-history page."
-        },
-        "validation": {
-          "releaseCheck": "passed",
-          "extensionTests": 101,
-          "siteTests": 137,
-          "firefoxLint": {
-            "errors": 0,
-            "warnings": 0,
-            "notices": 0
-          },
-          "database": "Cohort, recovered failure, explicit test exclusion, zero versus positive invoice, paid-then-delayed-failure ordering and service-only access passed in production rollback fixtures.",
-          "browser": "Live account/admin and full reader verified. Mobile paid-account desktop handoff passed at 390px with no overflow, install links hidden and copy success message; desktop setup restored and compact. Live synthetic API checks verified allowance recovery, retry, event deduplication and explicit feedback; synthetic database data cleaned up. Unpaid monthly/annual checkout totals match advertised USD 12 / USD 99 and retain Free access. Native extension capture, native export receipt and completed-payment acceptance remain pending.",
-          "reviewerSourceRebuild": {
-            "exactMatch": true,
-            "filesCompared": 19,
-            "sourceSha256": "c93729095d5d4a9e7623222fa279f90e9663a0954a7401c3a33173efd036a4e8",
-            "originalVerifiedSourceSha256": "683f64b78511d6381a93e9f3b1ef765181aa8655c48a029353786dd419520db7",
-            "note": "Source archive was updated only in extension/AMO_SOURCE_README.md to specify the verified macOS 26.5, Node.js 22.22.3 and npm 10.9.8 build environment. All build inputs match the clean archive that reproduced all 19 packaged files byte for byte; extension package ZIPs are unchanged."
-          }
-        },
-        "website": {
-          "status": "deployed_live_verified",
-          "url": "https://videolens.io",
-          "candidateUrl": "https://videolens-site-qr99sfoqc-shadoprizms-projects.vercel.app",
-          "deployment": "dpl_G62SMLhfLwdozBZhFXtyBgTEyDC7",
-          "sourceCommit": "33619c4b67de73b6e07f57dda461b4bb6bf2dd25",
-          "pullRequest": "https://github.com/shadoprizm/videolens/pull/26",
-          "verification": "Protected candidate account returned 200 and signed-out administrator audit returned 401. The same build was promoted and its live owner audit verified subscription read access and the recorded remaining permission gaps."
-        },
-        "billing": {
-          "pricesAtLiveCheckoutVerified": true,
-          "restrictedKeyAuditMissingPermissions": [
-            "Prices: Read",
-            "Invoices: Read",
-            "Webhook Endpoints: Read"
-          ],
-          "webhookEventCoverage": "owner_verification_pending",
-          "confirmedPaymentAcceptance": "pending",
-          "note": "Checkout totals verified without creating a payment or subscription. Customer-scoped subscription read succeeded; invoice read, independent price verification and webhook configuration access remain unavailable. Completed-payment acceptance remains pending owner access.",
-          "subscriptionReadVerified": true
-        }
       }
     },
     "chrome": {
-      "artifact": "releases/chrome/videolens-chrome-v0.8.2.zip",
-      "packageVersion": "0.8.2",
-      "status": "not_submitted",
-      "publishedVersion": null,
-      "checkedAt": "2026-10-28",
+      "artifact": "releases/chrome/videolens-chrome-v0.8.3.zip",
+      "packageVersion": "0.8.3",
+      "status": "in_review",
+      "publishedVersion": "0.8.1",
+      "checkedAt": "2026-10-29",
+      "sha256": "81fd901933dd146e8700b8c5395b57f7d24f616472c4cb021ab0f3ffa7217b32",
       "blockedReason": null,
+      "submittedAt": "2026-10-29T21:59:15.425870+00:00",
       "itemId": "plhohhmnkfidolnjnmdaenhdjkbbledl",
-      "sha256": "e58b2886fcc3ada3fd3f6d12e7187a911c024dad765a2e77c265f24dab3d3c31"
+      "publisherId": "81acfbdc-e9d8-4cf3-a675-b206d88c4255",
+      "reviewUrl": "https://chrome.google.com/webstore/devconsole/81acfbdc-e9d8-4cf3-a675-b206d88c4255/plhohhmnkfidolnjnmdaenhdjkbbledl/edit/status",
+      "automaticPublication": true,
+      "note": "Native browser controls worked despite bridge navigation restriction. Verified draft 0.8.3 and unchanged manifest permissions; updated starter allowance and OpenAI/Baseten disclosures, corrected old BYOK-only declarations. Submission confirmation and Pending review verified. Public version remains 0.8.1 until Google approves."
     },
     "firefox": {
-      "artifact": "releases/firefox/videolens-firefox-v0.8.2.zip",
-      "packageVersion": "0.8.2",
-      "status": "not_submitted",
-      "publishedVersion": null,
-      "checkedAt": "2026-10-28",
+      "artifact": "releases/firefox/videolens-firefox-v0.8.3.zip",
+      "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.3.zip",
+      "packageVersion": "0.8.3",
+      "status": "published",
+      "publishedVersion": "0.8.3",
+      "sourceSubmitted": true,
+      "checkedAt": "2026-10-29",
+      "sha256": "a277397dddd06973bcd49eefdd4c005b6b4f454159db1752ea8a247b520e596d",
       "blockedReason": null,
-      "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.2.zip",
-      "sha256": "d51b27ea2a646f1526df90207f39e7865de729bb13a4a92aa641ad9e2ef2bd35",
-      "sourceSha256": "57baf3464ae9c1b7fa82b8fa55494a7c3ebba436632ee16d9bc377ccdef7a417"
+      "sourceSha256": "d900f8973b63c48331514cf0cea5d3a99d7c8de846bf60dc5901d84327288c14",
+      "versionId": 6640080,
+      "fileId": 5184181,
+      "reviewUrl": "https://addons.mozilla.org/en-US/developers/addon/videolens-video-reports/versions/6640080",
+      "publicVersionHistoryUrl": "https://addons.mozilla.org/en-US/firefox/addon/videolens-video-reports/versions/",
+      "note": "Source attached after Mac unlock. Submission complete, Approved, and public AMO API current_version 0.8.3 verified.",
+      "publishedVersionCheckedAt": "2026-10-29T21:59:15.425870+00:00",
+      "submittedAt": "2026-10-29T21:59:15.425870+00:00"
     },
     "validation": {
       "releaseCheck": "passed",
-      "browser": "Exact original 17.585-second AV1/Opus WebM produced 40 frames in isolated Chrome and Firefox browser harnesses. Controlled no-paint regression hung with the previous reader and completed with the updated reader. Managed extension report acceptance pending.",
-      "extensionTests": 109,
+      "extensionTests": 111,
+      "siteTests": 221,
+      "pythonTests": 62,
       "firefoxLint": {
         "errors": 0,
         "warnings": 0,
         "notices": 0
+      },
+      "evidence": "Public 17.585-second dashcam: 40/40 observations, 15 requests, US$0.018569 excluding audio, 151.5 seconds. Luna extraction + Baseten GLM review. Short non-incident control passed. Broader topic and native end-to-end acceptance remain limited.",
+      "reviewerSourceRebuild": {
+        "exactMatch": true,
+        "filesCompared": 19
+      },
+      "ci": {
+        "extension": "https://github.com/shadoprizm/videolens/actions/runs/40960069762",
+        "hostedWebsite": "https://github.com/shadoprizm/videolens/actions/runs/40960069747",
+        "status": "passed"
       }
     },
     "website": {
       "status": "deployed_live_verified",
       "url": "https://videolens.io",
-      "deployment": "dpl_53fdCMwP9uWDuhmBBEKth8EUTRro",
-      "deploymentUrl": "https://videolens-site-k71fg442w-shadoprizms-projects.vercel.app",
-      "sourceCommit": "06b969350d2e0461d66d49b427fc093a5ea43a19",
-      "deployedAt": "2026-10-25",
-      "verification": "Production aliases videolens.io and www.videolens.io. Home, account and llms.txt return 200 with three-report copy and no one-report copy; unauthenticated entitlement and reports return 401, AI GET returns 405."
+      "deployment": "dpl_3vxudKCCN8HKYkKAdCNGCigVvnYT",
+      "deploymentUrl": "https://videolens-site-kjkb45cj9-shadoprizms-projects.vercel.app",
+      "sourceCommit": "1e7ad34f19557e5dcbdab44e2fa3b09d0aeae792",
+      "pullRequest": "https://github.com/shadoprizm/videolens/pull/38",
+      "verification": "READY exact merged commit; home/account/admin/privacy 200; entitlement/reports/maintenance unauthenticated 401; AI GET 405; new provider disclosure live. Authenticated full report acceptance remains pending."
+    },
+    "hostedApp": {
+      "status": "deployed_live_verified",
+      "url": "https://app.videolens.io",
+      "deployment": "10b1e831-eb3c-4805-8587-8987ebdf0692",
+      "verification": "Railway shows successful active PR #38 and #39 deployments. Public health returns ok. Authenticated full report acceptance remains pending.",
+      "sourceCommit": "91ea1436b3c8e8ea10293dd8695b12dff29fafe8"
     }
   },
   "chrome": {
-    "artifact": "releases/chrome/videolens-chrome-v0.8.3.zip",
-    "packageVersion": "0.8.3",
-    "status": "in_review",
+    "artifact": "releases/chrome/videolens-chrome-v0.8.4.zip",
+    "packageVersion": "0.8.4",
+    "status": "not_submitted",
     "publishedVersion": "0.8.1",
-    "checkedAt": "2026-10-29",
-    "sha256": "81fd901933dd146e8700b8c5395b57f7d24f616472c4cb021ab0f3ffa7217b32",
     "blockedReason": null,
-    "submittedAt": "2026-10-29T21:59:15.425870+00:00",
-    "itemId": "plhohhmnkfidolnjnmdaenhdjkbbledl",
-    "publisherId": "81acfbdc-e9d8-4cf3-a675-b206d88c4255",
-    "reviewUrl": "https://chrome.google.com/webstore/devconsole/81acfbdc-e9d8-4cf3-a675-b206d88c4255/plhohhmnkfidolnjnmdaenhdjkbbledl/edit/status",
-    "automaticPublication": true,
-    "note": "Native browser controls worked despite bridge navigation restriction. Verified draft 0.8.3 and unchanged manifest permissions; updated starter allowance and OpenAI/Baseten disclosures, corrected old BYOK-only declarations. Submission confirmation and Pending review verified. Public version remains 0.8.1 until Google approves."
+    "sha256": "02961f6a469a2fcd97252d000c362b1601450dbd4756e49dcae8fe6f7d0d5a2e"
   },
   "firefox": {
-    "artifact": "releases/firefox/videolens-firefox-v0.8.3.zip",
-    "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.3.zip",
-    "packageVersion": "0.8.3",
-    "status": "published",
+    "artifact": "releases/firefox/videolens-firefox-v0.8.4.zip",
+    "sourceArtifact": "releases/firefox/source/videolens-firefox-source-v0.8.4.zip",
+    "packageVersion": "0.8.4",
+    "status": "not_submitted",
     "publishedVersion": "0.8.3",
-    "sourceSubmitted": true,
-    "checkedAt": "2026-10-29",
-    "sha256": "a277397dddd06973bcd49eefdd4c005b6b4f454159db1752ea8a247b520e596d",
     "blockedReason": null,
-    "sourceSha256": "d900f8973b63c48331514cf0cea5d3a99d7c8de846bf60dc5901d84327288c14",
-    "versionId": 6640080,
-    "fileId": 5184181,
-    "reviewUrl": "https://addons.mozilla.org/en-US/developers/addon/videolens-video-reports/versions/6640080",
-    "publicVersionHistoryUrl": "https://addons.mozilla.org/en-US/firefox/addon/videolens-video-reports/versions/",
-    "note": "Source attached after Mac unlock. Submission complete, Approved, and public AMO API current_version 0.8.3 verified.",
-    "publishedVersionCheckedAt": "2026-10-29T21:59:15.425870+00:00",
-    "submittedAt": "2026-10-29T21:59:15.425870+00:00"
+    "sha256": "539181a3fce1a109267fd56b5db10b20716e377d678f035a4cb31f14c5b43094",
+    "sourceSha256": "4375952f0655a25e5bdd0292fff9a5f1dcc1c730332934a83f50bccfa854ef53"
   },
   "validation": {
     "releaseCheck": "passed",
-    "extensionTests": 111,
-    "siteTests": 221,
-    "pythonTests": 62,
+    "extensionTests": 115,
+    "siteTests": 231,
+    "pythonTests": 65,
     "firefoxLint": {
       "errors": 0,
       "warnings": 0,
       "notices": 0
     },
-    "evidence": "Public 17.585-second dashcam: 40/40 observations, 15 requests, US$0.018569 excluding audio, 151.5 seconds. Luna extraction + Baseten GLM review. Short non-incident control passed. Broader topic and native end-to-end acceptance remain limited.",
-    "reviewerSourceRebuild": {
-      "exactMatch": true,
-      "filesCompared": 19
-    },
-    "ci": {
-      "extension": "https://github.com/shadoprizm/videolens/actions/runs/40960069762",
-      "hostedWebsite": "https://github.com/shadoprizm/videolens/actions/runs/40960069747",
-      "status": "passed"
-    }
-  },
-  "website": {
-    "status": "deployed_live_verified",
-    "url": "https://videolens.io",
-    "deployment": "dpl_3vxudKCCN8HKYkKAdCNGCigVvnYT",
-    "deploymentUrl": "https://videolens-site-kjkb45cj9-shadoprizms-projects.vercel.app",
-    "sourceCommit": "1e7ad34f19557e5dcbdab44e2fa3b09d0aeae792",
-    "pullRequest": "https://github.com/shadoprizm/videolens/pull/38",
-    "verification": "READY exact merged commit; home/account/admin/privacy 200; entitlement/reports/maintenance unauthenticated 401; AI GET 405; new provider disclosure live. Authenticated full report acceptance remains pending."
-  },
-  "hostedApp": {
-    "status": "deployed_live_verified",
-    "url": "https://app.videolens.io",
-    "deployment": "10b1e831-eb3c-4805-8587-8987ebdf0692",
-    "verification": "Railway shows successful active PR #38 and #39 deployments. Public health returns ok. Authenticated full report acceptance remains pending.",
-    "sourceCommit": "91ea1436b3c8e8ea10293dd8695b12dff29fafe8"
+    "evidence": "Guarded MiMo acoustic observations + Luna visuals + GLM joint review tested on the original public Highway 400 clip. Empty gpt-transcribe output now succeeds without retry. Synthetic silence/tone and six ESC-10 environmental holdouts evaluated; sparse transients can remain uncertain. This is an initial acoustic-description feature, not a validated event detector.",
+    "database": "sound_evidence_budget applied; rollback test confirms independent 20-operation sound limit, cross-account isolation, and no anon/member RPC execution."
   }
 }

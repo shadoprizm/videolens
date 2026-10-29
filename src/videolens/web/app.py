@@ -69,7 +69,7 @@ STEP_KEYS: list[tuple[str, str]] = [
     ("resolve", "Resolve"),
     ("fetch", "Fetch"),
     ("probe", "Probe"),
-    ("transcribe", "Transcribe"),
+    ("transcribe", "Speech & sounds"),
     ("frames", "Frames"),
     ("describe", "Describe"),
     ("timeline", "Timeline"),
@@ -342,7 +342,8 @@ def _step_index_from_message(msg: str) -> int | None:
     ):
         return 4
     if (
-        "extracting audio" in msg_low
+        "analyzing non-speech sounds" in msg_low
+        or "extracting audio" in msg_low
         or "cached audio" in msg_low
         or "chunking audio" in msg_low
         or "transcribing" in msg_low
@@ -719,8 +720,12 @@ def _render_composer() -> tuple[str | None, Path | None]:
 
     if _connection() is not None and _access_mode() == "account":
         st.checkbox(
-            "Use optimized general reports: send images and report text through Vercel AI Gateway to OpenAI and Baseten (GLM by Z.ai), with OpenAI as a fallback. Audio uses OpenAI.",
+            "Use optimized general reports: send images and report text through Vercel AI Gateway to OpenAI and Baseten (GLM by Z.ai), with OpenAI as a fallback. Speech transcription uses OpenAI.",
             key="managed_provider_consent",
+        )
+        st.checkbox(
+            "Include actual sounds: send audio through VideoLens and Vercel AI Gateway to DeepInfra serving Xiaomi MiMo. Speech transcription still uses OpenAI. Sound descriptions are provisional and audio analysis covers the first 20 minutes.",
+            key="managed_sound_consent_v1",
         )
     _step(3, "Create your report")
     run_col, note_col = st.columns([1.1, 1.4])
@@ -1102,6 +1107,7 @@ def _run_pipeline(
             report_id,
             mode=mode,
             multimodel=bool(st.session_state.get("managed_provider_consent")),
+            sound_consent=bool(st.session_state.get("managed_sound_consent_v1")),
         )
         st.session_state["report_id"] = report_id
 
@@ -1578,6 +1584,7 @@ def render_timeline_tab(result: ExtractionResult) -> None:
                 "end": _fmt_ts(s.end),
                 "scene": s.scene_type or "",
                 "visual": s.visual_summary or "",
+                "heard (provisional)": s.audio_summary or "",
                 "ocr": ", ".join(s.ocr) if s.ocr else "",
                 "transcript": s.transcript or "",
                 "conf": s.confidence,

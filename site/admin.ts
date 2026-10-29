@@ -184,8 +184,8 @@ function render(data: Snapshot): void {
       diagnostic.append(text("span", scan.failure_code === "interrupted" ? "Session interrupted · credit returned" : scan.ai_request_count === 0 ? "Stopped before AI processing · client cause unavailable" : "Client failure · historical detail unavailable"));
     } else diagnostic.append(text("span", scan.recovered_requests ? "Recovered automatically" : "—"));
     if (scan.ai_succeeded !== undefined) diagnostic.append(text("small", `${scan.ai_succeeded} succeeded · ${scan.ai_failed || 0} failed`));
-    for (const role of scan.ai_models || []) diagnostic.append(text("small", `${role.kind === "transcription" ? "Speech" : "Visual/report"}: ${role.model} · ${role.requests}`));
-    diagnostic.append(text("small", `${scan.ai_request_count} AI requests${scan.recovered_requests ? ` · ${scan.recovered_requests} model fallbacks` : ""}`));
+    for (const role of scan.ai_models || []) diagnostic.append(text("small", `${role.kind === "transcription" ? "Speech" : role.kind === "sound" ? "Sounds" : "Visual/report"}: ${role.model} · ${role.requests}`));
+    diagnostic.append(text("small", `${scan.ai_request_count} processing requests${scan.recovered_requests ? ` · ${scan.recovered_requests} model fallbacks` : ""}`));
     row.append(text("td", scan.title === "Untitled video" ? "Title not reported" : scan.title), text("td", scan.email || "No email"), text("td", scan.kind), text("td", scan.source_type || "Not reported"), text("td", scan.mode || "Not reported"), status, diagnostic, text("td", date(scan.created_at)), text("td", scan.completed_at ? date(scan.completed_at) : "—"), text("td", scan.cloud_saved ? "Yes" : "No"));
     return row;
   }));
