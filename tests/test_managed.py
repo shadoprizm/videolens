@@ -169,3 +169,16 @@ def test_completion_retries_transport_failure_without_new_reservation(monkeypatc
     )
     assert len(calls) == 2
     assert calls[0] == calls[1]
+
+
+def test_sound_requires_fresh_consent_and_uses_bounded_audio_contract(recorder):
+    client = ManagedClient(CONNECTION, "r-1", multimodel=True)
+    with pytest.raises(ManagedError, match="notice"):
+        client.analyze_sounds(b"wav")
+    rec = recorder(_response(200, {"windows": [{"start": 3, "end": 4, "description": "Tone", "confidence": "medium"}]}))
+    client = ManagedClient(CONNECTION, "r-1", sound_consent=True)
+    assert client.analyze_sounds(b"wav")["windows"][0]["start"] == 3
+    call = rec.calls[0]
+    assert call["data"] == {"reportId": "r-1", "kind": "sound", "processingPolicy": "managed-sounds-2026-10"}
+    assert call["files"]["file"] == ("sound.wav", b"wav", "audio/wav")
+    assert call["timeout"].read == 290

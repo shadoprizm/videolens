@@ -230,6 +230,8 @@ def _finding_card(index, finding, source_url: str) -> str:
 
 def _timeline_row(segment) -> str:
     visual_bits = [segment.visual_summary or ""]
+    if segment.audio_summary:
+        visual_bits.append("Heard (provisional): " + segment.audio_summary)
     if segment.ocr:
         visual_bits.append("On screen: " + " / ".join(segment.ocr))
     if segment.transcript:

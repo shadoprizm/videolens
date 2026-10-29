@@ -42,6 +42,7 @@ import {
   makeLocalSource,
   openLocalVideo,
   transcribeLocalFile,
+  analyzeLocalSounds,
   type LocalVideo,
 } from "../lib/localFile";
 import { verifyApiKey } from "../lib/openai";
@@ -1812,6 +1813,7 @@ async function runTabAnalysis(access: AiAccess, prompt: string): Promise<void> {
   steps.set(2, "done", t("capturedFrames", { count: frames.length }));
 
   const source = makeTabSource(probe, transcript !== null);
+  source.limitations.push("Non-speech sounds were not analyzed from this browser tab. Captions cover speech only. Upload the video file or use the hosted app for sound-and-visual analysis.");
   if (state.mode === "recipe" && frames.length !== timestamps.length) {
     if (!frames.length) throw new Error("No cooking frames could be captured. Please retry with a YouTube video or local file.");
     source.limitations.push(`Only ${frames.length} of ${timestamps.length} planned recipe frames were captured; some cooking details may be missing.`);
@@ -1859,9 +1861,13 @@ async function runFileAnalysis(access: AiAccess, prompt: string): Promise<void> 
   );
   steps.set(transcriptStep, "done", transcript ? t("transcribedChunks", { count: transcript.segments.length }) : t("audioSkipped"));
 
-  const source = makeLocalSource(local, limitation ? [limitation] : []);
+  steps.set(transcriptStep, "active", "Listening for non-speech sounds…");
+  analysisStage = "analysis";
+  const sound = await analyzeLocalSounds(access, local);
+  steps.set(transcriptStep, "done");
+  const source = makeLocalSource(local, [...(limitation ? [limitation] : []), ...sound.limitations]);
   const outputLanguage = resolveReportLanguage(state.reportLanguage, browserLanguage, transcript?.language);
-  await describeAndSynthesize(access, steps, frames, transcript, local.duration, source, prompt, outputLanguage, 2);
+  await describeAndSynthesize(access, steps, frames, transcript, local.duration, source, prompt, outputLanguage, 2, undefined, sound.segments);
 }
 
 async function describeAndSynthesize(
@@ -1875,6 +1881,7 @@ async function describeAndSynthesize(
   outputLanguage: ConcreteReportLanguage | "source",
   stepOffset = 3,
   recipeContext: RecipeContext = { creatorText: "", sources: [], researchText: "", research: "not_requested" },
+  soundSegments: import("../lib/types").TimelineSegment[] = [],
 ): Promise<void> {
   analysisStage = "analysis";
   steps.set(stepOffset, "active");
@@ -1903,6 +1910,8 @@ async function describeAndSynthesize(
 
   steps.set(stepOffset + 1, "active");
   const timeline = buildTimeline(summaries, transcript, duration);
+  timeline.segments.push(...soundSegments);
+  timeline.segments.sort((a, b) => a.start - b.start);
   if (timeline.segments.length === 0) {
     throw new Error(t("nothingExtracted"));
   }

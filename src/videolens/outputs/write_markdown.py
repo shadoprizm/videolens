@@ -82,15 +82,16 @@ def render_markdown(analysis: Analysis) -> str:
     if not analysis.timeline.segments:
         lines.append("_(empty)_")
     else:
-        lines.append("| Start | End | Scene | Visual | OCR | Transcript | Conf |")
-        lines.append("|---|---|---|---|---|---|---|")
+        lines.append("| Start | End | Scene | Visual | Heard (provisional) | OCR | Transcript | Conf |")
+        lines.append("|---|---|---|---|---|---|---|---|")
         for s in analysis.timeline.segments:
             visual = (s.visual_summary or "").replace("\n", " ").replace("|", "\\|")
+            heard = (s.audio_summary or "").replace("\n", " ").replace("|", "\\|")
             transcript = (s.transcript or "").replace("\n", " ").replace("|", "\\|")
             ocr = " · ".join(s.ocr).replace("|", "\\|")
             lines.append(
                 f"| {_fmt_ts(s.start)} | {_fmt_ts(s.end)} | {s.scene_type or '—'} | "
-                f"{visual} | {ocr} | {transcript} | {s.confidence} |"
+                f"{visual} | {heard} | {ocr} | {transcript} | {s.confidence} |"
             )
     lines.append("")
 

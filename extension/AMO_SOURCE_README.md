@@ -1,4 +1,4 @@
-# VideoLens Firefox 0.8.1 — reviewer build instructions
+# VideoLens Firefox 0.8.4 — reviewer build instructions
 
 This source archive reproduces the packaged Firefox extension build. The
 extension is written in TypeScript and bundled as minified ES modules with
@@ -6,19 +6,7 @@ esbuild. It does not download or execute remote code.
 
 ## Changes in this release
 
-Chrome and Firefox share the same UI. This release adds mode-specific next steps,
-suggested follow-up questions, and optional usefulness feedback on managed reports.
-Clicking a rating sends only the rating and managed report ID to the authenticated
-VideoLens service. Failed managed scans now send a fixed stage and error category,
-alongside their existing source category and selected mode. This restores allowance
-and diagnoses failures without raw errors or content. Private/BYOK scans send no
-diagnostics or ratings to VideoLens. The versioned first-run disclosure explains
-this data use before analysis. Firefox declares `technicalAndInteraction` as
-optional: extra failure categories are omitted when that permission is off,
-without preventing report completion or restoring allowance. A rating button
-requests that optional permission within the user gesture before sending feedback;
-declining it sends no rating. No background browsing tracking or session replay
-is used. Existing local reports and settings are preserved.
+Chrome and Firefox share the same source and processing disclosure. This release adds actual non-speech sound observations for Managed local-file reports. After the versioned notice naming DeepInfra serving Xiaomi MiMo is accepted, short PCM audio chunks go to the authenticated VideoLens API. The API independently describes fixed audio windows and retains only conservative agreement across alternate encodings; digital silence is not sent to a model. Sound observations remain separate from transcripts and visual evidence in reports, follow-up answers and exports. Browser-tab captions and Private/BYOK mode do not analyze non-speech sounds; those limitations are disclosed. No new extension permissions, remote executable code or background capture are introduced. Existing reports and settings are preserved; the processing notice requires fresh acceptance.
 
 ## Requirements
 

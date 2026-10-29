@@ -6,6 +6,7 @@ import { optionalEnv } from "./_lib/env.js";
 import { providerException, failureCode, finishAiRequest, requestManagedChat, type ManagedAiProvider } from "./_lib/managed-ai.js";
 import { ApiError, corsHeaders, errorResponse, json, options } from "./_lib/http.js";
 import { parseRecipeResearch, recipeResearchPayload } from "../shared/recipeResearch.js";
+import { analyzeSound, readSoundWav, SOUND_MODEL, SOUND_POLICY } from "./_lib/sound.js";
 
 // Keep published clients compatible while routing legacy defaults to the
 // current review model. New clients use explicit extraction/review roles.
@@ -131,6 +132,7 @@ async function proxyRecipeResearch(request: Request, userId: string, body: Manag
 
 async function proxyTranscription(request: Request, userId: string): Promise<Response> {
   const form = await request.formData();
+  if (form.get("kind") === "sound") return proxySound(request, userId, form);
   const reportId = String(form.get("reportId") || "");
   const model = String(form.get("model") || "");
   const file = form.get("file");
@@ -158,6 +160,27 @@ async function proxyTranscription(request: Request, userId: string): Promise<Res
     return managedFailure(request, code);
   }
 
+}
+
+async function proxySound(request: Request, userId: string, form: FormData): Promise<Response> {
+  const reportId = String(form.get("reportId") || ""), file = form.get("file");
+  if (form.get("processingPolicy") !== SOUND_POLICY) throw new ApiError(400, "sound_consent_required", "Accept the updated sound processing notice first.");
+  if (!reportId || !(file instanceof File) || file.size > 2_880_100) throw new ApiError(400, "invalid_sound_request", "Choose a bounded WAV sound chunk.");
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  readSoundWav(bytes);
+  const requestId = await recordAiRequest(userId, reportId, "sound"), started = Date.now();
+  try {
+    const result = await analyzeSound(bytes, await managedAiProvider(SOUND_MODEL));
+    console.info("Managed sound operation", { requestId, model: SOUND_MODEL, windows: result.windows.length, reportedCostUsd: result.costUsd, durationMs: Date.now() - started });
+    await finishAiRequest(requestId, { requested_model: SOUND_MODEL, effective_model: SOUND_MODEL, provider: "gateway", outcome: "succeeded", http_status: 200, error_code: null, fallback_used: false, duration_ms: Date.now() - started });
+    return json(request, result);
+  } catch (error) {
+    const failure = providerException(error);
+    const invalidResponse = error instanceof SyntaxError || (error instanceof Error && /Invalid sound|Audio was not analyzed|NoOutput|NoObject|TypeValidation/i.test(`${error.name} ${error.message}`));
+    const code = invalidResponse ? "invalid_provider_response" : failure.code;
+    await finishAiRequest(requestId, { requested_model: SOUND_MODEL, effective_model: SOUND_MODEL, provider: "gateway", outcome: "failed", http_status: failure.status, error_code: code, fallback_used: false, duration_ms: Date.now() - started });
+    return managedFailure(request, code);
+  }
 }
 
 function managedFailure(request: Request, code: string): Response {

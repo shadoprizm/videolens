@@ -118,6 +118,7 @@ class TimelineSegment(BaseModel):
     transcript: str | None = None
     ocr: list[str] = Field(default_factory=list)
     visual_summary: str | None = None
+    audio_summary: str | None = None
     detected_actions: list[str] = Field(default_factory=list)
     interpretation: str | None = None
     confidence: Confidence = "medium"

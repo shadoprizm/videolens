@@ -45,7 +45,7 @@ export function libraryUpload(value: unknown) {
     source: { sourceType: a.source.sourceType, title: a.source.title, url: a.source.url,
       durationSeconds: a.source.durationSeconds, limitations: a.source.limitations },
     mode: a.mode, outputLanguage: a.outputLanguage, prompt: a.prompt, summary: a.summary,
-    timeline: { segments: a.timeline.segments.map(segment => pick(segment, ["start", "end", "sceneType", "transcript", "ocr", "visualSummary", "confidence"])) },
+    timeline: { segments: a.timeline.segments.map(segment => pick(segment, ["start", "end", "sceneType", "transcript", "ocr", "visualSummary", "audioSummary", "confidence"])) },
     findings: (a.findings as unknown[]).map(finding => {
       if (!object(finding) || !Array.isArray(finding.evidence)) return invalid();
       return { ...pick(finding, ["finding", "confidence"]), evidence: finding.evidence.map(e => pick(e, ["timestamp", "detail"])) };

@@ -1,0 +1,564 @@
+{
+  "date": "2026-10-29",
+  "guardedControls": [
+    {
+      "file": "silence.wav",
+      "ms": 4,
+      "model": "xiaomi/mimo-v2.6-flash",
+      "duration": 17.585,
+      "windows": [],
+      "silent": true,
+      "costUsd": 0
+    },
+    {
+      "file": "tone-control.wav",
+      "ms": 11769,
+      "model": "xiaomi/mimo-v2.6-flash",
+      "duration": 8,
+      "windows": [
+        {
+          "start": 3.0000416666666667,
+          "end": 4,
+          "description": "A continuous steady tone.",
+          "confidence": "medium"
+        }
+      ],
+      "silent": false,
+      "costUsd": 6.38456e-05
+    },
+    {
+      "file": "noise.wav",
+      "ms": 6241,
+      "model": "xiaomi/mimo-v2.6-flash",
+      "duration": 4,
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "description": "A steady broadband noise.",
+          "confidence": "medium"
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "description": "A steady broadband noise resembling static.",
+          "confidence": "medium"
+        }
+      ],
+      "silent": false,
+      "costUsd": 0.00016182320000000003
+    },
+    {
+      "file": "clicks.wav",
+      "ms": 13638,
+      "model": "xiaomi/mimo-v2.6-flash",
+      "duration": 4,
+      "windows": [
+        {
+          "start": 0.24375,
+          "end": 1.2563125,
+          "description": "Acoustic content is uncertain; independent descriptions did not agree.",
+          "confidence": "low"
+        },
+        {
+          "start": 2.24375,
+          "end": 3.2563125,
+          "description": "Acoustic content is uncertain; independent descriptions did not agree.",
+          "confidence": "low"
+        }
+      ],
+      "silent": false,
+      "costUsd": 0.00029076319999999994
+    },
+    {
+      "file": "highway400-16k.wav",
+      "ms": 26060,
+      "model": "xiaomi/mimo-v2.6-flash",
+      "duration": 17.5786875,
+      "windows": [
+        {
+          "start": 0.1166875,
+          "end": 2,
+          "description": "Acoustic content is uncertain; independent descriptions did not agree.",
+          "confidence": "low"
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "description": "A steady low-frequency background rumble is present.",
+          "confidence": "medium"
+        },
+        {
+          "start": 4,
+          "end": 6,
+          "description": "A steady low-frequency rumble is present.",
+          "confidence": "medium"
+        },
+        {
+          "start": 6,
+          "end": 8,
+          "description": "Steady broadband background noise is present.",
+          "confidence": "medium"
+        },
+        {
+          "start": 8,
+          "end": 10,
+          "description": "Acoustic content is uncertain; independent descriptions did not agree.",
+          "confidence": "low"
+        },
+        {
+          "start": 10,
+          "end": 12,
+          "description": "A steady low-frequency broadband rumble accompanied by brief clicking sounds.",
+          "confidence": "medium"
+        },
+        {
+          "start": 12,
+          "end": 14,
+          "description": "Broadband rustling and crackling sounds are present.",
+          "confidence": "medium"
+        },
+        {
+          "start": 14,
+          "end": 16,
+          "description": "Broadband background noise accompanied by brief clicking sounds.",
+          "confidence": "medium"
+        },
+        {
+          "start": 16,
+          "end": 17.5786875,
+          "description": "Clicking sounds are present.",
+          "confidence": "medium"
+        }
+      ],
+      "silent": false,
+      "costUsd": 0.0016691864000000004
+    }
+  ],
+  "latestRepeatableDashcamRun": {
+    "elapsedMs": 37704,
+    "model": "xiaomi/mimo-v2.6-flash",
+    "duration": 17.5786875,
+    "windows": [
+      {
+        "start": 0.1166875,
+        "end": 2,
+        "description": "A low-frequency noise is present.",
+        "confidence": "medium"
+      },
+      {
+        "start": 2,
+        "end": 4,
+        "description": "Acoustic content is uncertain; independent descriptions did not agree.",
+        "confidence": "low"
+      },
+      {
+        "start": 4,
+        "end": 6,
+        "description": "Acoustic content is uncertain; independent descriptions did not agree.",
+        "confidence": "low"
+      },
+      {
+        "start": 6,
+        "end": 8,
+        "description": "A low-frequency hum is present.",
+        "confidence": "medium"
+      },
+      {
+        "start": 8,
+        "end": 10,
+        "description": "A broadband low-frequency rumble is present.",
+        "confidence": "medium"
+      },
+      {
+        "start": 10,
+        "end": 12,
+        "description": "A continuous low-frequency sound is present.",
+        "confidence": "medium"
+      },
+      {
+        "start": 12,
+        "end": 14,
+        "description": "Acoustic content is uncertain; independent descriptions did not agree.",
+        "confidence": "low"
+      },
+      {
+        "start": 14,
+        "end": 16,
+        "description": "A low-frequency rumble is present.",
+        "confidence": "medium"
+      },
+      {
+        "start": 16,
+        "end": 17.5786875,
+        "description": "A low-frequency rumble is present.",
+        "confidence": "low"
+      }
+    ],
+    "silent": false,
+    "costUsd": 0.0018247263999999997
+  },
+  "environmentalSinglePassComparison": [
+    {
+      "category": "rain",
+      "model": "xiaomi/mimo-v2.6-flash",
+      "ms": 2779,
+      "cost": "0.0000242088",
+      "output": {
+        "description": "A continuous broadband noise resembling heavy rain or steady static, with no other identifiable sounds.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    },
+    {
+      "category": "dog",
+      "model": "xiaomi/mimo-v2.6-flash",
+      "ms": 3758,
+      "cost": "0.0000281288",
+      "output": {
+        "description": "A sharp, brief dog bark with a short reverberant tail.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    },
+    {
+      "category": "sea_waves",
+      "model": "xiaomi/mimo-v2.6-flash",
+      "ms": 5420,
+      "cost": "0.0001544088",
+      "output": {
+        "description": "A loud, continuous broadband rushing noise that decreases in intensity.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    },
+    {
+      "category": "helicopter",
+      "model": "xiaomi/mimo-v2.6-flash",
+      "ms": 5410,
+      "cost": "0.0000404488",
+      "output": {
+        "description": "Continuous broadband mechanical noise with a steady low-frequency rumble and minor clatter.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    },
+    {
+      "category": "crackling_fire",
+      "model": "xiaomi/mimo-v2.6-flash",
+      "ms": 3915,
+      "cost": "0.0000222488",
+      "output": {
+        "description": "Irregular rattling clicks and crinkling noises throughout.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    },
+    {
+      "category": "dog",
+      "model": "google/gemini-3.8-flash",
+      "ms": 3866,
+      "cost": "0.00072975",
+      "output": {
+        "description": "Two sharp, distinct barks resonate against a quiet background.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    },
+    {
+      "category": "rain",
+      "model": "google/gemini-3.8-flash",
+      "ms": 4536,
+      "cost": "0.0008235",
+      "output": {
+        "description": "A loud, turbulent rushing noise is accompanied by sharp hissing and high-pitched scraping sounds.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    },
+    {
+      "category": "clock_tick",
+      "model": "xiaomi/mimo-v2.6-flash",
+      "ms": 11552,
+      "cost": "0.0000429688",
+      "output": {
+        "description": "A series of brief, sharp clicks occurring at steady, regular intervals.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    },
+    {
+      "category": "sea_waves",
+      "model": "google/gemini-3.8-flash",
+      "ms": 3205,
+      "cost": "0.000861",
+      "output": {
+        "description": "A low background rumble with faint clicks and quiet broadband noise.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    },
+    {
+      "category": "helicopter",
+      "model": "google/gemini-3.8-flash",
+      "ms": 3068,
+      "cost": "0.00077475",
+      "output": {
+        "description": "Continuous low-frequency mechanical rumbling accompanied by repetitive, rhythmic squeaking.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    },
+    {
+      "category": "clock_tick",
+      "model": "google/gemini-3.8-flash",
+      "ms": 4810,
+      "cost": "0.00102975",
+      "output": {
+        "description": "A series of dry, rhythmic clicks repeat at a steady tempo.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    },
+    {
+      "category": "crackling_fire",
+      "model": "google/gemini-3.8-flash",
+      "ms": 2942,
+      "cost": "0.0008685",
+      "output": {
+        "description": "Rapid, rhythmic clicking and tapping sounds occur over low background noise.",
+        "speech": false,
+        "music": false,
+        "uncertain": false
+      }
+    }
+  ],
+  "guardedEnvironmentalHoldouts": [
+    {
+      "category": "dog",
+      "filename": "1-100032-A-0.wav",
+      "ms": 12919,
+      "model": "xiaomi/mimo-v2.6-flash",
+      "duration": 5,
+      "windows": [
+        {
+          "start": 2.2291875,
+          "end": 2.5866875,
+          "description": "A single, short dog bark.",
+          "confidence": "medium"
+        }
+      ],
+      "silent": false,
+      "costUsd": 8.02256e-05
+    },
+    {
+      "category": "rain",
+      "filename": "1-17367-A-10.wav",
+      "ms": 9124,
+      "model": "xiaomi/mimo-v2.6-flash",
+      "duration": 5,
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "description": "Broadband noise or hiss is present.",
+          "confidence": "medium"
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "description": "Continuous broadband hissing or rushing noise is present, with no discernible speech.",
+          "confidence": "medium"
+        },
+        {
+          "start": 4,
+          "end": 5,
+          "description": "Broadband noise is audible throughout.",
+          "confidence": "medium"
+        }
+      ],
+      "silent": false,
+      "costUsd": 0.0003076808
+    },
+    {
+      "category": "sea_waves",
+      "filename": "1-28135-A-11.wav",
+      "ms": 12255,
+      "model": "xiaomi/mimo-v2.6-flash",
+      "duration": 5,
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "description": "Broadband rushing noise.",
+          "confidence": "medium"
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "description": "Broadband rushing noise.",
+          "confidence": "medium"
+        },
+        {
+          "start": 4,
+          "end": 5,
+          "description": "Continuous broadband rushing noise.",
+          "confidence": "medium"
+        }
+      ],
+      "silent": false,
+      "costUsd": 0.0003625608
+    },
+    {
+      "category": "clock_tick",
+      "filename": "1-21934-A-38.wav",
+      "ms": 15169,
+      "model": "xiaomi/mimo-v2.6-flash",
+      "duration": 5,
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "description": "Brief clicks are audible.",
+          "confidence": "medium"
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "description": "Acoustic content is uncertain; independent descriptions did not agree.",
+          "confidence": "low"
+        },
+        {
+          "start": 4,
+          "end": 5,
+          "description": "A brief click is audible.",
+          "confidence": "medium"
+        }
+      ],
+      "silent": false,
+      "costUsd": 0.0005650008
+    },
+    {
+      "category": "helicopter",
+      "filename": "1-172649-A-40.wav",
+      "ms": 59850,
+      "model": "xiaomi/mimo-v2.6-flash",
+      "duration": 5,
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "description": "Acoustic content is uncertain; independent descriptions did not agree.",
+          "confidence": "low"
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "description": "A steady broadband noise.",
+          "confidence": "medium"
+        },
+        {
+          "start": 4,
+          "end": 5,
+          "description": "Acoustic content is uncertain; independent descriptions did not agree.",
+          "confidence": "low"
+        }
+      ],
+      "silent": false,
+      "costUsd": 0.0013855408
+    },
+    {
+      "category": "crackling_fire",
+      "filename": "1-17150-A-12.wav",
+      "ms": 17269,
+      "model": "xiaomi/mimo-v2.6-flash",
+      "duration": 5,
+      "windows": [
+        {
+          "start": 0,
+          "end": 2,
+          "description": "Distinct, brief clicking sounds.",
+          "confidence": "medium"
+        },
+        {
+          "start": 2,
+          "end": 4,
+          "description": "Brief, irregular clicking sounds.",
+          "confidence": "medium"
+        },
+        {
+          "start": 4,
+          "end": 5,
+          "description": "Brief clicking sounds.",
+          "confidence": "medium"
+        }
+      ],
+      "silent": false,
+      "costUsd": 0.0003123008
+    }
+  ],
+  "holdoutSources": [
+    {
+      "category": "dog",
+      "filename": "1-100032-A-0.wav",
+      "source": "https://raw.githubusercontent.com/karoldvl/ESC-50/master/audio/1-100032-A-0.wav",
+      "esc10": true
+    },
+    {
+      "category": "rain",
+      "filename": "1-17367-A-10.wav",
+      "source": "https://raw.githubusercontent.com/karoldvl/ESC-50/master/audio/1-17367-A-10.wav",
+      "esc10": true
+    },
+    {
+      "category": "sea_waves",
+      "filename": "1-28135-A-11.wav",
+      "source": "https://raw.githubusercontent.com/karoldvl/ESC-50/master/audio/1-28135-A-11.wav",
+      "esc10": true
+    },
+    {
+      "category": "clock_tick",
+      "filename": "1-21934-A-38.wav",
+      "source": "https://raw.githubusercontent.com/karoldvl/ESC-50/master/audio/1-21934-A-38.wav",
+      "esc10": true
+    },
+    {
+      "category": "helicopter",
+      "filename": "1-172649-A-40.wav",
+      "source": "https://raw.githubusercontent.com/karoldvl/ESC-50/master/audio/1-172649-A-40.wav",
+      "esc10": true
+    },
+    {
+      "category": "crackling_fire",
+      "filename": "1-17150-A-12.wav",
+      "source": "https://raw.githubusercontent.com/karoldvl/ESC-50/master/audio/1-17150-A-12.wav",
+      "esc10": true
+    }
+  ],
+  "speechResult": {
+    "ms": 1517,
+    "result": {
+      "text": ""
+    },
+    "status": 200,
+    "errorCode": null
+  },
+  "finalReview": {
+    "ms": 54440,
+    "model": "zai/glm-5.3-flash",
+    "soundModel": "xiaomi/mimo-v2.6-flash",
+    "soundCostUsd": 0.0016691864000000004,
+    "reviewCostUsd": 0.0080104
+  }
+}

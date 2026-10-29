@@ -56,7 +56,7 @@ Use VideoLens without a VideoLens account or subscription, with no VideoLens ana
 MANAGED / VIDEOLENS PRO
 A free VideoLens account includes three managed starter reports, with no API key required. Pro includes 20 managed reports per calendar month for US$12/month or US$99/year.
 
-Managed analysis sends the content needed for a report through VideoLens and Vercel AI Gateway to OpenAI. After the updated processing notice is accepted, optimized general reports also use Baseten serving Z.ai GLM for final review, with OpenAI as a fallback. Audio and other report types use OpenAI. VideoLens does not retain raw frames or audio. Cloud report storage is optional and off by default.
+Managed analysis sends the content needed for a report through VideoLens and Vercel AI Gateway to OpenAI. After the updated processing notice is accepted, optimized general reports also use Baseten serving Z.ai GLM for final review, with OpenAI as a fallback. Speech transcription and other report types use OpenAI. After the updated notice is accepted, local-file sound analysis also sends short audio windows to DeepInfra serving Xiaomi MiMo; browser-tab captions do not analyze non-speech sounds. VideoLens does not retain raw frames or audio. Cloud report storage is optional and off by default.
 
 OPTIONAL ONLINE RECIPE LOOKUP
 When enabled, recipe lookup sends recipe context through your selected AI connection to OpenAI web search. Search providers may receive queries, and additional provider charges may apply when you use your own API key.
@@ -93,7 +93,7 @@ Source code: https://github.com/shadoprizm/videolens
 **Data usage disclosures (Privacy tab):**
 - Check **Personally identifiable information**: an email address is used only when the user explicitly creates/connects a VideoLens account for managed mode, subscription access, and the optional cloud library.
 - Check **Authentication information**: Private mode stores the user's OpenAI API key locally and sends it only to OpenAI. Managed mode stores a limited VideoLens account token locally; website login and payment credentials are not copied into the extension.
-- Check **Website content**: the selected video's frames, audio or captions, page title, analysis prompt, and follow-up questions go directly to OpenAI in Private mode or through VideoLens and Vercel AI Gateway to the configured AI provider (OpenAI, plus Baseten serving Z.ai GLM for general reports after the updated processing notice is accepted) in Managed mode.
+- Check **Website content**: the selected video's frames, audio or captions, page title, analysis prompt, and follow-up questions go directly to OpenAI in Private mode or through VideoLens and Vercel AI Gateway to the configured AI provider (OpenAI, plus Baseten serving Z.ai GLM for general reports after the updated processing notice is accepted) in Managed mode. Local-file sound analysis additionally uses DeepInfra serving Xiaomi MiMo after the updated notice is accepted.
 - Check **User-provided content** if offered: prompts, follow-up questions, local video content, and an optionally cloud-saved completed report are user-provided/requested content.
 - Completed reports, timelines, and follow-up Q&A are also saved automatically in local IndexedDB so the user can reopen them. This local library stays on the device, is not synced, and is removed when the extension is uninstalled.
 - Check **Web history** if the dashboard defines it to include the active page URL: VideoLens reads the URL and title only for the page the user explicitly invokes. The source URL can be included in an exported report and in the cloud report only when the user enables cloud saving.
@@ -120,3 +120,10 @@ Faster startup: the side panel shows its start screen sooner; saved reports and 
 - Compare consecutive frames using the report focus and check original images during final general-report review.
 - Preserve evidence limitations and recover interrupted managed allowance.
 - Update speech transcription and use lower-cost model routing after the refreshed processing notice.
+
+## Version 0.8.4 — October 29, 2026
+
+- Include independent non-speech sound observations for Managed local-file reports after accepting the updated DeepInfra/MiMo processing notice.
+- Combine heard and seen evidence in reports, follow-up answers, and exports; disclose unavailable audio and provisional observations.
+- Gate digital silence, assign time ranges from decoded audio, and suppress sound details that disagree across alternate encodings.
+- Treat a successful empty speech transcript as no recognized words, without a false network error or duplicate retry.

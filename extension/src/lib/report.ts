@@ -59,6 +59,12 @@ export function toMarkdown(analysis: Analysis, qa: QaEntry[]): string {
     for (const entry of qa) lines.push(`**${copy.question}: ${entry.question}**`, "", entry.answer, "");
   }
 
+  if (analysis.timeline.segments.some(s => s.audioSummary)) {
+    lines.push("## Heard evidence (provisional)", "");
+    for (const s of analysis.timeline.segments.filter(s => s.audioSummary)) lines.push(`- [${fmtTs(s.start)}–${fmtTs(s.end)}] ${s.audioSummary}`);
+    lines.push("");
+  }
+
   lines.push("---", `_${copy.generatedBy} · [videolens.io](https://videolens.io)_`);
   return lines.join("\n");
 }
@@ -130,9 +136,10 @@ export function toHtmlReport(analysis: Analysis, qa: QaEntry[]): string {
     ${analysis.recommendations.length > 0 ? `<section><div class="section-heading"><div><div class="section-kicker">03 · ${html(copy.implications)}</div><h2>${html(copy.recommendations)}</h2></div></div><ol class="recommendations">${recommendations}</ol></section>` : ""}
     ${analysis.tasks.length > 0 ? `<section><div class="section-heading"><div><div class="section-kicker">04 · ${html(copy.nextSteps)}</div><h2>${html(copy.actionItems)}</h2></div></div><ul class="task-list">${tasks}</ul></section>` : ""}
     ${qa.length > 0 ? `<section><div class="section-heading"><div><div class="section-kicker">05 · ${html(copy.followUp)}</div><h2>${html(copy.questionsAnswers)}</h2></div></div><div class="qa-list">${questions}</div></section>` : ""}
+    ${analysis.timeline.segments.some(s => s.audioSummary) ? `<section><h2>Heard evidence (provisional)</h2>${analysis.timeline.segments.filter(s => s.audioSummary).map(s => `<p><strong>${fmtTs(s.start)}–${fmtTs(s.end)}</strong> ${html(s.audioSummary || "")}</p>`).join("")}</section>` : ""}
     ${analysis.limitations.length > 0 ? `<aside class="limitations avoid-break"><div class="limitations-title">${html(copy.scopeLimitations)}</div><ul>${limitations}</ul></aside>` : ""}
   </main>
-  <footer><div><strong>VideoLens</strong> · ${html(copy.videoIntelligence)}</div><div>${html(copy.generatedLocally)} · videolens.io</div></footer>
+  <footer><div><strong>VideoLens</strong> · ${html(copy.videoIntelligence)}</div><div>videolens.io</div></footer>
 </div></body></html>`;
 }
 

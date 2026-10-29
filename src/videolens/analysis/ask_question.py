@@ -94,6 +94,7 @@ def _build_user_message(
                 lines.append(f"- {f.finding} ({f.confidence})")
 
     lines.append("")
+    lines.append("Heard observations are independent provisional sound descriptions. Window ranges are coverage, not exact event onsets. Correlate seen and heard evidence explicitly, but generic rumble/clicks do not establish collision, braking, identity or causation. Unreported sounds are not proof of absence. If no heard observations exist, say non-speech sounds were not analyzed; captions are not sound evidence.")
     lines.append("TIMELINE:")
     if not timeline.segments:
         lines.append("  (empty)")
@@ -101,6 +102,8 @@ def _build_user_message(
         for seg in timeline.segments:
             ts = f"[{_fmt(seg.start)}–{_fmt(seg.end)}]"
             lines.append(f"{ts} scene={seg.scene_type or '—'}")
+            if seg.audio_summary:
+                lines.append(f"  heard (provisional, within this window): {seg.audio_summary}")
             if seg.visual_summary:
                 lines.append(f"  visual: {seg.visual_summary}")
             if seg.ocr:

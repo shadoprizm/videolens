@@ -88,7 +88,7 @@ export function reportBody(report: CloudReport): string {
   section("Follow-up questions &amp; answers", list(data.qa).map(record).map(q => `<article class="cr-item"><h3>${escape(text(q.question))}</h3>${prose(text(q.answer))}</article>`).join(""));
   section("Limitations", list(data.limitations).filter(v => typeof v === "string").map(v => prose(text(v))).join(""));
   const timeline = list(record(data.timeline).segments).map(record);
-  if (timeline.length) section("Evidence timeline", `<details class="cr-timeline"><summary>${timeline.length} captured segments · transcript and visual evidence</summary>${timeline.map(s => `<article class="cr-item"><h3>${timestampLink(s.start, sourceUrl)} – ${timestamp(s.end)}${text(s.sceneType) ? ` · ${escape(text(s.sceneType))}` : ""}</h3>${text(s.transcript) ? `<h4>Transcript</h4>${prose(text(s.transcript))}` : ""}${text(s.visualSummary) ? `<h4>Visual evidence</h4>${prose(text(s.visualSummary))}` : ""}${list(s.ocr).length ? `<h4>On-screen text</h4>${prose(list(s.ocr).map(text).filter(Boolean).join("\n"))}` : ""}</article>`).join("")}</details>`);
+  if (timeline.length) section("Evidence timeline", `<details class="cr-timeline"><summary>${timeline.length} captured segments · speech, visual and sound evidence</summary>${timeline.map(s => `<article class="cr-item"><h3>${timestampLink(s.start, sourceUrl)} – ${timestamp(s.end)}${text(s.sceneType) ? ` · ${escape(text(s.sceneType))}` : ""}</h3>${text(s.transcript) ? `<h4>Transcript</h4>${prose(text(s.transcript))}` : ""}${text(s.visualSummary) ? `<h4>Visual evidence</h4>${prose(text(s.visualSummary))}` : ""}${text(s.audioSummary) ? `<h4>Heard evidence (provisional)</h4>${prose(text(s.audioSummary))}` : ""}${list(s.ocr).length ? `<h4>On-screen text</h4>${prose(list(s.ocr).map(text).filter(Boolean).join("\n"))}` : ""}</article>`).join("")}</details>`);
   section("Report brief", prose(text(data.prompt)));
   const language = /^[a-z]{2,3}(-[a-z0-9]{2,8})*$/i.test(text(data.outputLanguage)) ? text(data.outputLanguage) : "";
   return `${data.lesson ? `<style>${LESSON_CSS}</style>` : ""}${data.procedure ? `<style>${PROCEDURE_CSS}</style>` : ""}${data.recipe ? `<style>${RECIPE_CSS}</style>` : ""}<article class="cloud-report"${language ? ` lang="${escape(language)}"` : ""}>
@@ -118,7 +118,7 @@ export function reportMarkdown(report: CloudReport): string {
   section("Action items", list(data.tasks).map(record).map(t => `- [ ] ${text(t.title)}${text(t.detail) ? ` — ${text(t.detail)}` : ""}`));
   section("Follow-up questions & answers", list(data.qa).map(record).flatMap(q => [`### ${text(q.question)}`, "", text(q.answer), ""]));
   section("Limitations", list(data.limitations).map(text).filter(Boolean).map(l => `- ${l}`));
-  section("Evidence timeline", list(record(data.timeline).segments).map(record).flatMap(s => [`### ${timestamp(s.start)} – ${timestamp(s.end)}${text(s.sceneType) ? ` · ${text(s.sceneType)}` : ""}`, "", text(s.transcript), text(s.visualSummary), ...list(s.ocr).map(text), ""]));
+  section("Evidence timeline", list(record(data.timeline).segments).map(record).flatMap(s => [`### ${timestamp(s.start)} – ${timestamp(s.end)}${text(s.sceneType) ? ` · ${text(s.sceneType)}` : ""}`, "", text(s.transcript), text(s.visualSummary), text(s.audioSummary) ? `Heard (provisional): ${text(s.audioSummary)}` : "", ...list(s.ocr).map(text), ""]));
   section("Report brief", [text(data.prompt)]);
   return lines.join("\n");
 }

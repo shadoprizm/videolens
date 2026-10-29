@@ -89,7 +89,7 @@ def _request(method: str, path: str, token: str | None = None, **kwargs: Any) ->
         headers["Authorization"] = f"Bearer {token}"
     try:
         response = httpx.request(
-            method, f"{api_base()}{path}", headers=headers, timeout=REQUEST_TIMEOUT, **kwargs
+            method, f"{api_base()}{path}", headers=headers, timeout=kwargs.pop("timeout", REQUEST_TIMEOUT), **kwargs
         )
     except httpx.HTTPError as exc:
         raise ManagedError(
@@ -243,14 +243,27 @@ class ManagedClient:
         *,
         mode: str | None = None,
         multimodel: bool = False,
+        sound_consent: bool = False,
     ):
         self.token = connection.token
         self.report_id = report_id
         self.mode = mode
         self.multimodel = multimodel
+        self.sound_consent = sound_consent
         self.purpose = "report"
         self.cache_identity = (
             "managed-providers-2026-10" if multimodel and mode == "general" else "openai"
         )
         self.chat = SimpleNamespace(completions=_Completions(self))
         self.audio = SimpleNamespace(transcriptions=_Transcriptions(self))
+
+    def analyze_sounds(self, wav: bytes) -> dict[str, Any]:
+        if not self.sound_consent:
+            raise ManagedError("Accept the sound processing notice first.")
+        result = _request("POST", "/api/ai", self.token,
+            data={"reportId": self.report_id, "kind": "sound", "processingPolicy": "managed-sounds-2026-10"},
+            files={"file": ("sound.wav", wav, "audio/wav")},
+            timeout=httpx.Timeout(290.0, connect=10.0)).json()
+        if not isinstance(result.get("windows"), list):
+            raise ManagedError("Sound analysis returned no valid evidence.")
+        return result

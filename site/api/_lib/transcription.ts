@@ -1,5 +1,5 @@
 import { createGateway } from "@ai-sdk/gateway";
-import { transcribe } from "ai";
+import { transcribe, NoTranscriptGeneratedError } from "ai";
 import { failureCode, providerException, type AiFailureCode, type ManagedAiProvider } from "./managed-ai.js";
 
 // Published clients keep working while the new extension rolls through both stores.
@@ -35,6 +35,12 @@ export async function requestManagedTranscription(provider: ManagedAiProvider, f
       if (typeof result.text !== "string") return { result: null, status, errorCode: "invalid_provider_response" };
       return { result, status: 200, errorCode: null };
     } catch (error) {
+      // File transcription validates the provider's required text string, then
+      // the SDK throws this error for text="". A clip without recognized words
+      // is a valid result, not a transport failure or reason to bill a retry.
+      if (NoTranscriptGeneratedError.isInstance(error)) {
+        return { result: { text: "" }, status: 200, errorCode: null };
+      }
       const failure = providerException(error); status = failure.status; code = failure.code;
       if (attempt === 0 && ["network_error", "request_timeout", "provider_unavailable", "rate_limited"].includes(code)) { await pause(); continue; }
       return { result: null, status, errorCode: code };
