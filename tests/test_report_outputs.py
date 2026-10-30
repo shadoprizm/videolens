@@ -1,9 +1,11 @@
 from io import BytesIO
+from pathlib import Path
 
 from pypdf import PdfReader
 
 from videolens.outputs import render_html, render_pdf, render_markdown
 from videolens.product import build_demo_analysis
+from videolens.types import SourceType
 
 
 def test_standalone_html_report_contains_professional_sections_and_safe_content() -> None:
@@ -43,3 +45,19 @@ def test_exports_show_shared_source_limitations_once() -> None:
     for report in (render_html(analysis), render_markdown(analysis)):
         assert report.count(shared) == 1
         assert report.count(distinct) == 1
+
+
+def test_local_exports_name_the_original_without_broken_server_links() -> None:
+    analysis = build_demo_analysis()
+    analysis.source.source_type = SourceType.LOCAL_FILE
+    analysis.source.source_url = "/tmp/session/uploads/highway-400-dashcam.webm"
+    analysis.source.local_path = Path(analysis.source.source_url)
+    analysis.source.title = None
+    html = render_html(analysis)
+    markdown = render_markdown(analysis)
+    assert "Original file: highway-400-dashcam.webm" in html
+    assert "Illustrative source" not in html
+    assert '<a class="timestamp"' not in html
+    for report in (html, markdown):
+        assert "highway-400-dashcam.webm" in report
+        assert "/tmp/session" not in report

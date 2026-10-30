@@ -9,10 +9,11 @@ def render_markdown(analysis: Analysis) -> str:
     lines: list[str] = []
     src = analysis.source
 
-    lines.append(f"# {src.title or 'Video report'}")
+    local_name = Path(src.source_url).name if src.source_type.value == "local_file" else None
+    lines.append(f"# {src.title or local_name or 'Video report'}")
     lines.append("")
     lines.append("## Source")
-    lines.append(f"- **URL / path:** {src.source_url}")
+    lines.append(f"- **File:** {local_name}" if local_name else f"- **URL / path:** {src.source_url}")
     lines.append(f"- **Type:** {src.source_type.value}")
     lines.append(f"- **Access:** {src.access_level.value}")
     if src.title:
