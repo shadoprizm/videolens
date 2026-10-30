@@ -39,3 +39,11 @@ Content review found further defects: the final synthesis silently reduced the 4
 - 234 website/API and 70 Python tests pass, including retention of every timestamp under a forced image budget and the empty-transcript UI regression.
 
 Final authenticated report rerun and export inspection remain pending the review repair deployment. A completed pipeline alone is not accepted report quality.
+
+## Acoustic timestamp alignment repair
+
+The first completed customer's final sound window ended at 16.4986875s, despite the original audio decoding to 17.5786875s. Reproduction on the exact original AV1/Opus file showed that input-side `-ss 0` decoded 263,979 samples; decoding without that input seek produced 281,259 samples at 16 kHz. The 17,280-sample difference is 1.08 seconds, affecting alignment as well as tail coverage. Video-frame hashes at 0s and 10.551s match independent output-side seek references; the observed seek loss was in the sound extraction.
+
+Decode audio once from its presentation origin, bounded to the first 20 minutes, then split the PCM by exact sample positions into at most 60-second API chunks. Preserve the time origin and timestamp gaps with resampling; remove the decoded temporary WAV on both success and failure. Invalidate previous sound/synthesis caches. The original now retains all 281,259 samples, spanning 0–17.5786875s. The shared sound API and both extension archives remain unchanged by this hosted extraction repair.
+
+72 Python tests pass, including the real Opus leading-tone/duration regression, chunk-offset checks, processor consent and failure cleanup. Final production quality acceptance is still pending deployment of this alignment repair and a fresh run.
