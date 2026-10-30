@@ -1,3 +1,4 @@
+import { guardReportSilence } from "./_lib/report-evidence.js";
 import { getVercelOidcToken } from "@vercel/oidc";
 import { managedTranscriptionModel, requestManagedTranscription } from "./_lib/transcription.js";
 import { authenticate } from "./_lib/auth.js";
@@ -21,7 +22,7 @@ export function managedChatModel(requestedModel: string, policy?: string, mode?:
   return ["gpt-5.5", "gpt-5.6-terra", "gpt-6-sol"].includes(requestedModel) ? "gpt-6-luna" : requestedModel;
 }
 
-export const GENERAL_REVIEW_POLICY = `Review every supplied timestamped image in sequence, including brief changes involving secondary subjects. Destination/route signs identify their visible text, not necessarily the current road, location, organization or ownership. Keep location unconfirmed unless independently established by the supplied evidence. Keep the camera subject separate from other subjects: apparent smooth motion of one does not prove other objects made no abrupt movements. Describe observable position/orientation changes before discussing uncertain contact or causation. Prefer "contact cannot be confirmed from the sampled evidence" to a broad "no incident or abrupt event is visible" when there are ambiguous changes. Review the full supplied time range; do not move an early event to later frames or turn an uncertain object into debris. Treat OCR values as unverified overlay readings. For audio, preserve provisional descriptions and distinguish coverage ranges from exact event onsets. Do not recommend checking unlogged sound windows if those windows are already supplied; say the observations are inconclusive when they disagree.`;
+export const GENERAL_REVIEW_POLICY = `Review every supplied timestamped image in sequence, including brief changes involving secondary subjects. Destination/route signs identify their visible text, not necessarily the current road, location, organization or ownership. Keep location unconfirmed unless independently established by the supplied evidence. Keep the camera subject separate from other subjects: apparent smooth motion of one does not prove other objects made no abrupt movements. Describe observable position/orientation changes before discussing uncertain contact or causation. Prefer "contact cannot be confirmed from the sampled evidence" to a broad "no incident or abrupt event is visible" when there are ambiguous changes. Review the full supplied time range; do not move an early event to later frames or turn an uncertain object into debris. Treat OCR values as unverified overlay readings. An empty speech transcript is not a silent recording. Never label the source silent merely because no words were recognized. When heard observations are present, describe those sounds separately from speech. For audio, preserve provisional descriptions and distinguish coverage ranges from exact event onsets. Do not recommend checking unlogged sound windows if those windows are already supplied; say the observations are inconclusive when they disagree.`;
 
 export function reviewedMessages(messages: unknown[], generalReview: boolean): unknown[] {
   return generalReview ? [...messages, { role: "system", content: GENERAL_REVIEW_POLICY }] : messages;
@@ -96,7 +97,10 @@ async function proxyChat(request: Request, userId: string): Promise<Response> {
     error_code: result.errorCode, fallback_used: result.fallbackUsed, duration_ms: Date.now() - started,
   });
   if (result.errorCode) return managedFailure(request, result.errorCode);
-  return new Response(result.body, { status: result.status, headers: { ...corsHeaders(request), "Content-Type": "application/json" } });
+  const responseBody = body.analysisMode === "general" && body.purpose !== "frames"
+    ? guardReportSilence(result.body, body.messages) : result.body;
+  if (responseBody !== result.body) console.info("Managed report evidence normalization", { requestId, rule: "source_silence" });
+  return new Response(responseBody, { status: result.status, headers: { ...corsHeaders(request), "Content-Type": "application/json" } });
 
 }
 
