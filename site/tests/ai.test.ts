@@ -12,10 +12,11 @@ describe("managed chat model routing", () => {
   });
 });
 
-it("requires the updated notice before changing processors and routes each quality role", () => {
+it("uses the customer-validated Luna reviewer for both general routing policies", () => {
  expect(managedChatModel("gpt-6-luna", undefined, "general", "frames")).toBe("gpt-6-luna");
  expect(managedChatModel("gpt-6-luna", "managed-providers-2026-10", "general", "frames")).toBe("gpt-6-luna");
- expect(managedChatModel("gpt-6-luna", "managed-providers-2026-10", "general", "report")).toBe("zai/glm-5.3-flash");
+ expect(managedChatModel("gpt-6-luna", "managed-providers-2026-10", "general", "report")).toBe("gpt-6-luna");
+ expect(managedChatModel("gpt-6-luna", "managed-providers-2026-10", "general", "followup")).toBe("gpt-6-luna");
  expect(managedChatModel("gpt-6-luna", "managed-providers-2026-10", "tutorial", "report")).toBe("gpt-6-luna");
 });
 

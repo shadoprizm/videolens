@@ -262,6 +262,7 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
 const staticFiles = [
+  "highway400-customer-report.html", "highway400-customer-report.pdf", "highway400-customer-report.md", "highway400-customer-report.json",
   "index.html", "privacy.html", "support.html", "terms.html", "account.html", "admin.html", "admin.css", "chrome.html", "firefox.html", "recipe-preview.html", "procedure-preview.html", "lesson-preview.html", "oauth-consent.html", "robots.txt", "llms.txt",
   "content.css", "account.css", "cloud-report.css", "analytics.js", "favicon.svg", "favicon.ico", "favicon-16x16.png",
   "favicon-32x32.png", "apple-touch-icon.png", "android-chrome-192x192.png",

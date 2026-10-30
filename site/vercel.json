@@ -115,6 +115,15 @@
           "value": "interest-cohort=()"
         }
       ]
+    },
+    {
+      "source": "/highway400-customer-report(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     }
   ],
   "crons": [

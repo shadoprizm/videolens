@@ -16,7 +16,9 @@ const TRANSCRIPTION_MODELS = new Set(["gpt-4o-mini-transcribe", "gpt-transcribe"
 
 export function managedChatModel(requestedModel: string, policy?: string, mode?: string, purpose?: string): string {
   if (policy === "managed-providers-2026-10" && mode === "general") {
-    return purpose === "frames" ? "gpt-6-luna" : "zai/glm-5.3-flash";
+    // Highway 400 customer QA rejected GLM's sign/location inference.
+    // Luna passed the same evidence review without increasing listed token rates.
+    return "gpt-6-luna";
   }
   // Older clients retain their disclosed OpenAI destination.
   return ["gpt-5.5", "gpt-5.6-terra", "gpt-6-sol"].includes(requestedModel) ? "gpt-6-luna" : requestedModel;

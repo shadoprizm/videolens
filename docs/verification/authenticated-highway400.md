@@ -38,7 +38,7 @@ Content review found further defects: the final synthesis silently reduced the 4
 - Explain successful no-word transcription correctly in the Transcript tab. Update exported source flags from the actual extracted evidence.
 - 234 website/API and 70 Python tests pass, including retention of every timestamp under a forced image budget and the empty-transcript UI regression.
 
-Final authenticated report rerun and export inspection remain pending the review repair deployment. A completed pipeline alone is not accepted report quality.
+The subsequent reruns below evaluated these repairs. A completed pipeline alone was not accepted as report quality.
 
 ## Acoustic timestamp alignment repair
 
@@ -46,7 +46,7 @@ The first completed customer's final sound window ended at 16.4986875s, despite 
 
 Decode audio once from its presentation origin, bounded to the first 20 minutes, then split the PCM by exact sample positions into at most 60-second API chunks. Preserve the time origin and timestamp gaps with resampling; remove the decoded temporary WAV on both success and failure. Invalidate previous sound/synthesis caches. The original now retains all 281,259 samples, spanning 0–17.5786875s. The shared sound API and both extension archives remain unchanged by this hosted extraction repair.
 
-72 Python tests pass, including the real Opus leading-tone/duration regression, chunk-offset checks, processor consent and failure cleanup. Final production quality acceptance is still pending deployment of this alignment repair and a fresh run.
+72 Python tests pass, including the real Opus leading-tone/duration regression, chunk-offset checks, processor consent and failure cleanup. Final production acceptance below includes this alignment repair.
 
 
 ## Empty speech is not a silent recording
@@ -55,4 +55,32 @@ The sound-aligned run completed with 40 visual frames, nine sound windows throug
 
 The shared managed-review instruction now explicitly distinguishes empty speech from silence. A narrow deterministic guard removes an introductory source-wide “silent recording/video/footage” label when the supplied timeline contains actual heard observations. It does not invent speech, change timestamps, alter cited evidence, remove quotations or reinterpret a silent-film subject. Corrections are logged as a fixed rule identifier without report content and require no additional model call. This English introductory-label guard is not a universal semantic fact checker.
 
-240 website/API tests pass, including the actual contradicted-label case, protected secondary-subject/quotation cases, no-word wording, image-bearing input and malformed-response handling. The existing 72 Python checks remain unchanged. Both existing extension targets receive the managed API correction without new packages or processors. A fresh default customer run remains the final acceptance step.
+240 website/API tests pass, including the actual contradicted-label case, protected secondary-subject/quotation cases, no-word wording, image-bearing input and malformed-response handling. The existing 72 Python checks remain unchanged. Both existing extension targets receive the managed API correction without new packages or processors. The final acceptance below completes that step.
+
+
+## Accepted authenticated customer report
+
+The hosted Pro-account flow completed report `3307af87-8084-466b-bd3a-d36933449a84` at 2026-10-30T02:32:46.606Z (October 29 Toronto), using functional production commit `d774c851c135ada58d2b51f116ca012ac03542d0`. Default Detailed report: Luna high visual extraction/review, gpt-transcribe speech, separately opted-in MiMo V2.6 Flash sounds. GLM checkbox off. This exercises the actual Pro entitlement and managed APIs, not a new payment checkout or native extension.
+
+- 40 visual observations, nine acoustic windows, 49 timeline segments. Hosted sound coverage reaches 17.585s (local macOS decode 17.5786875s); ranges are not exact event onsets.
+- 17 report processing operations plus one successful follow-up; production SQL verifies 18 total and zero failures. Logical operations are not physical provider-call counts or quality scores.
+- Transcript tab correctly says no recognized words does not mean a silent recording.
+- Accepted content attributes 401 / Black Creek Drive to the sign, treats speed as an unverified overlay, preserves uncertain vehicle activity near the truck/snow spray, and separates rumble/click/rustling from unknown sound sources. It does not establish contact, fault or the cause of slowing.
+- Actual customer follow-up asks what audio adds and what cannot be concluded. It cites rumble at 2–6s, noise/click at 10–12s and rustling at 12–14s, explaining why these do not independently confirm braking, impact or collision.
+- 15 of 20 reports remained after four successful QA/acceptance runs and the pre-existing report. The initial failed attempt restored its allowance. Successful QA runs were not silently refunded or relabelled. This report was not cloud-saved; the older saved report was not overwritten.
+
+## Live comparison and selected reviewer
+
+GLM still asserted current Highway 401 location after full image coverage and stronger evidence instructions. Luna high passed the same public source through the ordinary customer flow. Managed general review/follow-up now uses Luna even for existing opted-in clients. MiMo remains the actual-sound model. The hosted UI removes the inactive GLM checkbox; existing extension consent permits a broader processor set than the selected route. No new processor or extension archive is introduced.
+
+[Official Luna pricing](https://developers.openai.com/api/docs/pricing) checked for this decision lists standard input/output at $0.10/$0.50 per million tokens (cached input $0.01). The checked Gateway catalogue listed GLM Flash at $0.15/$0.50. Image tokenization, reasoning, caching and retries affect actual totals. This does not establish the accepted run's exact total cost or a universal best model. Prior measured GLM costs remain historical evaluation results.
+
+## Actual customer exports
+
+[Read the report](https://videolens.io/highway400-customer-report.html), [PDF](https://videolens.io/highway400-customer-report.pdf), [Markdown](https://videolens.io/highway400-customer-report.md), [JSON](https://videolens.io/highway400-customer-report.json).
+
+JSON is unedited `analysis.json` captured from the completed production UI cache. Its production preview HTML matched the then-current exporter byte-for-byte (SHA-256 `92ecac75899d8248f51f53af6ca3ae6c5905703c24b6ef3da94fb7e3990af958`). Export QA found duplicated exact source limitations and isolated PDF heading/footer pages. Product exporters now deduplicate identical limitations; print tables flow across pages, branding/page numbers use the print margin, and the method note includes available sound observations. Published HTML/Markdown/PDF use this repaired exporter on the exact JSON. Findings, timestamps and confidence were not manually rewritten. Original preview capture remains local evidence.
+
+PDF: 15 pages, populated timeline opening/final notes pages, repeated table headers and numbered footers. First/timeline/final pages visually checked; every page's text inspected. No branding-only extra page. Artifacts use public-source evidence only, without account email, credentials or private paths. They have `X-Robots-Tag: noindex, nofollow` and no sitemap/navigation links.
+
+Checks: 240 website/API and 73 Python tests; actual completed authenticated report, follow-up and Transcript tab. Native download dialogs remain unverified while Mac is locked; PDF/Markdown are generated by the product exporter from actual captured JSON. Successful rerun used the original public URL, not a second native file upload. Native extension acceptance and universal event-detection accuracy are not claimed. Both existing browser targets receive the shared API route repair; extension source/archives are unchanged.

@@ -2,7 +2,7 @@ from io import BytesIO
 
 from pypdf import PdfReader
 
-from videolens.outputs import render_html, render_pdf
+from videolens.outputs import render_html, render_pdf, render_markdown
 from videolens.product import build_demo_analysis
 
 
@@ -32,3 +32,14 @@ def test_pdf_report_is_readable_and_multipage() -> None:
     assert "Why most note-taking systems fail" in text
     assert "EXECUTIVE SUMMARY" in text
     assert "PRACTICAL TAKEAWAYS" in text
+
+
+def test_exports_show_shared_source_limitations_once() -> None:
+    analysis = build_demo_analysis()
+    shared = "Acoustic descriptions are provisional."
+    distinct = "Direction is not measured."
+    analysis.source.limitations = [shared]
+    analysis.limitations = [shared, distinct]
+    for report in (render_html(analysis), render_markdown(analysis)):
+        assert report.count(shared) == 1
+        assert report.count(distinct) == 1

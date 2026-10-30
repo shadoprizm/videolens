@@ -1,0 +1,985 @@
+{
+  "recipe": null,
+  "procedure": null,
+  "source": {
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm",
+    "source_type": "direct_url",
+    "access_level": "full_video",
+    "artifacts_available": {
+      "video": true,
+      "audio": true,
+      "transcript": false,
+      "frames": true,
+      "ocr": true,
+      "events": false,
+      "metadata": true
+    },
+    "limitations": [
+      "Speech transcription returned no recognized words; this does not prove speech was absent.",
+      "Non-speech sounds were analyzed independently in short audio windows. Ranges show coverage, not exact event onsets. Audio is downmixed to mono; sound direction is not measured. Descriptions are provisional; sound sources, contact and causation are not established by audio alone."
+    ],
+    "local_path": null,
+    "title": null,
+    "author": null,
+    "duration_seconds": 17.585,
+    "platform": "Direct video URL"
+  },
+  "mode": "general",
+  "prompt": "Turn this video into a detailed written report. Explain the central thesis, organize the main ideas into clear sections, preserve important facts, examples, arguments, caveats, and conclusions, and finish with practical takeaways. Cite the supporting moments with timestamps and include important information shown visually as well as spoken.",
+  "summary": "The clip’s visual narrative is a dashcam drive on a snow-covered, hazy highway: the vehicle passes a Highway 401 / Black Creek Drive sign, approaches a group of trucks, and the displayed speed decreases as traffic draws closer. No words were recognized, so the footage does not provide a spoken thesis or argument; the visual record does not establish whether a collision occurred or why the vehicle slowed. The sound notes include low rumbling and later broadband noise with a click and quiet rustling, but these do not independently corroborate a visible incident.",
+  "timeline": {
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 0.439625,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:23:58",
+          "43.73980 -79.52730",
+          "86 KM/H",
+          "401"
+        ],
+        "visual_summary": "A forward-facing dashcam view shows a multi-lane highway heavily covered in snow, with dark tire tracks, falling snow, and reduced visibility. The vehicle is approaching an overhead green highway sign; a few vehicles are visible farther ahead and on the separated roadway to the left. Relative to the following frames, the sign and roadway are still farther away. The lower overlay displays a speed of 86 km/h; this is visual evidence, not an assessment of whether that speed is appropriate for conditions.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 0.1236875,
+        "end": 2.0,
+        "scene_type": "sound observation",
+        "transcript": null,
+        "ocr": [],
+        "visual_summary": null,
+        "audio_summary": "Acoustic content is uncertain; independent descriptions did not agree.",
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "low"
+      },
+      {
+        "start": 0.439625,
+        "end": 0.87925,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:23:58",
+          "43.73980 -79.52730",
+          "86 KM/H",
+          "401"
+        ],
+        "visual_summary": "The car continues forward on the snow-covered highway. The overhead sign grows slightly larger, and the tire tracks and snow remain visible across the lanes; snowfall and hazy distance continue to limit visibility. A vehicle remains visible ahead, with other traffic on the separated roadway to the left. No collision or other clear incident is visible in this frame.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 0.87925,
+        "end": 1.318875,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:23:59",
+          "43.73959 -79.52725",
+          "86 KM/H",
+          "401"
+        ],
+        "visual_summary": "The vehicle has advanced closer to the overhead sign, which appears to show route 401 and a lane-direction diagram; smaller destination wording is too unclear to transcribe confidently. The highway remains snow-covered with visible wheel tracks and falling snow, and visibility is hazy. The dashcam overlay now shows 12:23:59 and a slightly changed coordinate reading, while the displayed speed remains 86 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "medium"
+      },
+      {
+        "start": 1.318875,
+        "end": 1.7585,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:23:59",
+          "43.73959 -79.52725",
+          "86 KM/H",
+          "401",
+          "Black Creek Drive"
+        ],
+        "visual_summary": "The vehicle continues toward the overhead sign; it appears larger and closer than at 0.879 seconds. Snow still covers the roadway, with dark tire tracks providing the clearest visible paths. A truck and several cars remain visible beyond the divider on the left. The overlay continues to show 86 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 1.7585,
+        "end": 2.198125,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:00",
+          "43.73938 -79.52720",
+          "85 KM/H",
+          "401",
+          "Black Creek Drive"
+        ],
+        "visual_summary": "The overhead sign is nearer and more legible as the vehicle advances; the road remains snow-covered, with limited visibility ahead. A large tractor-trailer and cars are visible on the separated roadway to the left. The dashboard overlay now shows 85 km/h and updated coordinates.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 2.0,
+        "end": 4.0,
+        "scene_type": "sound observation",
+        "transcript": null,
+        "ocr": [],
+        "visual_summary": null,
+        "audio_summary": "A low-frequency rumbling noise.",
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "medium"
+      },
+      {
+        "start": 2.198125,
+        "end": 2.63775,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:00",
+          "43.73938 -79.52720",
+          "85 KM/H",
+          "401",
+          "Black Creek Drive"
+        ],
+        "visual_summary": "The vehicle continues approaching the overhead sign, which is prominent above the roadway. It indicates Highway 401 and Black Creek Drive with a diagram of the route; snow and slush still cover the lanes, and visibility remains hazy. The overlay remains at 85 km/h. No collision or other distinct incident is visible in this frame.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 2.63775,
+        "end": 3.077375,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "401",
+          "Black Creek Drive",
+          "GARMIN",
+          "15/01/2026 12:24:00",
+          "43.73938 -79.52720",
+          "85 KM/H"
+        ],
+        "visual_summary": "The dashcam continues toward the overhead Highway 401 / Black Creek Drive sign, which appears larger and closer than in the preceding frame. Snow and slushy tire tracks cover the roadway, with poor visibility ahead. A truck is moving out of view at the far left beyond the median, while several other vehicles remain visible there. The displayed speed remains 85 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 3.077375,
+        "end": 3.517,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "401",
+          "Black Creek Drive",
+          "GARMIN",
+          "15/01/2026 12:24:01",
+          "43.73918 -79.52715",
+          "84 KM/H"
+        ],
+        "visual_summary": "The vehicle draws nearer to the overhead sign; its split-arrow diagram and labels for Highway 401 and Black Creek Drive are clearer. The snow-covered roadway continues straight into haze, with parallel tire tracks and snowbanks. Beyond the median, a dark vehicle and a red car are visible. The dashcam overlay changes to 84 km/h and a new displayed time and coordinate reading.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 3.517,
+        "end": 3.956625,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "401",
+          "Black Creek Drive",
+          "GARMIN",
+          "15/01/2026 12:24:01",
+          "43.73918 -79.52715",
+          "84 KM/H"
+        ],
+        "visual_summary": "The overhead sign now fills much of the upper view as the dashcam proceeds beneath or toward its gantry. Snow continues to blanket the lanes, and the distant roadway remains hazy; tire tracks are especially visible in the foreground. A dark vehicle and red car remain visible on the other side of the median. The overlay continues to display 84 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 3.956625,
+        "end": 4.39625,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "Black Creek Drive (partially visible)",
+          "GARMIN",
+          "15/01/2026 12:24:02",
+          "43.73897 -79.52710",
+          "84 KM/H"
+        ],
+        "visual_summary": "The vehicle continues forward on the same snow-covered highway. The Route 401 / Black Creek Drive sign has moved mostly above and out of view, consistent with passing beneath it. A red vehicle is visible beyond the left-side barrier; distant traffic and the overpass remain ahead through snowy haze. The overlay still reports 84 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 4.0,
+        "end": 6.0,
+        "scene_type": "sound observation",
+        "transcript": null,
+        "ocr": [],
+        "visual_summary": null,
+        "audio_summary": "A low-frequency broadband rumble.",
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "medium"
+      },
+      {
+        "start": 4.39625,
+        "end": 4.835875,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:02",
+          "43.73897 -79.52710",
+          "84 KM/H"
+        ],
+        "visual_summary": "The overhead sign is no longer visible. The dashcam vehicle continues along the snow-covered roadway, following existing tire tracks; the overpass remains ahead. Several vehicles are visible at a distance on the separated roadway to the left. The overlay reports 84 km/h. No collision or other sudden event is apparent in this frame.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 4.835875,
+        "end": 5.2755,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:03",
+          "43.73877 -79.52705",
+          "83 KM/H"
+        ],
+        "visual_summary": "The vehicle continues straight on the snow-covered highway toward the distant overpass. Dark tire tracks remain prominent across the otherwise white road, and visibility is still reduced by snowy or misty conditions. The overlay changes to 83 km/h. Across these frames, the main visible development is passing the overhead Route 401 / Black Creek Drive sign while continuing through wintry road conditions; the supplied images contain no spoken content to summarize.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 5.2755,
+        "end": 5.715125,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:03",
+          "43.73877 -79.52705",
+          "83 KM/H"
+        ],
+        "visual_summary": "The snowy highway scene continues as the camera advances; the tire tracks and road edges shift closer in perspective. Vehicles remain visible ahead, and the dark and light-colored vehicles on the separated roadway at left appear farther along toward the left edge compared with the preceding frame. Snowy haze still limits distance visibility. The displayed speed remains 83 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 5.715125,
+        "end": 6.15475,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:04",
+          "43.73857 -79.52700",
+          "82 KM/H"
+        ],
+        "visual_summary": "The camera continues forward on the snow-covered highway. The dark vehicle on the separated roadway at left is now close to the frame's left edge, with a white vehicle following behind it; several vehicles remain small in the distance ahead. The road remains largely white with dark wheel tracks, and the overlay changes to 82 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 6.0,
+        "end": 8.0,
+        "scene_type": "sound observation",
+        "transcript": null,
+        "ocr": [],
+        "visual_summary": null,
+        "audio_summary": "Acoustic content is uncertain; independent descriptions did not agree.",
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "low"
+      },
+      {
+        "start": 6.15475,
+        "end": 6.594375,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:04",
+          "43.73857 -79.52700",
+          "82 KM/H"
+        ],
+        "visual_summary": "The forward view remains centered on the snowy highway, with tire tracks continuing into the hazy distance and vehicles visible ahead. The dark vehicle on the separated roadway has moved mostly out of view at left, while the light-colored vehicle remains near that edge. The dashcam overlay continues to show 82 km/h; no collision or other clear incident is visible in this frame.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 6.594375,
+        "end": 7.034,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:04",
+          "43.73857 -79.52700",
+          "82 KM/H"
+        ],
+        "visual_summary": "The vehicle continues along the snowy highway; the trucks ahead remain distant and clustered near the overpass. A white commercial van is visible on the opposite roadway beyond the left median. The central light pole has shifted left in the view, and the road’s dark tire tracks remain prominent. The overlay still reads 82 km/h; by the next sampled frame, the overlay time advances and the displayed speed falls to 80 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 7.034,
+        "end": 7.473625,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:05",
+          "43.73837 -79.52695",
+          "80 KM/H"
+        ],
+        "visual_summary": "The snowy roadway and overpass draw nearer. Several trucks ahead are more distinct, though their exact lanes and spacing are difficult to judge through the haze. A small white vehicle is visible on the separated roadway at left. The light pole is now near the left edge. The overlay shows 80 km/h and updated coordinates; these details persist in the following frame.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 7.473625,
+        "end": 7.91325,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:05",
+          "43.73837 -79.52695",
+          "80 KM/H"
+        ],
+        "visual_summary": "The dashcam continues toward the overpass on a road almost entirely coated in snow, with dark wheel tracks especially visible on the right. Several trucks are ahead and appear larger than in the earlier frames; no contact or incident is visible in this sampled view. The left-side median, roadside buildings, bare trees, and light poles remain in the hazy background. The overlay continues to show 80 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 7.91325,
+        "end": 8.352875,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:06",
+          "43.73819 -79.52690",
+          "78 KM/H"
+        ],
+        "visual_summary": "The snowy highway scene continues. The three trucks remain ahead and appear slightly larger as the dashcam vehicle advances; the white van on the far side of the left barrier is also more prominent. Tire tracks remain the clearest guide across the snow-covered road, with the overpass ahead. The displayed speed changes from 80 to 78 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 8.0,
+        "end": 10.0,
+        "scene_type": "sound observation",
+        "transcript": null,
+        "ocr": [],
+        "visual_summary": null,
+        "audio_summary": "Acoustic content is uncertain; independent descriptions did not agree.",
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "low"
+      },
+      {
+        "start": 8.352875,
+        "end": 8.7925,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:06",
+          "43.73819 -79.52690",
+          "78 KM/H"
+        ],
+        "visual_summary": "The dashcam continues toward the trucks on the snow-covered highway. The trucks are still grouped across the center-right lanes, and the white van is visible on the separated roadway to the left. Visibility remains hazy and road markings are obscured; the overlay continues to show 78 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 8.7925,
+        "end": 9.232125,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:07",
+          "43.73802 -79.52686",
+          "74 KM/H"
+        ],
+        "visual_summary": "The three trucks ahead appear closer, still spread across the center and right portions of the snowy highway. On the separated roadway beyond the left barrier, the white van has moved farther toward the left edge of the view. Snow and dark tire tracks continue to obscure clear lane markings, and the overpass remains ahead. The displayed speed is now 74 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 9.232125,
+        "end": 9.67175,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:07",
+          "43.73802 -79.52686",
+          "74 KM/H"
+        ],
+        "visual_summary": "The snowy highway scene continues; the three trucks remain ahead, while a white van and a car on the opposite side of the divider move toward and then out of the left edge of view. The road surface remains snow-covered with visible tire tracks. The trucks appear slightly larger than in the preceding frame as the dashcam view advances.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 9.67175,
+        "end": 10.111375,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:07",
+          "43.73802 -79.52686",
+          "74 KM/H"
+        ],
+        "visual_summary": "The camera continues forward toward the three trucks. A light-colored car is partly visible beyond the divider at the left edge, and a dark vehicle begins entering at the far right edge. Snowfall or airborne snow and the overcast conditions limit visibility; no collision or contact is visible.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 10.0,
+        "end": 12.0,
+        "scene_type": "sound observation",
+        "transcript": null,
+        "ocr": [],
+        "visual_summary": null,
+        "audio_summary": "Broadband noise accompanied by a clicking sound.",
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "medium"
+      },
+      {
+        "start": 10.111375,
+        "end": 10.551,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:08",
+          "43.73786 -79.52682",
+          "70 KM/H"
+        ],
+        "visual_summary": "The three trucks remain ahead on the snow-covered highway. Two dark passenger vehicles are now visible along the far-right edge, one partly cropped by the frame; their exact movement relative to the dashcam vehicle is unclear from this frame alone. The displayed dashcam readout changes to a new second, coordinate reading, and speed value.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 10.551,
+        "end": 10.990625,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:08",
+          "43.73786 -79.52682",
+          "70 KM/H"
+        ],
+        "visual_summary": "The snowy highway and three trucks ahead remain in view. A dark sedan and a light-colored car are now more fully visible in the right-side lanes, advancing ahead of the camera vehicle and kicking up a light haze of snow. The roadway remains covered and lane markings are difficult to distinguish.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 10.990625,
+        "end": 11.43025,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:09",
+          "43.73771 -79.52678",
+          "65 KM/H"
+        ],
+        "visual_summary": "The two passenger cars have moved farther forward on the right, with the light-colored car nearer the trucks and the dark car farther right. The camera vehicle continues toward the trucks on the snow-covered roadway; a red tractor-trailer is visible beyond the median on the opposite carriageway. No collision or contact is apparent.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 11.43025,
+        "end": 11.869875,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:09",
+          "43.73771 -79.52678",
+          "65 KM/H"
+        ],
+        "visual_summary": "The two cars continue ahead in the right-side lanes, now smaller and farther from the camera. The camera vehicle is closer to the box trucks ahead; snow, tire tracks, the left concrete barrier, and the overpass remain visible. A red tractor-trailer passes on the opposite side of the median. The overlay indicates a lower displayed speed than in the earlier frames.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 11.869875,
+        "end": 12.3095,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:10",
+          "43.73758, -79.52674",
+          "60 KM/H"
+        ],
+        "visual_summary": "The camera vehicle continues along the snowy highway behind the white box truck, with two trucks ahead-right and cars farther right. Relative positions shift slightly as the scene advances; a dark car remains among the traffic on the right. The visible dashcam speed changes from 65 to 60 km/h. Snowy spray and poor contrast make details of the right-side vehicles difficult to distinguish.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 12.0,
+        "end": 14.0,
+        "scene_type": "sound observation",
+        "transcript": null,
+        "ocr": [],
+        "visual_summary": null,
+        "audio_summary": "Broadband noise with quiet rustling.",
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "medium"
+      },
+      {
+        "start": 12.3095,
+        "end": 12.749125,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:10",
+          "43.73758, -79.52674",
+          "60 KM/H"
+        ],
+        "visual_summary": "The white truck remains ahead while the two trucks to its right continue forward. A dark vehicle is now visible near the right-side trucks, partly veiled by snow spray; its precise orientation and movement are unclear in this frame. A light-colored car is farther right. The road remains snow-covered, and the displayed speed is 60 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "medium"
+      },
+      {
+        "start": 12.749125,
+        "end": 13.18875,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:11",
+          "43.73747, -79.52670",
+          "54 KM/H"
+        ],
+        "visual_summary": "The camera vehicle continues approaching the truck group on the snowy roadway. Snow spray obscures part of the traffic to the right: a dark vehicle appears close to the right-side trucks, with a light-colored car farther right, but the images do not establish whether the vehicles made contact or why the spray occurred. The displayed speed has fallen to 54 km/h.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "medium"
+      },
+      {
+        "start": 13.18875,
+        "end": 13.628375,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:11",
+          "43.73747 -79.52670",
+          "54 KM/H"
+        ],
+        "visual_summary": "The white box truck remains directly ahead and appears slightly larger in view; trucks and cars remain clustered to the right. The snowy, track-marked road and concrete median continue, while the camera vehicle advances toward the traffic ahead. No collision or definite contact is visible.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 13.628375,
+        "end": 14.068,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:11",
+          "43.73747 -79.52670",
+          "54 KM/H"
+        ],
+        "visual_summary": "The camera continues approaching the white truck ahead, while a red-sided box truck and another light-colored truck remain to its right. A dark car is visible beside the trucks on the right. Snow covers the roadway and reduces contrast; vehicles on the opposite carriageway are visible beyond the median.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 14.0,
+        "end": 16.0,
+        "scene_type": "sound observation",
+        "transcript": null,
+        "ocr": [],
+        "visual_summary": null,
+        "audio_summary": "Acoustic content is uncertain; independent descriptions did not agree.",
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "low"
+      },
+      {
+        "start": 14.068,
+        "end": 14.507625,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:12",
+          "43.73738 -79.52668",
+          "47 KM/H"
+        ],
+        "visual_summary": "The white box truck remains ahead near the center, with the red-sided and light-colored box trucks to the right and a dark car alongside them. The camera vehicle is closer to the group than at the start of this sequence. The road remains fully snow-covered with visible tire tracks; the overlay now shows a lower displayed speed than in the preceding frames.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 14.507625,
+        "end": 14.94725,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:12",
+          "43.73738 -79.5268",
+          "47 KM/H"
+        ],
+        "visual_summary": "The snowy highway scene continues. Relative to the prior frame, the white box truck ahead and the red-and-white trailer to the right appear slightly larger as the camera vehicle advances. The dark vehicle-shaped form remains beside the trailer near the roadside; its condition and relationship to the trailer are unclear. Snow-covered lanes, tire tracks, the left barrier, and an overpass remain visible.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 14.94725,
+        "end": 15.386875,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:13",
+          "43.73731 -79.5267",
+          "41 KM/H"
+        ],
+        "visual_summary": "The camera continues toward the trucks on the snow-covered roadway. The white box truck remains ahead near the center, while the red-sided trailer and its white rear occupy the right side; a smaller white vehicle is partly visible between them. The dashcam overlay now shows 41 km/h, down from 47 km/h in the preceding supplied frames. The dark vehicle-shaped form remains near the roadside, with no clear change that establishes what it is or how it got there.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 15.386875,
+        "end": 15.8265,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:13",
+          "43.73731 -79.5267",
+          "41 KM/H"
+        ],
+        "visual_summary": "The same snowy traffic scene persists as the dashcam vehicle moves forward: the white box truck remains ahead, with the red-and-white trailer to the right and a smaller white vehicle partly between them. Snow and tire tracks obscure lane markings. The dark vehicle-shaped form is still visible beside the right-side trailer near the snowy edge. The overlay continues to indicate 41 km/h; no collision or other specific event can be confirmed from these frames.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 15.8265,
+        "end": 16.266125,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:14",
+          "43.73725 -79.52665",
+          "36 KM/H"
+        ],
+        "visual_summary": "The same snowy highway scene continues. The white box truck remains ahead and the red-sided trailer remains to its right; both appear marginally larger as the dashcam vehicle approaches, while the displayed speed falls from 41 to 36 km/h. Snow and slush obscure lane markings, and packed tire tracks define the visible paths. A dark vehicle remains partly visible near the trailer's right side; its exact position and relation to the truck are unclear.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 16.0,
+        "end": 17.585,
+        "scene_type": "sound observation",
+        "transcript": null,
+        "ocr": [],
+        "visual_summary": null,
+        "audio_summary": "Acoustic content is uncertain; independent descriptions did not agree.",
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "low"
+      },
+      {
+        "start": 16.266125,
+        "end": 16.70575,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:14",
+          "43.73725 -79.52665",
+          "36 KM/H"
+        ],
+        "visual_summary": "The camera continues forward on the snow-covered roadway behind the white box truck. The red-and-white trailer remains to the right, with a dark vehicle partly visible near its right-rear area. The vehicles' relative arrangement appears broadly unchanged from the previous frame; the dashboard overlay still reads 36 km/h. The snowy surface, tire tracks, concrete median, and overpass remain visible. No contact is discernible.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 16.70575,
+        "end": 17.145375,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:15",
+          "43.73723 -79.52666",
+          "26 KM/H"
+        ],
+        "visual_summary": "The snowy traffic scene persists, with the white box truck ahead and the red-sided trailer to the right. The dashcam display now reads 26 km/h, down from 36 km/h in the preceding displayed frames. A dark vehicle is still partly visible beside the trailer's right-rear area. Snow continues to cover the road and blur lane markings; the frames do not establish why the camera vehicle slowed or whether any vehicles made contact.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      },
+      {
+        "start": 17.145375,
+        "end": 17.585,
+        "scene_type": "sequence",
+        "transcript": null,
+        "ocr": [
+          "GARMIN",
+          "15/01/2026 12:24:15",
+          "43.73723 -79.5266",
+          "26 KM/H",
+          "Red trailer lettering is present but not reliably legible"
+        ],
+        "visual_summary": "The snowy highway scene continues. Relative to the previous frame, the silver box truck remains ahead near the center and the red-sided semi remains to the right; their positions shift only slightly in the view. Snow covers the lanes, with darker wheel tracks visible, and snowfall continues. The dashcam overlay still reports 26 km/h. No cause or outcome beyond what is visible can be determined from these frames.",
+        "audio_summary": null,
+        "detected_actions": [],
+        "interpretation": null,
+        "confidence": "high"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "finding": "Central thesis and scope: The footage documents changing winter-road and traffic conditions rather than presenting a spoken argument. Its main visual takeaway is that the dashcam approaches a group of trucks on a snow-covered road while the displayed speed declines; no cause for that decline is established.",
+      "evidence": [
+        {
+          "timestamp": 0.0,
+          "detail": "The opening view shows a forward-facing dashcam on a snow-covered highway, with the overlay displaying 86 km/h."
+        },
+        {
+          "timestamp": 10.111,
+          "detail": "Three box trucks are ahead, and the overlay displays 70 km/h."
+        },
+        {
+          "timestamp": 17.145,
+          "detail": "The trucks remain ahead and the overlay displays 26 km/h; this readout does not establish why the vehicle slowed."
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "finding": "Road and route context: Snow covers the roadway, dark wheel tracks are more visible than lane markings, and snowy haze limits the view ahead. An overhead green sign identifies Highway 401 and Black Creek Drive with a route diagram; the dashcam proceeds beneath or past it.",
+      "evidence": [
+        {
+          "timestamp": 0.0,
+          "detail": "Snow covers the lanes and the distance ahead is hazy."
+        },
+        {
+          "timestamp": 2.638,
+          "detail": "The overhead sign visibly shows 401, Black Creek Drive, and a split-route diagram."
+        },
+        {
+          "timestamp": 3.957,
+          "detail": "The sign and gantry move above and out of view as the vehicle continues forward."
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "finding": "Traffic approaches and becomes more prominent: Several trucks are visible ahead by about 8 seconds. Later, a white box truck is near the center of the view, with other box trucks to its right; two passenger cars also appear on the right and are farther forward in later sampled frames. Traffic beyond the concrete divider on the left is on a separated roadway, not the dashcam vehicle’s carriageway.",
+      "evidence": [
+        {
+          "timestamp": 7.913,
+          "detail": "Three trucks are visible ahead on the snow-covered highway."
+        },
+        {
+          "timestamp": 10.551,
+          "detail": "A dark passenger car and a light-colored car are visible at the right side of the roadway."
+        },
+        {
+          "timestamp": 13.628,
+          "detail": "A white box truck is ahead near the center, with a red-sided truck and another light-colored truck to the right."
+        },
+        {
+          "timestamp": 11.43,
+          "detail": "A red tractor-trailer is visible beyond the left-side divider on the opposite carriageway."
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "finding": "The displayed speed falls as the dashcam closes on the trucks: the overlay changes from 86 km/h early in the clip to 26 km/h near its end. These are visual overlay readings, not independent speed measurements, and the sampled frames do not show what prompted the decrease.",
+      "evidence": [
+        {
+          "timestamp": 0.0,
+          "detail": "The overlay displays 86 km/h."
+        },
+        {
+          "timestamp": 10.111,
+          "detail": "The overlay displays 70 km/h as the truck group is closer."
+        },
+        {
+          "timestamp": 14.068,
+          "detail": "The overlay displays 47 km/h."
+        },
+        {
+          "timestamp": 17.145,
+          "detail": "The overlay displays 26 km/h."
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "finding": "A dark vehicle-shaped form is visible near the right side of the red-sided truck, amid snow spray. Its condition and exact position relative to the truck are unclear in the sampled images; no contact or cause is established. The sampled frames cannot rule out events between observations.",
+      "evidence": [
+        {
+          "timestamp": 12.749,
+          "detail": "Snow spray partly obscures a dark vehicle near the trucks on the right."
+        },
+        {
+          "timestamp": 14.508,
+          "detail": "A dark vehicle-shaped form is visible beside the right-side trailer near the snowy edge."
+        },
+        {
+          "timestamp": 16.706,
+          "detail": "The form remains partly visible near the trailer’s right-rear area; the image does not establish contact."
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "finding": "Acoustic assessment: Provisional sound observations describe low-frequency rumbling and later broadband noise with a click and quiet rustling. These generic sounds do not independently corroborate a collision, braking, or another specific visible event; their source and timing within each covered window are not established.",
+      "evidence": [
+        {
+          "timestamp": 2.0,
+          "detail": "The 2.0–4.0 s audio window is described as containing a low-frequency rumble; the 4.0–6.0 s window also notes broadband rumbling."
+        },
+        {
+          "timestamp": 10.0,
+          "detail": "The 10.0–12.0 s window is described as broadband noise with a clicking sound."
+        },
+        {
+          "timestamp": 12.0,
+          "detail": "The 12.0–14.0 s window is described as broadband noise with quiet rustling."
+        }
+      ],
+      "confidence": "medium"
+    }
+  ],
+  "recommendations": [
+    {
+      "recommendation": "For any incident review, inspect the original full-resolution recording and the surrounding footage rather than relying only on these sampled frames.",
+      "rationale": "The samples do not show every moment and cannot establish whether contact or another event occurred between observations.",
+      "confidence": "high"
+    },
+    {
+      "recommendation": "Treat the displayed date, location, and speed as unverified overlay readings unless they can be checked against independent records.",
+      "rationale": "The overlay is visible, but it is not an independent measurement.",
+      "confidence": "high"
+    },
+    {
+      "recommendation": "Do not assign a collision, cause, or responsibility from this clip alone; seek corroborating visual or other independent evidence.",
+      "rationale": "The dark vehicle-shaped form is partly obscured, and neither contact nor the reason for the speed decrease is established.",
+      "confidence": "high"
+    }
+  ],
+  "tasks": [],
+  "limitations": [
+    "Speech transcription returned no recognized words; this does not prove speech was absent.",
+    "Non-speech sounds were analyzed independently in short audio windows. Ranges show coverage, not exact event onsets. Audio is downmixed to mono; sound direction is not measured. Descriptions are provisional; sound sources, contact and causation are not established by audio alone.",
+    "The timeline covers only about 17.6 seconds and consists of sampled observations; events between samples and what happened afterward cannot be determined.",
+    "Speech transcription returned no recognized words, which does not prove that speech was absent; no spoken thesis, argument, or conclusion can be summarized from the supplied transcript.",
+    "The date, GPS coordinates, and speed readings are displayed overlays and are not independently verified.",
+    "The dark vehicle-shaped form’s identity, condition, exact position, and relationship to the nearby truck are unclear; the footage does not establish contact or its cause.",
+    "Audio descriptions are provisional, cover short windows, and are downmixed to mono; sound direction and source are not established."
+  ],
+  "confidence": "medium"
+}

@@ -70,7 +70,7 @@ def render_html(analysis: Analysis) -> str:
         else '<div class="empty">No timeline was generated.</div>'
     )
 
-    limitations = list(source.limitations) + list(analysis.limitations)
+    limitations = list(dict.fromkeys([*source.limitations, *analysis.limitations]))
     limitation_items = "".join(f"<li>{_e(item)}</li>" for item in limitations)
     limitations_html = (
         f'<ul class="limitations">{limitation_items}</ul>'
@@ -171,7 +171,7 @@ def render_html(analysis: Analysis) -> str:
         </div>
       </div>
       <div class="method-note">
-        VideoLens combines transcript, sampled visual frames, and on-screen text into a timestamped
+        VideoLens combines transcript, sampled visual frames, on-screen text, and available sound observations into a timestamped
         evidence timeline before producing this report. Check cited moments against the source before
         relying on consequential details.
       </div>
@@ -312,6 +312,11 @@ def _report_css() -> str:
     @page {
       size: Letter;
       margin: 16mm 16mm 18mm;
+      @bottom-center {
+        content: "VideoLens · videolens.io · " counter(page);
+        font: 9px Arial, sans-serif;
+        color: #64748b;
+      }
     }
     * { box-sizing: border-box; }
     html { background: #e8eef5; }
@@ -447,12 +452,14 @@ def _report_css() -> str:
       .summary-copy { font-size: 14.5pt; }
       .findings-section, .tinted-section, .timeline-section, .report-notes { break-before: page; }
       .tinted-section { break-inside: auto; }
-      .report-notes { break-inside: avoid; }
+      .report-notes { break-inside: avoid; break-after: avoid; padding-bottom: 14px; }
+      .timeline-table { break-inside: auto; }
+      .timeline-section .section-heading-row { margin-bottom: 12px; }
       .finding-card { padding: 16px; }
       .finding-title-row h3 { font-size: 12pt; }
       .tinted-section { background: transparent; }
       .takeaway { padding: 15px; background: var(--soft); }
-      .report-footer { padding: 18px 30px; }
+      .report-footer { display: none; }
       a { text-decoration: none; }
     }
     """
