@@ -234,6 +234,10 @@ def test_real_video_pipeline_keeps_structured_report_on_cached_rerun(monkeypatch
     )
     assert first.analysis.procedure and again.analysis.procedure == first.analysis.procedure
     assert first.resolved.duration_seconds == 3
+    assert first.resolved.artifacts_available.frames
+    assert first.resolved.artifacts_available.ocr
+    assert not first.resolved.artifacts_available.audio
+    assert not first.resolved.artifacts_available.transcript
     assert len(seen) == 6
     assert all(f.path.exists() for f in seen)
     assert "Missing details" in first.report_html and "Open settings" in first.report_markdown

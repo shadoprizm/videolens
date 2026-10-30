@@ -21,6 +21,12 @@ export function managedChatModel(requestedModel: string, policy?: string, mode?:
   return ["gpt-5.5", "gpt-5.6-terra", "gpt-6-sol"].includes(requestedModel) ? "gpt-6-luna" : requestedModel;
 }
 
+export const GENERAL_REVIEW_POLICY = `Review every supplied timestamped image in sequence, including brief changes involving secondary subjects. Destination/route signs identify their visible text, not necessarily the current road, location, organization or ownership. Keep location unconfirmed unless independently established by the supplied evidence. Keep the camera subject separate from other subjects: apparent smooth motion of one does not prove other objects made no abrupt movements. Describe observable position/orientation changes before discussing uncertain contact or causation. Prefer "contact cannot be confirmed from the sampled evidence" to a broad "no incident or abrupt event is visible" when there are ambiguous changes. Review the full supplied time range; do not move an early event to later frames or turn an uncertain object into debris. Treat OCR values as unverified overlay readings. For audio, preserve provisional descriptions and distinguish coverage ranges from exact event onsets. Do not recommend checking unlogged sound windows if those windows are already supplied; say the observations are inconclusive when they disagree.`;
+
+export function reviewedMessages(messages: unknown[], generalReview: boolean): unknown[] {
+  return generalReview ? [...messages, { role: "system", content: GENERAL_REVIEW_POLICY }] : messages;
+}
+
 interface ManagedChatRequest {
   processingPolicy?: string;
   analysisMode?: string;
@@ -77,7 +83,7 @@ async function proxyChat(request: Request, userId: string): Promise<Response> {
   }
 
   const openAiBody: Record<string, unknown> = {
-    messages: body.messages,
+    messages: reviewedMessages(body.messages, body.analysisMode === "general" && body.purpose !== "frames"),
     max_completion_tokens: 12_000,
   };
   if (body.jsonObject) openAiBody.response_format = { type: "json_object" };

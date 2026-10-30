@@ -25,4 +25,17 @@ The customer-visible log also exposed two quality defects: only four frames were
 
 ## Production rerun
 
-Pending deployment and a fresh authenticated run. A successful local model test is not customer-flow acceptance.
+PR #44 merged as `634b501a674070159c5cb6760285ceed28197159`. Vercel deployment `dpl_3P2BPwqBuJX5ECKLwZtqCmbZ1wC6` is READY on production aliases. Railway GitHub deployment `7428475882` reports success at 2026-10-30T01:38:13Z (October 29 in Toronto).
+
+A fresh Pro-account run using the original public URL completed with 40 described frames and nine independent sound windows (49 total segments), an empty successful transcript and available HTML/PDF/Markdown/JSON controls. The public source matches the local original's 10,203,290-byte size and SHA-1 `64d77f4ecfeb35a1e25933b45a4a1841075acc03`. Mac locking prevented the repeated native upload/download interaction; the new URL run is not claimed as a completed repeat-upload acceptance.
+
+Content review found further defects: the final synthesis silently reduced the 40 original images to ten because of its encoded request budget, it treated a destination sign as proof of the current highway, and the Transcript tab still labelled a successful empty transcript as possible failure. The original extraction captions preserve the dark cars' 9.7–12.7s changes better than the final report did; the report's broad negative finding and later timing needed more careful review. Source JSON also retained resolver-time false frame/OCR flags after extraction.
+
+## Final-review coverage repair
+
+- Resize all review images within the existing 2.5 MB encoded budget instead of repeatedly dropping alternate timestamps. Highway 400 retains all 40 images in 1,641,908 encoded bytes; original full-resolution frame/OCR evidence remains available. Invalidate older synthesis caches.
+- Apply a shared managed-review policy to preserve secondary-subject changes, distinguish signs from current-location proof, scope negative findings to the relevant subject and evidence, preserve event timing, and distinguish incomplete audio from uncertain but supplied windows. This API policy applies to both existing browser targets without changing their archives or consent.
+- Explain successful no-word transcription correctly in the Transcript tab. Update exported source flags from the actual extracted evidence.
+- 234 website/API and 70 Python tests pass, including retention of every timestamp under a forced image budget and the empty-transcript UI regression.
+
+Final authenticated report rerun and export inspection remain pending the review repair deployment. A completed pipeline alone is not accepted report quality.
