@@ -128,6 +128,21 @@ def test_managed_chat_matches_proxy_contract(recorder) -> None:
     }
 
 
+@pytest.mark.parametrize("multimodel", [False, True])
+def test_quality_metadata_is_independent_of_processor_consent(recorder, multimodel) -> None:
+    rec = recorder(*[_response(200, {"choices": [{"message": {"content": "{}"}}]}) for _ in range(3)])
+    client = ManagedClient(CONNECTION, "r-1", mode="general", multimodel=multimodel)
+    for purpose in ("frames", "report", "followup"):
+        client.purpose = purpose
+        client.chat.completions.create(model="gpt-6-luna", messages=[])
+        body = rec.calls[-1]["json"]
+        assert body["analysisMode"] == "general"
+        assert body["purpose"] == purpose
+        assert ("processingPolicy" in body) is multimodel
+    if not multimodel:
+        assert client.cache_identity != "openai"
+
+
 def test_managed_transcription_sends_report_id(recorder) -> None:
     rec = recorder(_response(200, {"text": "hello world"}))
     client = ManagedClient(CONNECTION, "r-1")

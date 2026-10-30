@@ -79,15 +79,16 @@ describe("managed recipe lookup", () => {
   });
 });
 
-it('keeps the validated general reviewer on OpenAI with high reasoning', async () => {
+it.each([undefined, 'managed-providers-2026-10'])('applies OpenAI review safeguards with processor policy %s', async processingPolicy => {
   vi.stubEnv('OPENAI_API_KEY','openai-fixture'); vi.stubEnv('AI_GATEWAY_API_KEY','gateway-fixture');
   const fetch=vi.spyOn(globalThis,'fetch').mockResolvedValue(Response.json({choices:[{message:{content:'{"summary":"Reviewed"}'}}]}));
   try {
-    const response=await handler(request({reportId:'report',model:'gpt-6-luna',messages:[],jsonObject:true,reasoning_effort:'high',processingPolicy:'managed-providers-2026-10',analysisMode:'general',purpose:'report'}));
+    const response=await handler(request({reportId:'report',model:'gpt-6-luna',messages:[],jsonObject:true,reasoning_effort:'high',processingPolicy,analysisMode:'general',purpose:'report'}));
     expect(response.status).toBe(200);
     const init=fetch.mock.calls.at(-1)![1]!;const body=JSON.parse(init.body as string);
     expect(body.model).toBe('gpt-6-luna');
     expect(body.reasoning_effort).toBe('high');
+    expect(body.messages.at(-1).content).toContain('Destination/route signs');
     expect(body).not.toHaveProperty('providerOptions');
     expect(fetch.mock.calls.at(-1)![0]).toBe('https://api.openai.com/v1/chat/completions');
     expect((init.headers as Record<string,string>).Authorization).toBe('Bearer openai-fixture');

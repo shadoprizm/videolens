@@ -85,8 +85,10 @@ async function proxyChat(request: Request, userId: string): Promise<Response> {
     return managedFailure(request, "configuration_error");
   }
 
+  const generalReview = body.analysisMode === "general" && body.purpose !== "frames";
+  if (generalReview) console.info("Managed review policy applied", { requestId, purpose: body.purpose === "followup" ? "followup" : "report" });
   const openAiBody: Record<string, unknown> = {
-    messages: reviewedMessages(body.messages, body.analysisMode === "general" && body.purpose !== "frames"),
+    messages: reviewedMessages(body.messages, generalReview),
     max_completion_tokens: 12_000,
   };
   if (body.jsonObject) openAiBody.response_format = { type: "json_object" };
@@ -99,7 +101,7 @@ async function proxyChat(request: Request, userId: string): Promise<Response> {
     error_code: result.errorCode, fallback_used: result.fallbackUsed, duration_ms: Date.now() - started,
   });
   if (result.errorCode) return managedFailure(request, result.errorCode);
-  const responseBody = body.analysisMode === "general" && body.purpose !== "frames"
+  const responseBody = generalReview
     ? guardReportSilence(result.body, body.messages) : result.body;
   if (responseBody !== result.body) console.info("Managed report evidence normalization", { requestId, rule: "source_silence" });
   return new Response(responseBody, { status: result.status, headers: { ...corsHeaders(request), "Content-Type": "application/json" } });

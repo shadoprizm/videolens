@@ -201,12 +201,11 @@ class _Completions:
             "model": model,
             "messages": messages,
         }
+        # Report quality rules depend on the role, not processor consent.
+        if self._client.mode:
+            body.update(analysisMode=self._client.mode, purpose=self._client.purpose)
         if self._client.multimodel and self._client.mode == "general":
-            body.update(
-                processingPolicy="managed-providers-2026-10",
-                analysisMode="general",
-                purpose=self._client.purpose,
-            )
+            body["processingPolicy"] = "managed-providers-2026-10"
         if response_format and response_format.get("type") == "json_object":
             body["jsonObject"] = True
         if temperature is not None:
@@ -252,7 +251,8 @@ class ManagedClient:
         self.sound_consent = sound_consent
         self.purpose = "report"
         self.cache_identity = (
-            "managed-providers-2026-10" if multimodel and mode == "general" else "openai"
+            "managed-providers-2026-10" if multimodel and mode == "general"
+            else "openai-general-evidence-v2" if mode == "general" else "openai"
         )
         self.chat = SimpleNamespace(completions=_Completions(self))
         self.audio = SimpleNamespace(transcriptions=_Transcriptions(self))
