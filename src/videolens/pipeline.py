@@ -106,7 +106,7 @@ def run_extraction(
             "visual_focus": prompt if mode == AnalysisMode.GENERAL else None,
             "sequence_evidence": 1,
             "review_image_policy": "all-bounded-images-v1",
-            "sound_contract": "windowed-mimo-1" if getattr(client, "sound_consent", False) else "no-sound",
+            "sound_contract": "windowed-mimo-aligned-pcm-v2" if getattr(client, "sound_consent", False) else "no-sound",
             "processing_policy": getattr(client, "cache_identity", "openai"),
         },
     )
