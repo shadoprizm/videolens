@@ -729,14 +729,14 @@
   "validation": {
     "releaseCheck": "passed",
     "extensionTests": 115,
-    "siteTests": 231,
-    "pythonTests": 65,
+    "siteTests": 240,
+    "pythonTests": 73,
     "firefoxLint": {
       "errors": 0,
       "warnings": 0,
       "notices": 0
     },
-    "evidence": "Guarded MiMo acoustic observations + Luna visuals + GLM joint review tested on the original public Highway 400 clip. Empty gpt-transcribe output now succeeds without retry. Synthetic silence/tone and six ESC-10 environmental holdouts evaluated; sparse transients can remain uncertain. This is an initial acoustic-description feature, not a validated event detector.",
+    "evidence": "Authenticated hosted Pro Highway 400 report and follow-up passed: 40 frames, nine aligned sound windows, Luna high review, 18 operations with zero failures. GLM disabled after unsupported current-road inference. Current site/Python checks; 115 extension tests are the earlier 0.8.4 release check, archives unchanged.",
     "database": "sound_evidence_budget applied; rollback test confirms independent 20-operation sound limit, cross-account isolation, and no anon/member RPC execution.",
     "reviewerSourceRebuild": {
       "exactMatch": true,
@@ -749,18 +749,36 @@
     }
   },
   "website": {
-    "status": "deployed_live_verified",
+    "status": "acceptance_route_update_prepared",
     "url": "https://videolens.io",
-    "deployment": "dpl_tZTiZFKzZxhnvKwVHyDbcAev9ZBE",
-    "sourceCommit": "99ca3cbb9bee1478b9aef4ad43946c59fc015cdb",
-    "pullRequest": "https://github.com/shadoprizm/videolens/pull/41",
-    "verification": "Vercel READY exact merged commit; production aliases verified. Privacy names DeepInfra; deployed admin bundle labels processing requests and Sounds; unauthenticated APIs remain protected. Full authenticated native-client acceptance remains pending."
+    "deployment": "dpl_8jcQ83oSm1bd9R7cwHPTpgcvZoGH",
+    "sourceCommit": "d774c851c135ada58d2b51f116ca012ac03542d0",
+    "verification": "Last verified production API at accepted report run. Luna route/artifact update awaits follow-up deployment."
   },
   "hostedApp": {
-    "status": "deployed_live_verified",
+    "status": "acceptance_export_update_prepared",
     "url": "https://app.videolens.io",
-    "sourceCommit": "99ca3cbb9bee1478b9aef4ad43946c59fc015cdb",
-    "githubDeploymentId": 7426358688,
-    "verification": "Railway GitHub deployment 7426358688 for exact merged commit reports success at 2026-10-29T23:08:40Z; public health returns ok. Full authenticated hosted report acceptance remains pending."
+    "sourceCommit": "d774c851c135ada58d2b51f116ca012ac03542d0",
+    "githubDeploymentId": 7429038292,
+    "verification": "Exact source succeeded at 2026-10-30T02:18:18Z. Full authenticated report/follow-up passed; export/UI polish awaits follow-up deployment."
+  },
+  "customerAcceptance": {
+    "status": "hosted_pro_report_and_followup_verified",
+    "reportUrl": "https://videolens.io/highway400-customer-report.html",
+    "jsonUrl": "https://videolens.io/highway400-customer-report.json",
+    "reportCompletedAt": "2026-10-30T02:32:46.606Z",
+    "functionalSourceCommit": "d774c851c135ada58d2b51f116ca012ac03542d0",
+    "visualFrames": 40,
+    "soundWindows": 9,
+    "reportOperations": 17,
+    "followupOperations": 1,
+    "failedOperations": 0,
+    "cloudSaved": false,
+    "limitations": [
+      "Native file upload/download dialogs unverified while Mac locked.",
+      "Hosted Pro acceptance, not native extension.",
+      "Provisional acoustic observations, not a validated collision detector."
+    ],
+    "exportProvenance": "Unedited actual production JSON; product-exporter HTML/PDF/Markdown with pagination and deduplication repairs."
   }
 }

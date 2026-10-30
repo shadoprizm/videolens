@@ -79,16 +79,18 @@ describe("managed recipe lookup", () => {
   });
 });
 
-it('keeps provider credentials and approved inference destinations separate', async () => {
+it('keeps the validated general reviewer on OpenAI with high reasoning', async () => {
   vi.stubEnv('OPENAI_API_KEY','openai-fixture'); vi.stubEnv('AI_GATEWAY_API_KEY','gateway-fixture');
   const fetch=vi.spyOn(globalThis,'fetch').mockResolvedValue(Response.json({choices:[{message:{content:'{"summary":"Reviewed"}'}}]}));
   try {
     const response=await handler(request({reportId:'report',model:'gpt-6-luna',messages:[],jsonObject:true,reasoning_effort:'high',processingPolicy:'managed-providers-2026-10',analysisMode:'general',purpose:'report'}));
     expect(response.status).toBe(200);
     const init=fetch.mock.calls.at(-1)![1]!;const body=JSON.parse(init.body as string);
-    expect(body.model).toBe('zai/glm-5.3-flash');
-    expect(body.providerOptions.gateway.only).toEqual(['baseten']);
-    expect((init.headers as Record<string,string>).Authorization).toBe('Bearer gateway-fixture');
+    expect(body.model).toBe('gpt-6-luna');
+    expect(body.reasoning_effort).toBe('high');
+    expect(body).not.toHaveProperty('providerOptions');
+    expect(fetch.mock.calls.at(-1)![0]).toBe('https://api.openai.com/v1/chat/completions');
+    expect((init.headers as Record<string,string>).Authorization).toBe('Bearer openai-fixture');
   } finally { vi.unstubAllEnvs(); }
 });
 it('rejects GPT-6.1 Sol before recording a billable managed request',async()=>{

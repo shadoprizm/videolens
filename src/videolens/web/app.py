@@ -721,10 +721,7 @@ def _render_composer() -> tuple[str | None, Path | None]:
         _render_advanced_settings(mode)
 
     if _connection() is not None and _access_mode() == "account":
-        st.checkbox(
-            "Use optimized general reports: send images and report text through Vercel AI Gateway to OpenAI and Baseten (GLM by Z.ai), with OpenAI as a fallback. Speech transcription uses OpenAI.",
-            key="managed_provider_consent",
-        )
+        st.caption("Managed reports use OpenAI for visual analysis, report review and speech transcription.")
         st.checkbox(
             "Include actual sounds: send audio through VideoLens and Vercel AI Gateway to DeepInfra serving Xiaomi MiMo. Speech transcription still uses OpenAI. Sound descriptions are provisional and audio analysis covers the first 20 minutes.",
             key="managed_sound_consent_v1",

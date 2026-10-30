@@ -97,7 +97,7 @@ def render_markdown(analysis: Analysis) -> str:
 
     lines.append("## Limitations")
     lines.append("")
-    combined = list(src.limitations) + list(analysis.limitations)
+    combined = list(dict.fromkeys([*src.limitations, *analysis.limitations]))
     if not combined:
         lines.append("_(none)_")
     else:

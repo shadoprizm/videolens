@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Video report | VideoLens report</title>
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #dbe4ef;
+      --paper: #ffffff;
+      --soft: #f4f8fb;
+      --cyan: #0891b2;
+      --cyan-dark: #155e75;
+      --indigo: #4f46e5;
+      --green: #047857;
+      --amber: #b45309;
+    }
+    @page {
+      size: Letter;
+      margin: 16mm 16mm 18mm;
+      @bottom-center {
+        content: "VideoLens · videolens.io · " counter(page);
+        font: 9px Arial, sans-serif;
+        color: #64748b;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { background: #e8eef5; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #e8eef5;
+      font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    .structured-report { overflow-wrap: anywhere; }
+    .structured-report li { margin: 12px 0; white-space: pre-wrap; }
+    .structured-report small { color: #64748b; }
+    .report-shell {
+      width: min(980px, calc(100% - 32px));
+      margin: 32px auto;
+      overflow: hidden;
+      background: var(--paper);
+      border-radius: 18px;
+    }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 390px;
+      padding: 48px 56px 42px;
+      color: white;
+      background: linear-gradient(135deg, #0f172a 0%, #123e59 58%, #164e63 100%);
+    }
+    .hero::after {
+      position: absolute;
+      right: -100px;
+      bottom: -140px;
+      width: 410px;
+      height: 410px;
+      content: "";
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 50%;
+    }
+    .hero-grid {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      opacity: 0.08;
+      background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    .brand-row, .hero-copy, .hero-meta { position: relative; z-index: 1; }
+    .brand-row { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
+    .brand-mark { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; color: white; background: linear-gradient(135deg, #06b6d4, #6366f1); border-radius: 9px; font-size: 12px; }
+    .document-type { color: #a5f3fc; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; }
+    .hero-copy { max-width: 720px; margin-top: 70px; }
+    .eyebrow, .section-kicker { color: var(--cyan); font-size: 11px; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
+    .hero .eyebrow { color: #67e8f9; }
+    h1 { max-width: 760px; margin: 12px 0 12px; font-size: 46px; line-height: 1.05; letter-spacing: -0.045em; }
+    .source-line { margin: 0; color: #cbd5e1; font-size: 17px; }
+    .hero-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 54px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.16); }
+    .hero-meta div { display: flex; flex-direction: column; gap: 2px; }
+    .hero-meta span { color: #94a3b8; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .hero-meta strong { color: #f8fafc; font-size: 16px; }
+    .report-section { padding: 58px 56px; border-bottom: 1px solid var(--line); }
+    .report-section h2 { margin: 9px 0 22px; font-size: 30px; line-height: 1.16; letter-spacing: -0.035em; }
+    .summary-copy { max-width: 790px; margin: 0; color: #1e293b; font-size: 21px; line-height: 1.58; letter-spacing: -0.012em; }
+    .source-link { display: inline-flex; gap: 7px; margin-top: 28px; color: var(--cyan-dark); font-size: 13px; font-weight: 700; text-decoration: none; }
+    .source-link-static { color: var(--muted); }
+    .section-kicker, .section-heading-row, .report-section > h2 { break-after: avoid; }
+    .section-heading-row { display: flex; align-items: end; justify-content: space-between; gap: 32px; margin-bottom: 22px; }
+    .section-heading-row h2 { margin-bottom: 0; }
+    .section-heading-row > p { max-width: 320px; margin: 0; color: var(--muted); font-size: 13px; }
+    .finding-list { display: grid; gap: 16px; }
+    .finding-card { display: grid; grid-template-columns: 48px 1fr; gap: 18px; padding: 24px; border: 1px solid var(--line); border-radius: 14px; background: white; break-inside: avoid; }
+    .finding-index { color: var(--cyan); font-size: 13px; font-weight: 800; letter-spacing: .08em; }
+    .finding-title-row { display: flex; align-items: start; justify-content: space-between; gap: 18px; }
+    .finding-title-row h3 { margin: 0; font-size: 18px; line-height: 1.35; letter-spacing: -0.015em; }
+    .confidence { flex: none; padding: 4px 8px; color: var(--muted); background: #f1f5f9; border-radius: 999px; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .confidence-high { color: var(--green); background: #ecfdf5; }
+    .confidence-medium { color: var(--amber); background: #fffbeb; }
+    .evidence-list { display: grid; gap: 10px; margin: 17px 0 0; padding: 0; list-style: none; }
+    .evidence-list li { display: grid; grid-template-columns: 58px 1fr; gap: 12px; color: #475569; font-size: 13px; }
+    .timestamp { align-self: start; padding: 3px 6px; color: var(--cyan-dark); background: #ecfeff; border-radius: 5px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 10px; font-weight: 800; text-align: center; text-decoration: none; }
+    .tinted-section { background: var(--soft); }
+    .tinted-section { break-inside: avoid; }
+    .takeaway-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .takeaway { display: grid; grid-template-columns: 38px 1fr; gap: 14px; padding: 22px; background: white; border: 1px solid var(--line); border-radius: 13px; break-inside: avoid; }
+    .takeaway-mark { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; color: white; background: linear-gradient(135deg, var(--cyan), var(--indigo)); border-radius: 10px; font-size: 10px; font-weight: 800; }
+    .takeaway h3 { margin: 0 0 5px; font-size: 15px; line-height: 1.35; }
+    .takeaway p { margin: 0; color: var(--muted); font-size: 12px; }
+    .task-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+    .task-list li { display: flex; gap: 14px; padding: 17px 0; border-bottom: 1px solid var(--line); break-inside: avoid; }
+    .task-list li:last-child { border-bottom: 0; }
+    .check { flex: none; width: 20px; height: 20px; margin-top: 2px; border: 2px solid #94a3b8; border-radius: 6px; }
+    .task-list strong { font-size: 14px; }
+    .task-list p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    .timeline-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .timeline-table { break-inside: avoid; }
+    .timeline-table th { padding: 10px 12px; color: var(--muted); border-bottom: 2px solid var(--ink); font-size: 9px; letter-spacing: .08em; text-align: left; text-transform: uppercase; }
+    .timeline-table td { padding: 15px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .timeline-table tr { break-inside: avoid; }
+    .timeline-table td:first-child { width: 78px; color: var(--cyan-dark); font-family: "SFMono-Regular", Consolas, monospace; }
+    .timeline-table td:first-child span { display: block; color: #94a3b8; font-size: 9px; }
+    .timeline-table td:nth-child(2) { width: 145px; font-weight: 700; }
+    .timeline-table td:nth-child(3) { color: #475569; }
+    .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 52px; }
+    .notes-grid h2 { margin-top: 0; font-size: 20px; }
+    dl { margin: 0; }
+    dl div { display: flex; justify-content: space-between; gap: 18px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+    dt { color: var(--muted); font-size: 11px; }
+    dd { margin: 0; font-size: 11px; font-weight: 700; text-align: right; }
+    .limitations { margin: 0; padding-left: 18px; color: #475569; font-size: 11px; }
+    .limitations li { margin-bottom: 7px; }
+    .method-note { margin-top: 32px; padding: 18px 20px; color: #475569; background: var(--soft); border-left: 3px solid var(--cyan); border-radius: 0 10px 10px 0; font-size: 11px; }
+    .report-footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 30px 56px; color: white; background: var(--ink); }
+    .report-footer .brand { font-size: 16px; }
+    .report-footer .brand-mark { width: 24px; height: 24px; border-radius: 7px; font-size: 9px; }
+    .report-footer p { margin: 0; color: #94a3b8; font-size: 12px; }
+    .report-footer a { color: #67e8f9; font-size: 12px; font-weight: 700; text-decoration: none; }
+    .empty, .muted { color: var(--muted); font-style: italic; }
+    @media print {
+      html, body { background: white; }
+      body { font-size: 10pt; }
+      .report-shell { width: 100%; margin: 0; overflow: visible; background: transparent; border-radius: 0; }
+      .hero { min-height: 245px; padding: 26px 30px 24px; border-radius: 0; }
+      .hero-copy { margin-top: 36px; }
+      h1 { font-size: 30pt; }
+      .hero-meta { margin-top: 30px; }
+      .report-section { padding: 28px 30px; }
+      .report-section h2 { font-size: 21pt; }
+      .summary-copy { font-size: 14.5pt; }
+      .findings-section, .tinted-section, .timeline-section, .report-notes { break-before: page; }
+      .tinted-section { break-inside: auto; }
+      .report-notes { break-inside: avoid; break-after: avoid; padding-bottom: 14px; }
+      .timeline-table { break-inside: auto; }
+      .timeline-section .section-heading-row { margin-bottom: 12px; }
+      .finding-card { padding: 16px; }
+      .finding-title-row h3 { font-size: 12pt; }
+      .tinted-section { background: transparent; }
+      .takeaway { padding: 15px; background: var(--soft); }
+      .report-footer { display: none; }
+      a { text-decoration: none; }
+    }
+    </style>
+</head>
+<body>
+  <main class="report-shell">
+    <header class="hero">
+      <div class="hero-grid"></div>
+      <div class="brand-row">
+        <div class="brand"><span class="brand-mark">▶</span><span>VideoLens</span></div>
+        <div class="document-type">VIDEO INTELLIGENCE REPORT</div>
+      </div>
+      <div class="hero-copy">
+        <div class="eyebrow">Detailed written report</div>
+        <h1>Video report</h1>
+        <p class="source-line">Direct Video Url</p>
+      </div>
+      <div class="hero-meta">
+        <div><span>Duration</span><strong>00:18</strong></div>
+        <div><span>Confidence</span><strong>Medium</strong></div>
+        <div><span>Key findings</span><strong>6</strong></div>
+        <div><span>Evidence points</span><strong>20</strong></div>
+      </div>
+    </header>
+
+    <section class="executive-summary report-section">
+      <div class="section-kicker">01 / EXECUTIVE SUMMARY</div>
+      <h2>The video, in writing</h2>
+      <p class="summary-copy">The clip’s visual narrative is a dashcam drive on a snow-covered, hazy highway: the vehicle passes a Highway 401 / Black Creek Drive sign, approaches a group of trucks, and the displayed speed decreases as traffic draws closer. No words were recognized, so the footage does not provide a spoken thesis or argument; the visual record does not establish whether a collision occurred or why the vehicle slowed. The sound notes include low rumbling and later broadband noise with a click and quiet rustling, but these do not independently corroborate a visible incident.</p>
+      <a class="source-link" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">View original source <span>↗</span></a>
+    </section>
+
+    
+
+    <section class="report-section findings-section">
+      <div class="section-kicker">02 / KEY FINDINGS</div>
+      <div class="section-heading-row">
+        <h2>What is worth knowing</h2>
+        <p>Each finding is grounded in a specific moment from the source.</p>
+      </div>
+      <div class="finding-list">
+      <article class="finding-card">
+        <div class="finding-index">01</div>
+        <div class="finding-content">
+          <div class="finding-title-row">
+            <h3>Central thesis and scope: The footage documents changing winter-road and traffic conditions rather than presenting a spoken argument. Its main visual takeaway is that the dashcam approaches a group of trucks on a snow-covered road while the displayed speed declines; no cause for that decline is established.</h3>
+            <span class="confidence confidence-high">high</span>
+          </div>
+          <ul class="evidence-list">
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:00</a>
+          <span>The opening view shows a forward-facing dashcam on a snow-covered highway, with the overlay displaying 86 km/h.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:10</a>
+          <span>Three box trucks are ahead, and the overlay displays 70 km/h.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:17</a>
+          <span>The trucks remain ahead and the overlay displays 26 km/h; this readout does not establish why the vehicle slowed.</span>
+        </li></ul>
+        </div>
+      </article>
+      <article class="finding-card">
+        <div class="finding-index">02</div>
+        <div class="finding-content">
+          <div class="finding-title-row">
+            <h3>Road and route context: Snow covers the roadway, dark wheel tracks are more visible than lane markings, and snowy haze limits the view ahead. An overhead green sign identifies Highway 401 and Black Creek Drive with a route diagram; the dashcam proceeds beneath or past it.</h3>
+            <span class="confidence confidence-high">high</span>
+          </div>
+          <ul class="evidence-list">
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:00</a>
+          <span>Snow covers the lanes and the distance ahead is hazy.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:03</a>
+          <span>The overhead sign visibly shows 401, Black Creek Drive, and a split-route diagram.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:04</a>
+          <span>The sign and gantry move above and out of view as the vehicle continues forward.</span>
+        </li></ul>
+        </div>
+      </article>
+      <article class="finding-card">
+        <div class="finding-index">03</div>
+        <div class="finding-content">
+          <div class="finding-title-row">
+            <h3>Traffic approaches and becomes more prominent: Several trucks are visible ahead by about 8 seconds. Later, a white box truck is near the center of the view, with other box trucks to its right; two passenger cars also appear on the right and are farther forward in later sampled frames. Traffic beyond the concrete divider on the left is on a separated roadway, not the dashcam vehicle’s carriageway.</h3>
+            <span class="confidence confidence-high">high</span>
+          </div>
+          <ul class="evidence-list">
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:08</a>
+          <span>Three trucks are visible ahead on the snow-covered highway.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:11</a>
+          <span>A dark passenger car and a light-colored car are visible at the right side of the roadway.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:14</a>
+          <span>A white box truck is ahead near the center, with a red-sided truck and another light-colored truck to the right.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:11</a>
+          <span>A red tractor-trailer is visible beyond the left-side divider on the opposite carriageway.</span>
+        </li></ul>
+        </div>
+      </article>
+      <article class="finding-card">
+        <div class="finding-index">04</div>
+        <div class="finding-content">
+          <div class="finding-title-row">
+            <h3>The displayed speed falls as the dashcam closes on the trucks: the overlay changes from 86 km/h early in the clip to 26 km/h near its end. These are visual overlay readings, not independent speed measurements, and the sampled frames do not show what prompted the decrease.</h3>
+            <span class="confidence confidence-high">high</span>
+          </div>
+          <ul class="evidence-list">
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:00</a>
+          <span>The overlay displays 86 km/h.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:10</a>
+          <span>The overlay displays 70 km/h as the truck group is closer.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:14</a>
+          <span>The overlay displays 47 km/h.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:17</a>
+          <span>The overlay displays 26 km/h.</span>
+        </li></ul>
+        </div>
+      </article>
+      <article class="finding-card">
+        <div class="finding-index">05</div>
+        <div class="finding-content">
+          <div class="finding-title-row">
+            <h3>A dark vehicle-shaped form is visible near the right side of the red-sided truck, amid snow spray. Its condition and exact position relative to the truck are unclear in the sampled images; no contact or cause is established. The sampled frames cannot rule out events between observations.</h3>
+            <span class="confidence confidence-medium">medium</span>
+          </div>
+          <ul class="evidence-list">
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:13</a>
+          <span>Snow spray partly obscures a dark vehicle near the trucks on the right.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:15</a>
+          <span>A dark vehicle-shaped form is visible beside the right-side trailer near the snowy edge.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:17</a>
+          <span>The form remains partly visible near the trailer’s right-rear area; the image does not establish contact.</span>
+        </li></ul>
+        </div>
+      </article>
+      <article class="finding-card">
+        <div class="finding-index">06</div>
+        <div class="finding-content">
+          <div class="finding-title-row">
+            <h3>Acoustic assessment: Provisional sound observations describe low-frequency rumbling and later broadband noise with a click and quiet rustling. These generic sounds do not independently corroborate a collision, braking, or another specific visible event; their source and timing within each covered window are not established.</h3>
+            <span class="confidence confidence-medium">medium</span>
+          </div>
+          <ul class="evidence-list">
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:02</a>
+          <span>The 2.0–4.0 s audio window is described as containing a low-frequency rumble; the 4.0–6.0 s window also notes broadband rumbling.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:10</a>
+          <span>The 10.0–12.0 s window is described as broadband noise with a clicking sound.</span>
+        </li>
+        <li>
+          <a class="timestamp" href="https://upload.wikimedia.org/wikipedia/commons/a/a7/400_SB_Crash.webm">00:12</a>
+          <span>The 12.0–14.0 s window is described as broadband noise with quiet rustling.</span>
+        </li></ul>
+        </div>
+      </article></div>
+    </section>
+
+    <section class="report-section tinted-section">
+      <div class="section-kicker">03 / PRACTICAL TAKEAWAYS</div>
+      <h2>What to carry forward</h2>
+      <div class="takeaway-grid">
+        <article class="takeaway">
+          <div class="takeaway-mark">01</div>
+          <div>
+            <h3>For any incident review, inspect the original full-resolution recording and the surrounding footage rather than relying only on these sampled frames.</h3>
+            <p>The samples do not show every moment and cannot establish whether contact or another event occurred between observations.</p>
+          </div>
+        </article>
+        <article class="takeaway">
+          <div class="takeaway-mark">02</div>
+          <div>
+            <h3>Treat the displayed date, location, and speed as unverified overlay readings unless they can be checked against independent records.</h3>
+            <p>The overlay is visible, but it is not an independent measurement.</p>
+          </div>
+        </article>
+        <article class="takeaway">
+          <div class="takeaway-mark">03</div>
+          <div>
+            <h3>Do not assign a collision, cause, or responsibility from this clip alone; seek corroborating visual or other independent evidence.</h3>
+            <p>The dark vehicle-shaped form is partly obscured, and neither contact nor the reason for the speed decrease is established.</p>
+          </div>
+        </article></div>
+    </section>
+
+    <section class="report-section">
+      <div class="section-kicker">04 / FOLLOW-UP</div>
+      <h2>Ideas to explore or apply</h2>
+      <ul class="task-list"><li class="empty">No follow-up ideas were generated.</li></ul>
+    </section>
+
+    <section class="report-section timeline-section">
+      <div class="section-kicker">05 / SOURCE TIMELINE</div>
+      <div class="section-heading-row">
+        <h2>How the video unfolds</h2>
+        <p>A compact map of the transcript, visuals, and on-screen text.</p>
+      </div>
+      
+        <table class="timeline-table">
+          <thead><tr><th>Time</th><th>Scene</th><th>What the video shows and says</th></tr></thead>
+          <tbody>
+      <tr>
+        <td><strong>00:00</strong><span>00:00</span></td>
+        <td>sequence</td>
+        <td>A forward-facing dashcam view shows a multi-lane highway heavily covered in snow, with dark tire tracks, falling snow, and reduced visibility. The vehicle is approaching an overhead green highway sign; a few vehicles are visible farther ahead and on the separated roadway to the left. Relative to the following frames, the sign and roadway are still farther away. The lower overlay displays a speed of 86 km/h; this is visual evidence, not an assessment of whether that speed is appropriate for conditions. On screen: GARMIN / 15/01/2026 12:23:58 / 43.73980 -79.52730 / 86 KM/H / 401</td>
+      </tr>
+      <tr>
+        <td><strong>00:00</strong><span>00:02</span></td>
+        <td>sound observation</td>
+        <td>Heard (provisional): Acoustic content is uncertain; independent descriptions did not agree.</td>
+      </tr>
+      <tr>
+        <td><strong>00:00</strong><span>00:01</span></td>
+        <td>sequence</td>
+        <td>The car continues forward on the snow-covered highway. The overhead sign grows slightly larger, and the tire tracks and snow remain visible across the lanes; snowfall and hazy distance continue to limit visibility. A vehicle remains visible ahead, with other traffic on the separated roadway to the left. No collision or other clear incident is visible in this frame. On screen: GARMIN / 15/01/2026 12:23:58 / 43.73980 -79.52730 / 86 KM/H / 401</td>
+      </tr>
+      <tr>
+        <td><strong>00:01</strong><span>00:01</span></td>
+        <td>sequence</td>
+        <td>The vehicle has advanced closer to the overhead sign, which appears to show route 401 and a lane-direction diagram; smaller destination wording is too unclear to transcribe confidently. The highway remains snow-covered with visible wheel tracks and falling snow, and visibility is hazy. The dashcam overlay now shows 12:23:59 and a slightly changed coordinate reading, while the displayed speed remains 86 km/h. On screen: GARMIN / 15/01/2026 12:23:59 / 43.73959 -79.52725 / 86 KM/H / 401</td>
+      </tr>
+      <tr>
+        <td><strong>00:01</strong><span>00:02</span></td>
+        <td>sequence</td>
+        <td>The vehicle continues toward the overhead sign; it appears larger and closer than at 0.879 seconds. Snow still covers the roadway, with dark tire tracks providing the clearest visible paths. A truck and several cars remain visible beyond the divider on the left. The overlay continues to show 86 km/h. On screen: GARMIN / 15/01/2026 12:23:59 / 43.73959 -79.52725 / 86 KM/H / 401 / Black Creek Drive</td>
+      </tr>
+      <tr>
+        <td><strong>00:02</strong><span>00:02</span></td>
+        <td>sequence</td>
+        <td>The overhead sign is nearer and more legible as the vehicle advances; the road remains snow-covered, with limited visibility ahead. A large tractor-trailer and cars are visible on the separated roadway to the left. The dashboard overlay now shows 85 km/h and updated coordinates. On screen: GARMIN / 15/01/2026 12:24:00 / 43.73938 -79.52720 / 85 KM/H / 401 / Black Creek Drive</td>
+      </tr>
+      <tr>
+        <td><strong>00:02</strong><span>00:04</span></td>
+        <td>sound observation</td>
+        <td>Heard (provisional): A low-frequency rumbling noise.</td>
+      </tr>
+      <tr>
+        <td><strong>00:02</strong><span>00:03</span></td>
+        <td>sequence</td>
+        <td>The vehicle continues approaching the overhead sign, which is prominent above the roadway. It indicates Highway 401 and Black Creek Drive with a diagram of the route; snow and slush still cover the lanes, and visibility remains hazy. The overlay remains at 85 km/h. No collision or other distinct incident is visible in this frame. On screen: GARMIN / 15/01/2026 12:24:00 / 43.73938 -79.52720 / 85 KM/H / 401 / Black Creek Drive</td>
+      </tr>
+      <tr>
+        <td><strong>00:03</strong><span>00:03</span></td>
+        <td>sequence</td>
+        <td>The dashcam continues toward the overhead Highway 401 / Black Creek Drive sign, which appears larger and closer than in the preceding frame. Snow and slushy tire tracks cover the roadway, with poor visibility ahead. A truck is moving out of view at the far left beyond the median, while several other vehicles remain visible there. The displayed speed remains 85 km/h. On screen: 401 / Black Creek Drive / GARMIN / 15/01/2026 12:24:00 / 43.73938 -79.52720 / 85 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:03</strong><span>00:04</span></td>
+        <td>sequence</td>
+        <td>The vehicle draws nearer to the overhead sign; its split-arrow diagram and labels for Highway 401 and Black Creek Drive are clearer. The snow-covered roadway continues straight into haze, with parallel tire tracks and snowbanks. Beyond the median, a dark vehicle and a red car are visible. The dashcam overlay changes to 84 km/h and a new displayed time and coordinate reading. On screen: 401 / Black Creek Drive / GARMIN / 15/01/2026 12:24:01 / 43.73918 -79.52715 / 84 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:04</strong><span>00:04</span></td>
+        <td>sequence</td>
+        <td>The overhead sign now fills much of the upper view as the dashcam proceeds beneath or toward its gantry. Snow continues to blanket the lanes, and the distant roadway remains hazy; tire tracks are especially visible in the foreground. A dark vehicle and red car remain visible on the other side of the median. The overlay continues to display 84 km/h. On screen: 401 / Black Creek Drive / GARMIN / 15/01/2026 12:24:01 / 43.73918 -79.52715 / 84 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:04</strong><span>00:04</span></td>
+        <td>sequence</td>
+        <td>The vehicle continues forward on the same snow-covered highway. The Route 401 / Black Creek Drive sign has moved mostly above and out of view, consistent with passing beneath it. A red vehicle is visible beyond the left-side barrier; distant traffic and the overpass remain ahead through snowy haze. The overlay still reports 84 km/h. On screen: Black Creek Drive (partially visible) / GARMIN / 15/01/2026 12:24:02 / 43.73897 -79.52710 / 84 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:04</strong><span>00:06</span></td>
+        <td>sound observation</td>
+        <td>Heard (provisional): A low-frequency broadband rumble.</td>
+      </tr>
+      <tr>
+        <td><strong>00:04</strong><span>00:05</span></td>
+        <td>sequence</td>
+        <td>The overhead sign is no longer visible. The dashcam vehicle continues along the snow-covered roadway, following existing tire tracks; the overpass remains ahead. Several vehicles are visible at a distance on the separated roadway to the left. The overlay reports 84 km/h. No collision or other sudden event is apparent in this frame. On screen: GARMIN / 15/01/2026 12:24:02 / 43.73897 -79.52710 / 84 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:05</strong><span>00:05</span></td>
+        <td>sequence</td>
+        <td>The vehicle continues straight on the snow-covered highway toward the distant overpass. Dark tire tracks remain prominent across the otherwise white road, and visibility is still reduced by snowy or misty conditions. The overlay changes to 83 km/h. Across these frames, the main visible development is passing the overhead Route 401 / Black Creek Drive sign while continuing through wintry road conditions; the supplied images contain no spoken content to summarize. On screen: GARMIN / 15/01/2026 12:24:03 / 43.73877 -79.52705 / 83 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:05</strong><span>00:06</span></td>
+        <td>sequence</td>
+        <td>The snowy highway scene continues as the camera advances; the tire tracks and road edges shift closer in perspective. Vehicles remain visible ahead, and the dark and light-colored vehicles on the separated roadway at left appear farther along toward the left edge compared with the preceding frame. Snowy haze still limits distance visibility. The displayed speed remains 83 km/h. On screen: GARMIN / 15/01/2026 12:24:03 / 43.73877 -79.52705 / 83 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:06</strong><span>00:06</span></td>
+        <td>sequence</td>
+        <td>The camera continues forward on the snow-covered highway. The dark vehicle on the separated roadway at left is now close to the frame&#x27;s left edge, with a white vehicle following behind it; several vehicles remain small in the distance ahead. The road remains largely white with dark wheel tracks, and the overlay changes to 82 km/h. On screen: GARMIN / 15/01/2026 12:24:04 / 43.73857 -79.52700 / 82 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:06</strong><span>00:08</span></td>
+        <td>sound observation</td>
+        <td>Heard (provisional): Acoustic content is uncertain; independent descriptions did not agree.</td>
+      </tr>
+      <tr>
+        <td><strong>00:06</strong><span>00:07</span></td>
+        <td>sequence</td>
+        <td>The forward view remains centered on the snowy highway, with tire tracks continuing into the hazy distance and vehicles visible ahead. The dark vehicle on the separated roadway has moved mostly out of view at left, while the light-colored vehicle remains near that edge. The dashcam overlay continues to show 82 km/h; no collision or other clear incident is visible in this frame. On screen: GARMIN / 15/01/2026 12:24:04 / 43.73857 -79.52700 / 82 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:07</strong><span>00:07</span></td>
+        <td>sequence</td>
+        <td>The vehicle continues along the snowy highway; the trucks ahead remain distant and clustered near the overpass. A white commercial van is visible on the opposite roadway beyond the left median. The central light pole has shifted left in the view, and the road’s dark tire tracks remain prominent. The overlay still reads 82 km/h; by the next sampled frame, the overlay time advances and the displayed speed falls to 80 km/h. On screen: GARMIN / 15/01/2026 12:24:04 / 43.73857 -79.52700 / 82 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:07</strong><span>00:07</span></td>
+        <td>sequence</td>
+        <td>The snowy roadway and overpass draw nearer. Several trucks ahead are more distinct, though their exact lanes and spacing are difficult to judge through the haze. A small white vehicle is visible on the separated roadway at left. The light pole is now near the left edge. The overlay shows 80 km/h and updated coordinates; these details persist in the following frame. On screen: GARMIN / 15/01/2026 12:24:05 / 43.73837 -79.52695 / 80 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:07</strong><span>00:08</span></td>
+        <td>sequence</td>
+        <td>The dashcam continues toward the overpass on a road almost entirely coated in snow, with dark wheel tracks especially visible on the right. Several trucks are ahead and appear larger than in the earlier frames; no contact or incident is visible in this sampled view. The left-side median, roadside buildings, bare trees, and light poles remain in the hazy background. The overlay continues to show 80 km/h. On screen: GARMIN / 15/01/2026 12:24:05 / 43.73837 -79.52695 / 80 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:08</strong><span>00:08</span></td>
+        <td>sequence</td>
+        <td>The snowy highway scene continues. The three trucks remain ahead and appear slightly larger as the dashcam vehicle advances; the white van on the far side of the left barrier is also more prominent. Tire tracks remain the clearest guide across the snow-covered road, with the overpass ahead. The displayed speed changes from 80 to 78 km/h. On screen: GARMIN / 15/01/2026 12:24:06 / 43.73819 -79.52690 / 78 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:08</strong><span>00:10</span></td>
+        <td>sound observation</td>
+        <td>Heard (provisional): Acoustic content is uncertain; independent descriptions did not agree.</td>
+      </tr>
+      <tr>
+        <td><strong>00:08</strong><span>00:09</span></td>
+        <td>sequence</td>
+        <td>The dashcam continues toward the trucks on the snow-covered highway. The trucks are still grouped across the center-right lanes, and the white van is visible on the separated roadway to the left. Visibility remains hazy and road markings are obscured; the overlay continues to show 78 km/h. On screen: GARMIN / 15/01/2026 12:24:06 / 43.73819 -79.52690 / 78 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:09</strong><span>00:09</span></td>
+        <td>sequence</td>
+        <td>The three trucks ahead appear closer, still spread across the center and right portions of the snowy highway. On the separated roadway beyond the left barrier, the white van has moved farther toward the left edge of the view. Snow and dark tire tracks continue to obscure clear lane markings, and the overpass remains ahead. The displayed speed is now 74 km/h. On screen: GARMIN / 15/01/2026 12:24:07 / 43.73802 -79.52686 / 74 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:09</strong><span>00:10</span></td>
+        <td>sequence</td>
+        <td>The snowy highway scene continues; the three trucks remain ahead, while a white van and a car on the opposite side of the divider move toward and then out of the left edge of view. The road surface remains snow-covered with visible tire tracks. The trucks appear slightly larger than in the preceding frame as the dashcam view advances. On screen: GARMIN / 15/01/2026 12:24:07 / 43.73802 -79.52686 / 74 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:10</strong><span>00:10</span></td>
+        <td>sequence</td>
+        <td>The camera continues forward toward the three trucks. A light-colored car is partly visible beyond the divider at the left edge, and a dark vehicle begins entering at the far right edge. Snowfall or airborne snow and the overcast conditions limit visibility; no collision or contact is visible. On screen: GARMIN / 15/01/2026 12:24:07 / 43.73802 -79.52686 / 74 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:10</strong><span>00:12</span></td>
+        <td>sound observation</td>
+        <td>Heard (provisional): Broadband noise accompanied by a clicking sound.</td>
+      </tr>
+      <tr>
+        <td><strong>00:10</strong><span>00:11</span></td>
+        <td>sequence</td>
+        <td>The three trucks remain ahead on the snow-covered highway. Two dark passenger vehicles are now visible along the far-right edge, one partly cropped by the frame; their exact movement relative to the dashcam vehicle is unclear from this frame alone. The displayed dashcam readout changes to a new second, coordinate reading, and speed value. On screen: GARMIN / 15/01/2026 12:24:08 / 43.73786 -79.52682 / 70 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:11</strong><span>00:11</span></td>
+        <td>sequence</td>
+        <td>The snowy highway and three trucks ahead remain in view. A dark sedan and a light-colored car are now more fully visible in the right-side lanes, advancing ahead of the camera vehicle and kicking up a light haze of snow. The roadway remains covered and lane markings are difficult to distinguish. On screen: GARMIN / 15/01/2026 12:24:08 / 43.73786 -79.52682 / 70 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:11</strong><span>00:11</span></td>
+        <td>sequence</td>
+        <td>The two passenger cars have moved farther forward on the right, with the light-colored car nearer the trucks and the dark car farther right. The camera vehicle continues toward the trucks on the snow-covered roadway; a red tractor-trailer is visible beyond the median on the opposite carriageway. No collision or contact is apparent. On screen: GARMIN / 15/01/2026 12:24:09 / 43.73771 -79.52678 / 65 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:11</strong><span>00:12</span></td>
+        <td>sequence</td>
+        <td>The two cars continue ahead in the right-side lanes, now smaller and farther from the camera. The camera vehicle is closer to the box trucks ahead; snow, tire tracks, the left concrete barrier, and the overpass remain visible. A red tractor-trailer passes on the opposite side of the median. The overlay indicates a lower displayed speed than in the earlier frames. On screen: GARMIN / 15/01/2026 12:24:09 / 43.73771 -79.52678 / 65 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:12</strong><span>00:12</span></td>
+        <td>sequence</td>
+        <td>The camera vehicle continues along the snowy highway behind the white box truck, with two trucks ahead-right and cars farther right. Relative positions shift slightly as the scene advances; a dark car remains among the traffic on the right. The visible dashcam speed changes from 65 to 60 km/h. Snowy spray and poor contrast make details of the right-side vehicles difficult to distinguish. On screen: GARMIN / 15/01/2026 12:24:10 / 43.73758, -79.52674 / 60 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:12</strong><span>00:14</span></td>
+        <td>sound observation</td>
+        <td>Heard (provisional): Broadband noise with quiet rustling.</td>
+      </tr>
+      <tr>
+        <td><strong>00:12</strong><span>00:13</span></td>
+        <td>sequence</td>
+        <td>The white truck remains ahead while the two trucks to its right continue forward. A dark vehicle is now visible near the right-side trucks, partly veiled by snow spray; its precise orientation and movement are unclear in this frame. A light-colored car is farther right. The road remains snow-covered, and the displayed speed is 60 km/h. On screen: GARMIN / 15/01/2026 12:24:10 / 43.73758, -79.52674 / 60 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:13</strong><span>00:13</span></td>
+        <td>sequence</td>
+        <td>The camera vehicle continues approaching the truck group on the snowy roadway. Snow spray obscures part of the traffic to the right: a dark vehicle appears close to the right-side trucks, with a light-colored car farther right, but the images do not establish whether the vehicles made contact or why the spray occurred. The displayed speed has fallen to 54 km/h. On screen: GARMIN / 15/01/2026 12:24:11 / 43.73747, -79.52670 / 54 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:13</strong><span>00:14</span></td>
+        <td>sequence</td>
+        <td>The white box truck remains directly ahead and appears slightly larger in view; trucks and cars remain clustered to the right. The snowy, track-marked road and concrete median continue, while the camera vehicle advances toward the traffic ahead. No collision or definite contact is visible. On screen: GARMIN / 15/01/2026 12:24:11 / 43.73747 -79.52670 / 54 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:14</strong><span>00:14</span></td>
+        <td>sequence</td>
+        <td>The camera continues approaching the white truck ahead, while a red-sided box truck and another light-colored truck remain to its right. A dark car is visible beside the trucks on the right. Snow covers the roadway and reduces contrast; vehicles on the opposite carriageway are visible beyond the median. On screen: GARMIN / 15/01/2026 12:24:11 / 43.73747 -79.52670 / 54 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:14</strong><span>00:16</span></td>
+        <td>sound observation</td>
+        <td>Heard (provisional): Acoustic content is uncertain; independent descriptions did not agree.</td>
+      </tr>
+      <tr>
+        <td><strong>00:14</strong><span>00:15</span></td>
+        <td>sequence</td>
+        <td>The white box truck remains ahead near the center, with the red-sided and light-colored box trucks to the right and a dark car alongside them. The camera vehicle is closer to the group than at the start of this sequence. The road remains fully snow-covered with visible tire tracks; the overlay now shows a lower displayed speed than in the preceding frames. On screen: GARMIN / 15/01/2026 12:24:12 / 43.73738 -79.52668 / 47 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:15</strong><span>00:15</span></td>
+        <td>sequence</td>
+        <td>The snowy highway scene continues. Relative to the prior frame, the white box truck ahead and the red-and-white trailer to the right appear slightly larger as the camera vehicle advances. The dark vehicle-shaped form remains beside the trailer near the roadside; its condition and relationship to the trailer are unclear. Snow-covered lanes, tire tracks, the left barrier, and an overpass remain visible. On screen: GARMIN / 15/01/2026 12:24:12 / 43.73738 -79.5268 / 47 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:15</strong><span>00:15</span></td>
+        <td>sequence</td>
+        <td>The camera continues toward the trucks on the snow-covered roadway. The white box truck remains ahead near the center, while the red-sided trailer and its white rear occupy the right side; a smaller white vehicle is partly visible between them. The dashcam overlay now shows 41 km/h, down from 47 km/h in the preceding supplied frames. The dark vehicle-shaped form remains near the roadside, with no clear change that establishes what it is or how it got there. On screen: GARMIN / 15/01/2026 12:24:13 / 43.73731 -79.5267 / 41 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:15</strong><span>00:16</span></td>
+        <td>sequence</td>
+        <td>The same snowy traffic scene persists as the dashcam vehicle moves forward: the white box truck remains ahead, with the red-and-white trailer to the right and a smaller white vehicle partly between them. Snow and tire tracks obscure lane markings. The dark vehicle-shaped form is still visible beside the right-side trailer near the snowy edge. The overlay continues to indicate 41 km/h; no collision or other specific event can be confirmed from these frames. On screen: GARMIN / 15/01/2026 12:24:13 / 43.73731 -79.5267 / 41 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:16</strong><span>00:16</span></td>
+        <td>sequence</td>
+        <td>The same snowy highway scene continues. The white box truck remains ahead and the red-sided trailer remains to its right; both appear marginally larger as the dashcam vehicle approaches, while the displayed speed falls from 41 to 36 km/h. Snow and slush obscure lane markings, and packed tire tracks define the visible paths. A dark vehicle remains partly visible near the trailer&#x27;s right side; its exact position and relation to the truck are unclear. On screen: GARMIN / 15/01/2026 12:24:14 / 43.73725 -79.52665 / 36 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:16</strong><span>00:18</span></td>
+        <td>sound observation</td>
+        <td>Heard (provisional): Acoustic content is uncertain; independent descriptions did not agree.</td>
+      </tr>
+      <tr>
+        <td><strong>00:16</strong><span>00:17</span></td>
+        <td>sequence</td>
+        <td>The camera continues forward on the snow-covered roadway behind the white box truck. The red-and-white trailer remains to the right, with a dark vehicle partly visible near its right-rear area. The vehicles&#x27; relative arrangement appears broadly unchanged from the previous frame; the dashboard overlay still reads 36 km/h. The snowy surface, tire tracks, concrete median, and overpass remain visible. No contact is discernible. On screen: GARMIN / 15/01/2026 12:24:14 / 43.73725 -79.52665 / 36 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:17</strong><span>00:17</span></td>
+        <td>sequence</td>
+        <td>The snowy traffic scene persists, with the white box truck ahead and the red-sided trailer to the right. The dashcam display now reads 26 km/h, down from 36 km/h in the preceding displayed frames. A dark vehicle is still partly visible beside the trailer&#x27;s right-rear area. Snow continues to cover the road and blur lane markings; the frames do not establish why the camera vehicle slowed or whether any vehicles made contact. On screen: GARMIN / 15/01/2026 12:24:15 / 43.73723 -79.52666 / 26 KM/H</td>
+      </tr>
+      <tr>
+        <td><strong>00:17</strong><span>00:18</span></td>
+        <td>sequence</td>
+        <td>The snowy highway scene continues. Relative to the previous frame, the silver box truck remains ahead near the center and the red-sided semi remains to the right; their positions shift only slightly in the view. Snow covers the lanes, with darker wheel tracks visible, and snowfall continues. The dashcam overlay still reports 26 km/h. No cause or outcome beyond what is visible can be determined from these frames. On screen: GARMIN / 15/01/2026 12:24:15 / 43.73723 -79.5266 / 26 KM/H / Red trailer lettering is present but not reliably legible</td>
+      </tr></tbody>
+        </table>
+    </section>
+
+    <section class="report-section report-notes">
+      <div class="section-kicker">06 / REPORT NOTES</div>
+      <div class="notes-grid">
+        <div>
+          <h2>Source</h2>
+          <dl>
+            <div><dt>Type</dt><dd>Direct video URL</dd></div>
+            <div><dt>Access</dt><dd>Full Video</dd></div>
+            <div><dt>Report style</dt><dd>Detailed written report</dd></div>
+            <div><dt>Overall confidence</dt><dd>Medium</dd></div>
+          </dl>
+        </div>
+        <div>
+          <h2>Limitations</h2>
+          <ul class="limitations"><li>Speech transcription returned no recognized words; this does not prove speech was absent.</li><li>Non-speech sounds were analyzed independently in short audio windows. Ranges show coverage, not exact event onsets. Audio is downmixed to mono; sound direction is not measured. Descriptions are provisional; sound sources, contact and causation are not established by audio alone.</li><li>The timeline covers only about 17.6 seconds and consists of sampled observations; events between samples and what happened afterward cannot be determined.</li><li>Speech transcription returned no recognized words, which does not prove that speech was absent; no spoken thesis, argument, or conclusion can be summarized from the supplied transcript.</li><li>The date, GPS coordinates, and speed readings are displayed overlays and are not independently verified.</li><li>The dark vehicle-shaped form’s identity, condition, exact position, and relationship to the nearby truck are unclear; the footage does not establish contact or its cause.</li><li>Audio descriptions are provisional, cover short windows, and are downmixed to mono; sound direction and source are not established.</li></ul>
+        </div>
+      </div>
+      <div class="method-note">
+        VideoLens combines transcript, sampled visual frames, on-screen text, and available sound observations into a timestamped
+        evidence timeline before producing this report. Check cited moments against the source before
+        relying on consequential details.
+      </div>
+    </section>
+
+    <footer class="report-footer">
+      <div class="brand"><span class="brand-mark">▶</span><span>VideoLens</span></div>
+      <p>Turn video into something worth reading.</p>
+      <a href="https://videolens.io">videolens.io</a>
+    </footer>
+  </main>
+</body>
+</html>
