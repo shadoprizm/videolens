@@ -105,6 +105,7 @@ def run_extraction(
             "evidence_contract": CONTRACT_VERSION,
             "visual_focus": prompt if mode == AnalysisMode.GENERAL else None,
             "sequence_evidence": 1,
+            "review_image_policy": "all-bounded-images-v1",
             "sound_contract": "windowed-mimo-1" if getattr(client, "sound_consent", False) else "no-sound",
             "processing_policy": getattr(client, "cache_identity", "openai"),
         },
@@ -182,6 +183,12 @@ def run_extraction(
         timeline.segments.sort(key=lambda s: s.start)
         resolved.limitations.extend(sound_limits)
 
+    # Resolver flags describe the original source; exports must describe the
+    # evidence actually extracted, including successful empty speech results.
+    resolved.artifacts_available.audio = metadata.has_audio
+    resolved.artifacts_available.frames = bool(frame_summaries)
+    resolved.artifacts_available.ocr = any(f.extracted_text for f in frame_summaries)
+    resolved.artifacts_available.transcript = bool(transcript and transcript.segments)
     analysis: Analysis | None = None
     report_html: str | None = None
     report_md: str | None = None

@@ -1618,8 +1618,11 @@ def render_frames_tab(result: ExtractionResult) -> None:
 
 
 def render_transcript_tab(result: ExtractionResult) -> None:
-    if result.transcript is None or not result.transcript.segments:
-        st.info("No transcript (no audio, or transcription failed).")
+    if result.transcript is None:
+        st.info("Speech transcript unavailable. Check the report limitations for audio availability or processing errors.")
+        return
+    if not result.transcript.segments:
+        st.info("Speech transcription completed with no recognized words. This does not mean the recording is silent; non-speech sound observations are separate.")
         return
     st.caption(f"Language: {result.transcript.language or 'unknown'}")
     df = pd.DataFrame(

@@ -130,3 +130,16 @@ def test_sound_progress_is_a_separate_stage_before_final_analysis():
     assert STEP_KEYS[_step_index_from_message("transcribing (gpt-transcribe)…")][0] == "transcribe"
     assert STEP_KEYS[_step_index_from_message("analyzing non-speech sounds…")][0] == "sound"
     assert STEP_KEYS[_step_index_from_message("synthesizing analysis…")][0] == "analyze"
+
+
+def test_successful_empty_speech_is_not_labelled_as_a_transcription_failure():
+    app = AppTest.from_string('''
+from types import SimpleNamespace
+from videolens.types import Transcript
+from videolens.web.app import render_transcript_tab
+render_transcript_tab(SimpleNamespace(transcript=Transcript()))
+''').run()
+    assert not app.exception
+    assert 'completed with no recognized words' in app.info[0].value
+    assert 'does not mean the recording is silent' in app.info[0].value
+    assert 'failed' not in app.info[0].value

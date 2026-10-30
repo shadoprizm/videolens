@@ -173,3 +173,22 @@ def test_long_video_keeps_its_cost_cap_and_requested_spacing(monkeypatch, tmp_pa
     assert len(frames) == 40
     assert [f.timestamp for f in frames[:3]] == [0, 15, 30]
     assert all(float(cmd[cmd.index("-ss") + 1]) == frame.timestamp for cmd, frame in zip(calls, frames))
+
+
+def test_final_review_resizes_large_frames_without_discarding_timestamps(tmp_path):
+    import base64
+    import importlib
+    import subprocess
+    review = importlib.import_module('videolens.analysis.analyze_timeline')._review_images
+    image = tmp_path / 'large.jpg'
+    subprocess.run([
+        'ffmpeg', '-nostdin', '-v', 'error', '-f', 'lavfi', '-i',
+        'testsrc2=s=1920x1080,noise=alls=20:allf=t', '-frames:v', '1',
+        '-q:v', '2', str(image),
+    ], check=True, capture_output=True)
+    frames = [Frame(timestamp=t, path=image, reason='interval') for t in (0, 2, 10.5, 17)]
+    assert image.stat().st_size * 4 * 4 / 3 > 500_000
+    images = review(frames, budget=500_000)
+    assert [entry['timestamp'] for entry in images] == [0, 2, 10.5, 17]
+    assert sum(len(entry['url']) for entry in images) <= 500_000
+    assert all(base64.b64decode(entry['url'].split(',')[1]).startswith(b'\xff\xd8') for entry in images)

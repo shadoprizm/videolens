@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import base64
+import subprocess
 
 from openai import OpenAI
 
@@ -61,6 +62,38 @@ Do not wrap in markdown. Do not include any keys besides those listed.
 """
 
 
+def _review_images(frames: list[Frame], budget: int = 2_500_000) -> list[dict]:
+    """Keep temporal coverage within the request byte budget by resizing images.
+
+    Dropping every other frame repeatedly discarded 30 of the 40 Highway 400
+    frames at final review. Full-resolution originals remain in the frame view
+    and in the earlier OCR/visual extraction.
+    """
+    def encoded(blobs):
+        return [{"timestamp": frame.timestamp,
+                 "url": "data:image/jpeg;base64," + base64.b64encode(blob).decode("ascii")}
+                for frame, blob in zip(frames, blobs)]
+
+    images = encoded([frame.path.read_bytes() for frame in frames])
+    if sum(len(image["url"]) for image in images) <= budget:
+        return images
+    for width, quality in [(1280, 6), (960, 6), (640, 10), (480, 15)]:
+        blobs = []
+        for frame in frames:
+            result = subprocess.run([
+                "ffmpeg", "-nostdin", "-v", "error", "-i", str(frame.path),
+                "-vf", f"scale='min({width},iw)':-2", "-frames:v", "1",
+                "-q:v", str(quality), "-f", "image2pipe", "-vcodec", "mjpeg", "-",
+            ], capture_output=True, check=False)
+            if result.returncode or not result.stdout:
+                raise AnalysisError("Could not prepare source images for final review.")
+            blobs.append(result.stdout)
+        images = encoded(blobs)
+        if sum(len(image["url"]) for image in images) <= budget:
+            return images
+    raise AnalysisError("Source images exceed the bounded review budget; choose fewer frames.")
+
+
 def analyze_timeline(
     timeline: Timeline,
     source: ResolvedSource,
@@ -90,19 +123,7 @@ def analyze_timeline(
 
     user_content = user_message
     if mode == AnalysisMode.GENERAL and evidence_frames:
-        images = [
-            {
-                "timestamp": f.timestamp,
-                "url": "data:image/jpeg;base64,"
-                + base64.b64encode(f.path.read_bytes()).decode("ascii"),
-            }
-            for f in evidence_frames
-        ]
-        while sum(len(f["url"]) for f in images) > 2_500_000:
-            if len(images) == 1:
-                images = []
-                break
-            images = images[::2]
+        images = _review_images(evidence_frames)
         if images:
             user_content = [
                 {
