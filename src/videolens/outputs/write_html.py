@@ -11,7 +11,8 @@ from videolens.analysis.structured import report_sections, structured_html
 def render_html(analysis: Analysis) -> str:
     """Render a standalone, print-ready VideoLens report."""
     source = analysis.source
-    title = source.title or "Video report"
+    local_name = Path(source.source_url).name if source.source_type.value == "local_file" else None
+    title = source.title or local_name or "Video report"
     source_label = source.author or _source_type_label(source.platform or source.source_type.value)
     duration = _fmt_duration(source.duration_seconds)
     evidence_count = sum(len(finding.evidence) for finding in analysis.findings)
@@ -81,6 +82,7 @@ def render_html(analysis: Analysis) -> str:
     source_link = (
         f'<a class="source-link" href="{_e(source.source_url)}">View original source <span>↗</span></a>'
         if source.source_url.startswith(("http://", "https://"))
+        else f'<span class="source-link source-link-static">Original file: {_e(local_name)}. Check timestamps in your original video.</span>' if local_name
         else '<span class="source-link source-link-static">Illustrative source</span>'
     )
     mode_label = _mode_label(analysis.mode.value)
@@ -204,11 +206,17 @@ def write_html(analysis: Analysis, dest: Path) -> Path:
 
 
 def _finding_card(index, finding, source_url: str) -> str:
+    def timestamp(seconds):
+        label = _fmt_ts(seconds)
+        if not source_url.startswith(("http://", "https://")):
+            return f'<span class="timestamp">{label}</span>'
+        return f'<a class="timestamp" href="{_e(_timestamp_url(source_url, seconds))}">{label}</a>'
+
     evidence = (
         "".join(
             f"""
         <li>
-          <a class="timestamp" href="{_e(_timestamp_url(source_url, item.timestamp))}">{_fmt_ts(item.timestamp)}</a>
+          {timestamp(item.timestamp)}
           <span>{_e(item.detail)}</span>
         </li>"""
             for item in finding.evidence

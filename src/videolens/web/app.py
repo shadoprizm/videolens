@@ -1537,10 +1537,12 @@ def _render_qa_section(result: ExtractionResult) -> None:
 
                 try:
                     client = (
-                        ManagedClient(connection, report_id)
+                        ManagedClient(connection, report_id, mode=result.analysis.mode.value)
                         if connection is not None
                         else _OpenAI(api_key=api_key)
                     )
+                    if isinstance(client, ManagedClient):
+                        client.purpose = "followup"
                     answer = _ask_question(
                         new_question,
                         result.timeline,
