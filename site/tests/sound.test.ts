@@ -86,3 +86,58 @@ it('cancels the other sound workers after a failed observation', async () => {
  expect(signals).toHaveLength(5);
  expect(signals.every(signal=>signal.aborted)).toBe(true);
 });
+
+it.each([0, 1, 2])('retries only the timed-out call at processing position %i', async failedCall => {
+ vi.useFakeTimers();
+ const timeout = vi.spyOn(AbortSignal,'timeout').mockImplementation(ms => {
+  const controller = new AbortController();
+  setTimeout(()=>controller.abort(new DOMException('Deadline exceeded','TimeoutError')),ms);
+  return controller.signal;
+ });
+ let calls = 0;
+ mocks.generate.mockImplementation(({abortSignal,messages}) => {
+  if (calls++ === failedCall) return new Promise((_resolve,reject)=>abortSignal.addEventListener('abort',()=>reject(abortSignal.reason),{once:true}));
+  return Promise.resolve({output: Array.isArray(messages[0].content)
+   ? {description:'A steady tone.',speech:false,music:false,uncertain:false}
+   : {windows:[{index:0,description:'A steady tone.',agreement:true}]}});
+ });
+ try {
+  const result = analyzeSound(tone(),gateway);
+  await vi.advanceTimersByTimeAsync(failedCall === 2 ? 90_001 : 40_001);
+  expect((await result).windows).toHaveLength(1);
+  expect(mocks.generate).toHaveBeenCalledTimes(4);
+  const first = mocks.generate.mock.calls[failedCall][0];
+  const retry = mocks.generate.mock.calls[failedCall+1][0];
+  expect(retry.messages).toEqual(first.messages);
+  expect(first.abortSignal.aborted).toBe(true);
+  expect(retry.abortSignal.aborted).toBe(false);
+ } finally { timeout.mockRestore(); vi.clearAllTimers(); vi.useRealTimers(); }
+});
+
+it('stops after the second deadline instead of completing partial audio', async () => {
+ vi.useFakeTimers();
+ const timeout = vi.spyOn(AbortSignal,'timeout').mockImplementation(ms => {
+  const controller = new AbortController();
+  setTimeout(()=>controller.abort(new DOMException('Deadline exceeded','TimeoutError')),ms);
+  return controller.signal;
+ });
+ mocks.generate.mockImplementation(({abortSignal})=>new Promise((_resolve,reject)=>abortSignal.addEventListener('abort',()=>reject(abortSignal.reason),{once:true})));
+ try {
+  const failed = expect(analyzeSound(tone(),gateway)).rejects.toThrow('Deadline exceeded');
+  await vi.advanceTimersByTimeAsync(80_001);
+  await failed;
+  expect(mocks.generate).toHaveBeenCalledTimes(2);
+ } finally { timeout.mockRestore(); vi.clearAllTimers(); vi.useRealTimers(); }
+});
+
+it('does not retry an expired overall sound operation', async () => {
+ const operation = new AbortController();
+ const timeout = vi.spyOn(AbortSignal,'timeout').mockImplementation(ms=>ms===240_000 ? operation.signal : new AbortController().signal);
+ mocks.generate.mockImplementation(({abortSignal})=>new Promise((_resolve,reject)=>abortSignal.addEventListener('abort',()=>reject(abortSignal.reason),{once:true})));
+ try {
+  const failed = expect(analyzeSound(tone(),gateway)).rejects.toThrow('Operation deadline');
+  operation.abort(new DOMException('Operation deadline','TimeoutError'));
+  await failed;
+  expect(mocks.generate).toHaveBeenCalledTimes(1);
+ } finally { timeout.mockRestore(); }
+});

@@ -95,3 +95,11 @@ Published artifact SHA-256 values:
 - HTML: `b2deee5ad28d84504f1f35999ec9539dfd831105489f57aea48fc80e429299ee`
 - PDF: `3a121ca2d52efd61a72ee861bf8972cedbc977694db39fabc4551899dab8d043`
 - Markdown: `6381b7b0833654011988834608eade0fe4530fe5ccff1ad6addda73a6d3f5cee`
+
+## October 30 native-upload follow-up: observation timeout recovery
+
+After the owner unlocked the Mac, the old client still displayed the prior report but the deployment restart had expired its server session. That stale view is not accepted as a working native export. A fresh authenticated upload of the exact original (`ab4e593ff348713a…`) succeeded through the file chooser. All 40 visual observations and empty speech succeeded, but report `2ae47638-89da-4260-abff-b63540c0da7d` failed in sound observations after 43,592ms with `request_timeout`; its allowance was restored. No partial report was delivered.
+
+Inspection of the installed SDK retry implementation shows that abort errors bypass its normal retry policy. The 40-second per-call deadline therefore prevented `maxRetries: 1` from recovering a slow observation. The managed sound helper now gives only a call that hits its own deadline one fresh attempt, retaining completed windows/encodings. It does not retry malformed output, authentication errors, operation cancellation, a second timeout, or a retry that cannot fit within the existing 240-second total operation budget. The 40/90-second call deadlines, 290-second client and 300-second function limits remain unchanged. Timeout attempts can still incur provider charges; cost returned from successful calls is not a complete invoice for aborted calls.
+
+245 website/API tests pass, including first/second observation and review recovery, unchanged retry payloads, repeated-timeout failure and overall cancellation. Existing partial-coverage rejection and worker cancellation checks remain. Both existing browser targets use this shared API; no extension source/archive, processor, permission or consent change is introduced. Native export acceptance remains pending a fresh run after this repair deploys.
