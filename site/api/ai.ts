@@ -178,6 +178,7 @@ async function proxySound(request: Request, userId: string, form: FormData): Pro
     const failure = providerException(error);
     const invalidResponse = error instanceof SyntaxError || (error instanceof Error && /Invalid sound|Audio was not analyzed|NoOutput|NoObject|TypeValidation/i.test(`${error.name} ${error.message}`));
     const code = invalidResponse ? "invalid_provider_response" : failure.code;
+    console.warn("Managed sound operation failed", { requestId, code, durationMs: Date.now() - started });
     await finishAiRequest(requestId, { requested_model: SOUND_MODEL, effective_model: SOUND_MODEL, provider: "gateway", outcome: "failed", http_status: failure.status, error_code: code, fallback_used: false, duration_ms: Date.now() - started });
     return managedFailure(request, code);
   }

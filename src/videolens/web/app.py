@@ -69,10 +69,11 @@ STEP_KEYS: list[tuple[str, str]] = [
     ("resolve", "Resolve"),
     ("fetch", "Fetch"),
     ("probe", "Probe"),
-    ("transcribe", "Speech & sounds"),
+    ("transcribe", "Speech"),
     ("frames", "Frames"),
     ("describe", "Describe"),
     ("timeline", "Timeline"),
+    ("sound", "Sounds"),
     ("analyze", "Analyze"),
 ]
 
@@ -342,8 +343,7 @@ def _step_index_from_message(msg: str) -> int | None:
     ):
         return 4
     if (
-        "analyzing non-speech sounds" in msg_low
-        or "extracting audio" in msg_low
+        "extracting audio" in msg_low
         or "cached audio" in msg_low
         or "chunking audio" in msg_low
         or "transcribing" in msg_low
@@ -354,8 +354,10 @@ def _step_index_from_message(msg: str) -> int | None:
         return 5
     if "building timeline" in msg_low or "cached timeline" in msg_low:
         return 6
-    if "synthesizing analysis" in msg_low or "cached analysis" in msg_low:
+    if "analyzing non-speech sounds" in msg_low:
         return 7
+    if "synthesizing analysis" in msg_low or "cached analysis" in msg_low:
+        return 8
     return None
 
 
@@ -643,7 +645,7 @@ def main() -> None:
 
     mode = st.session_state.get("mode", "general")
     access = _access_mode()
-    max_frames = 120 if mode in ("recipe", "tutorial") else st.session_state.get("max_frames", 20)
+    max_frames = 120 if mode in ("recipe", "tutorial") else st.session_state.get("max_frames", 40)
     if access == "account":
         max_frames = min(max_frames, MANAGED_MAX_FRAMES)
     frame_interval = (
@@ -738,7 +740,7 @@ def _render_composer() -> tuple[str | None, Path | None]:
 def _run_note(mode: str) -> str:
     if _access_mode() == "byok":
         max_frames = (
-            120 if mode in ("recipe", "tutorial") else st.session_state.get("max_frames", 20)
+            120 if mode in ("recipe", "tutorial") else st.session_state.get("max_frames", 40)
         )
         low, high = _estimate_cost(max_frames)
         return (
@@ -800,7 +802,7 @@ def _render_advanced_settings(mode: str) -> None:
         "Max frames",
         min_value=3,
         max_value=frame_cap,
-        value=min(st.session_state.get("max_frames", 20), frame_cap),
+        value=min(st.session_state.get("max_frames", 40), frame_cap),
         step=1,
         help="Frames sent to the vision model. Higher means better visual coverage.",
     )
@@ -810,7 +812,7 @@ def _render_advanced_settings(mode: str) -> None:
         max_value=30.0,
         value=st.session_state.get("frame_interval", 5.0),
         step=0.5,
-        help="Seconds between sampled frames. Grows automatically to respect max frames.",
+        help="Target interval for longer videos. Clips up to one minute use the frame budget across their duration; longer videos increase the interval to respect the cap.",
     )
 
 

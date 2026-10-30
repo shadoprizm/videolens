@@ -128,4 +128,48 @@ def test_frame_extraction_bounds_images_for_original_detail(monkeypatch, tmp_pat
     assert frames == []
     assert "scale=w='min(1920,iw)':h='min(1080,ih)'" in filter_arg
     assert "force_original_aspect_ratio=decrease" in filter_arg
-    assert FRAME_PROCESSING_VERSION == "bounded-1920x1080-v1"
+    assert FRAME_PROCESSING_VERSION == "bounded-seek-short-video-v2"
+
+
+def test_short_video_covers_a_brief_event_at_the_cited_times(tmp_path: Path) -> None:
+    """A 400ms event between the old five-second samples must be observable."""
+    import subprocess
+
+    video = tmp_path / "brief-event.mp4"
+    subprocess.run([
+        "ffmpeg", "-nostdin", "-v", "error", "-f", "lavfi", "-i",
+        "color=c=blue:s=160x90:r=30:d=17.6", "-vf",
+        "drawbox=x=0:y=0:w=iw:h=ih:color=red:t=fill:enable='between(t,8.35,8.75)'",
+        "-c:v", "libx264", str(video),
+    ], check=True, capture_output=True)
+    frames = extract_frames(video, tmp_path / "sampled", 17.6, max_frames=40)
+    assert len(frames) == 40
+    assert frames[0].timestamp == 0
+    assert frames[-1].timestamp > 17
+
+    def rgb(frame):
+        return subprocess.run([
+            "ffmpeg", "-nostdin", "-v", "error", "-i", str(frame.path),
+            "-vf", "scale=1:1", "-pix_fmt", "rgb24", "-f", "rawvideo", "-",
+        ], check=True, capture_output=True).stdout
+
+    first = rgb(frames[0])
+    event = next(f for f in frames if 8.35 <= f.timestamp <= 8.7)
+    visible = rgb(event)
+    assert first[2] > first[0] + 150  # blue at time zero, not a later fps-bin frame
+    assert visible[0] > visible[2] + 150  # red event agrees with its cited timestamp
+
+
+def test_long_video_keeps_its_cost_cap_and_requested_spacing(monkeypatch, tmp_path):
+    calls = []
+
+    def capture(cmd, **kwargs):
+        calls.append(cmd)
+        Path(cmd[-1]).write_bytes(b"frame")
+        return SimpleNamespace(returncode=0, stderr="")
+
+    monkeypatch.setattr("videolens.processors.extract_frames.subprocess.run", capture)
+    frames = extract_frames(tmp_path / "long.mp4", tmp_path / "frames", 600, max_frames=40)
+    assert len(frames) == 40
+    assert [f.timestamp for f in frames[:3]] == [0, 15, 30]
+    assert all(float(cmd[cmd.index("-ss") + 1]) == frame.timestamp for cmd, frame in zip(calls, frames))

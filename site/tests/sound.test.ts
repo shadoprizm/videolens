@@ -51,3 +51,38 @@ it('plural labels and explicit denials cannot bypass sound support checks',()=>{
  expect(supportedSound('Horns.','No horn was heard.','A horn.')).toBe(false);
  expect(supportedSound('A siren.','Cannot confirm a siren.','A siren.')).toBe(false);
 });
+
+it('tolerates a slow but successful sound response without the old premature timeout', async () => {
+ vi.useFakeTimers();
+ const timeout = vi.spyOn(AbortSignal, 'timeout').mockImplementation(ms => {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(new DOMException('Deadline exceeded', 'TimeoutError')), ms);
+  return controller.signal;
+ });
+ let count = 0;
+ mocks.generate.mockImplementation(({abortSignal}) => new Promise((resolve, reject) => {
+  const index = count++;
+  const timer = setTimeout(() => resolve({output: index < 2
+   ? {description:'A steady tone.',speech:false,music:false,uncertain:false}
+   : {windows:[{index:0,description:'A steady tone.',agreement:true}]}}), index < 2 ? 25_000 : 65_000);
+  abortSignal.addEventListener('abort', () => {clearTimeout(timer);reject(abortSignal.reason);}, {once:true});
+ }));
+ try {
+  const result = analyzeSound(tone(),gateway);
+  await vi.advanceTimersByTimeAsync(115_000);
+  expect((await result).windows[0]).toMatchObject({description:'A steady tone.',confidence:'medium'});
+ } finally { timeout.mockRestore(); vi.clearAllTimers(); vi.useRealTimers(); }
+});
+
+it('cancels the other sound workers after a failed observation', async () => {
+ const pcm = new Uint8Array(10 * 16_000 * 2); pcm.fill(1);
+ const signals: AbortSignal[] = [];
+ mocks.generate.mockImplementation(({abortSignal}) => {
+  signals.push(abortSignal);
+  if (signals.length === 1) return Promise.reject(new Error('upstream failed'));
+  return new Promise((_resolve,reject) => abortSignal.addEventListener('abort',()=>reject(abortSignal.reason),{once:true}));
+ });
+ await expect(analyzeSound(soundWav(pcm,16000),gateway)).rejects.toThrow('upstream failed');
+ expect(signals).toHaveLength(5);
+ expect(signals.every(signal=>signal.aborted)).toBe(true);
+});

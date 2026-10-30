@@ -119,3 +119,14 @@ def test_failed_reports_use_resolver_source_vocabulary(tmp_path) -> None:
     assert web_app._source_type(str(upload)) == "local_file"
     assert web_app._source_type("https://www.youtube.com/watch?v=dQw4w9WgXcQ") == "youtube"
     assert web_app._source_type("https://www.loom.com/share/abc123") != "youtube"
+
+
+def test_sound_progress_is_a_separate_stage_before_final_analysis():
+    app = AppTest.from_file(str(APP_PATH), default_timeout=20).run()
+    assert not app.exception
+    # The runtime log used to mark sounds complete during speech transcription,
+    # then leave the customer looking at Timeline while the audio model ran.
+    from videolens.web.app import STEP_KEYS, _step_index_from_message
+    assert STEP_KEYS[_step_index_from_message("transcribing (gpt-transcribe)…")][0] == "transcribe"
+    assert STEP_KEYS[_step_index_from_message("analyzing non-speech sounds…")][0] == "sound"
+    assert STEP_KEYS[_step_index_from_message("synthesizing analysis…")][0] == "analyze"
