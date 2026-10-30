@@ -47,3 +47,12 @@ The first completed customer's final sound window ended at 16.4986875s, despite 
 Decode audio once from its presentation origin, bounded to the first 20 minutes, then split the PCM by exact sample positions into at most 60-second API chunks. Preserve the time origin and timestamp gaps with resampling; remove the decoded temporary WAV on both success and failure. Invalidate previous sound/synthesis caches. The original now retains all 281,259 samples, spanning 0–17.5786875s. The shared sound API and both extension archives remain unchanged by this hosted extraction repair.
 
 72 Python tests pass, including the real Opus leading-tone/duration regression, chunk-offset checks, processor consent and failure cleanup. Final production quality acceptance is still pending deployment of this alignment repair and a fresh run.
+
+
+## Empty speech is not a silent recording
+
+The sound-aligned run completed with 40 visual frames, nine sound windows through 17.5787s and 17 reports remaining, but the generated summary incorrectly opened “This is a silent dashcam recording” before describing rumble and clicks. The report was not accepted on pipeline success alone.
+
+The shared managed-review instruction now explicitly distinguishes empty speech from silence. A narrow deterministic guard removes an introductory source-wide “silent recording/video/footage” label when the supplied timeline contains actual heard observations. It does not invent speech, change timestamps, alter cited evidence, remove quotations or reinterpret a silent-film subject. Corrections are logged as a fixed rule identifier without report content and require no additional model call. This English introductory-label guard is not a universal semantic fact checker.
+
+240 website/API tests pass, including the actual contradicted-label case, protected secondary-subject/quotation cases, no-word wording, image-bearing input and malformed-response handling. The existing 72 Python checks remain unchanged. Both existing extension targets receive the managed API correction without new packages or processors. A fresh default customer run remains the final acceptance step.
