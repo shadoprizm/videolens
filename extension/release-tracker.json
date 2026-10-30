@@ -745,22 +745,25 @@
     "ci": {
       "status": "passed",
       "extension": "https://github.com/shadoprizm/videolens/actions/runs/40970642447",
-      "hostedWebsite": "https://github.com/shadoprizm/videolens/actions/runs/40970642627"
+      "hostedWebsite": "https://github.com/shadoprizm/videolens/actions/runs/40970642627",
+      "acceptanceHostedWebsite": "https://github.com/shadoprizm/videolens/actions/runs/40993789455",
+      "acceptanceExtension": "https://github.com/shadoprizm/videolens/actions/runs/40993789352"
     }
   },
   "website": {
-    "status": "acceptance_route_update_prepared",
+    "status": "deployed_live_verified",
     "url": "https://videolens.io",
-    "deployment": "dpl_8jcQ83oSm1bd9R7cwHPTpgcvZoGH",
-    "sourceCommit": "d774c851c135ada58d2b51f116ca012ac03542d0",
-    "verification": "Last verified production API at accepted report run. Luna route/artifact update awaits follow-up deployment."
+    "deployment": "dpl_36zdVagST9U2ppfCPTRJmCs31rKa",
+    "sourceCommit": "cad9d04980166385e3f8eb0057350ec188efff64",
+    "pullRequest": "https://github.com/shadoprizm/videolens/pull/48",
+    "verification": "Exact merged source READY on videolens.io/www. All four customer report exports return HTTP 200, match local bytes and carry noindex,nofollow. Managed general reviewer is Luna high; live customer report/follow-up passed."
   },
   "hostedApp": {
-    "status": "acceptance_export_update_prepared",
+    "status": "deployed_live_verified",
     "url": "https://app.videolens.io",
-    "sourceCommit": "d774c851c135ada58d2b51f116ca012ac03542d0",
-    "githubDeploymentId": 7429038292,
-    "verification": "Exact source succeeded at 2026-10-30T02:18:18Z. Full authenticated report/follow-up passed; export/UI polish awaits follow-up deployment."
+    "sourceCommit": "cad9d04980166385e3f8eb0057350ec188efff64",
+    "githubDeploymentId": 7429454582,
+    "verification": "Exact merged source deployment succeeded at 2026-10-30T02:50:06Z. Public health ok. Prior functional commit passed authenticated Pro report/follow-up; current changes add validated exporter polish and remove inactive GLM checkbox."
   },
   "customerAcceptance": {
     "status": "hosted_pro_report_and_followup_verified",
@@ -779,6 +782,7 @@
       "Hosted Pro acceptance, not native extension.",
       "Provisional acoustic observations, not a validated collision detector."
     ],
-    "exportProvenance": "Unedited actual production JSON; product-exporter HTML/PDF/Markdown with pagination and deduplication repairs."
+    "exportProvenance": "Unedited actual production JSON; product-exporter HTML/PDF/Markdown with pagination and deduplication repairs.",
+    "exportDeploymentCommit": "cad9d04980166385e3f8eb0057350ec188efff64"
   }
 }
