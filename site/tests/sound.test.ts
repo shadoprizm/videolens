@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { analyzeSound, parseSound, readSoundWav, soundWav, soundWindows, supportedSound } from "../api/_lib/sound.js";
+import { analyzeSound, parseSound, readSoundWav, soundWav, soundWindows, supportedSound, SOUND_REVIEW_MODEL } from "../api/_lib/sound.js";
 const mocks = vi.hoisted(() => ({ auth: vi.fn(), record: vi.fn(), finish: vi.fn(), generate: vi.fn() }));
 vi.mock("../api/_lib/auth.js", () => ({ authenticate: mocks.auth }));
 vi.mock("../api/_lib/entitlements.js", () => ({ recordAiRequest: mocks.record }));
@@ -64,7 +64,7 @@ it('tolerates a slow but successful sound response without the old premature tim
   const index = count++;
   const timer = setTimeout(() => resolve({output: index < 2
    ? {description:'A steady tone.',speech:false,music:false,uncertain:false}
-   : {windows:[{index:0,description:'A steady tone.',agreement:true}]}}), index < 2 ? 25_000 : 65_000);
+   : {windows:[{index:0,description:'A steady tone.',agreement:true}]}}), 25_000);
   abortSignal.addEventListener('abort', () => {clearTimeout(timer);reject(abortSignal.reason);}, {once:true});
  }));
  try {
@@ -103,7 +103,7 @@ it.each([0, 1, 2])('retries only the timed-out call at processing position %i', 
  });
  try {
   const result = analyzeSound(tone(),gateway);
-  await vi.advanceTimersByTimeAsync(failedCall === 2 ? 90_001 : 40_001);
+  await vi.advanceTimersByTimeAsync(failedCall === 2 ? 30_001 : 40_001);
   expect((await result).windows).toHaveLength(1);
   expect(mocks.generate).toHaveBeenCalledTimes(4);
   const first = mocks.generate.mock.calls[failedCall][0];
@@ -112,6 +112,74 @@ it.each([0, 1, 2])('retries only the timed-out call at processing position %i', 
   expect(first.abortSignal.aborted).toBe(true);
   expect(retry.abortSignal.aborted).toBe(false);
  } finally { timeout.mockRestore(); vi.clearAllTimers(); vi.useRealTimers(); }
+});
+
+function fullMinute() { const pcm = new Uint8Array(60 * 16000 * 2); pcm.fill(1); return soundWav(pcm,16000); }
+function reviewBatch(messages: {content: string}[]) { return JSON.parse(messages[0].content.split('\n').at(-1)!) as {index:number}[]; }
+
+it('completes all 30 windows after slow observations without a single large review bottleneck', async () => {
+ vi.useFakeTimers();
+ const timeout = vi.spyOn(AbortSignal,'timeout').mockImplementation(ms => {
+  const c = new AbortController(); setTimeout(()=>c.abort(new DOMException('Deadline exceeded','TimeoutError')),ms); return c.signal;
+ });
+ let activeReviews = 0, maximumReviews = 0;
+ const reviewed: number[] = [];
+ mocks.generate.mockImplementation(({abortSignal,messages,model,reasoning,providerOptions}) => new Promise((resolve,reject) => {
+  const audio = Array.isArray(messages[0].content);
+  const batch = audio ? [] : reviewBatch(messages);
+  if (!audio) {
+   expect(model.modelId).toBe(SOUND_REVIEW_MODEL);
+   expect(reasoning).toBe('none');
+   expect(providerOptions.gateway.only).toEqual(['openai']);
+   expect(batch.length).toBeLessThanOrEqual(5);
+   reviewed.push(...batch.map(x=>x.index));
+   maximumReviews = Math.max(maximumReviews,++activeReviews);
+  }
+  const timer = setTimeout(()=>{
+   if (!audio) activeReviews--;
+   resolve({output: audio ? {description:'A steady tone.',speech:false,music:false,uncertain:false}
+    : {windows:batch.map(x=>({...x,description:'A steady tone.',agreement:true}))}});
+  },10_000);
+  abortSignal.addEventListener('abort',()=>{clearTimeout(timer);reject(abortSignal.reason);},{once:true});
+ }));
+ try {
+  const pending = analyzeSound(fullMinute(),gateway);
+  await vi.advanceTimersByTimeAsync(140_001);
+  const result = await pending;
+  expect(result.windows).toHaveLength(30);
+  expect(result.windows.map(w=>[w.start,w.end])).toEqual(Array.from({length:30},(_,i)=>[i*2,i*2+2]));
+  expect(result.windows.every(w=>w.description==='A steady tone.' && w.confidence==='medium')).toBe(true);
+  expect(reviewed.sort((a,b)=>a-b)).toEqual(Array.from({length:30},(_,i)=>i));
+  expect(maximumReviews).toBe(3);
+ } finally { timeout.mockRestore();vi.clearAllTimers();vi.useRealTimers(); }
+});
+
+it('rejects cross-batch indices and cancels other reviews rather than inventing coverage', async () => {
+ const reviewSignals: AbortSignal[] = [];
+ mocks.generate.mockImplementation(({abortSignal,messages}) => {
+  if(Array.isArray(messages[0].content)) return Promise.resolve({output:{description:'A steady tone.',speech:false,music:false,uncertain:false}});
+  reviewSignals.push(abortSignal);
+  const batch = reviewBatch(messages);
+  if(batch[0].index===0) return Promise.resolve({output:{windows:batch.map((x,i)=>({index:i===0?5:x.index,description:'A steady tone.',agreement:true}))}});
+  return new Promise((_resolve,reject)=>abortSignal.addEventListener('abort',()=>reject(abortSignal.reason),{once:true}));
+ });
+ await expect(analyzeSound(fullMinute(),gateway)).rejects.toThrow('Invalid sound consistency review');
+ expect(reviewSignals).toHaveLength(3);
+ expect(reviewSignals.every(s=>s.aborted)).toBe(true);
+});
+
+it('rejects duplicate review indices and vetoes unsupported sound claims', async () => {
+ let duplicate = true;
+ mocks.generate.mockImplementation(({messages}) => {
+  if(Array.isArray(messages[0].content)) return Promise.resolve({output:{description:'A steady tone.',speech:false,music:false,uncertain:false}});
+  const batch = reviewBatch(messages);
+  return Promise.resolve({output:{windows:batch.map(x=>({index:duplicate?batch[0].index:x.index,description:'A horn sounds.',agreement:true}))}});
+ });
+ await expect(analyzeSound(fullMinute(),gateway)).rejects.toThrow('Invalid sound consistency review');
+ duplicate=false;
+ const result=await analyzeSound(fullMinute(),gateway);
+ expect(result.windows).toHaveLength(30);
+ expect(result.windows.every(w=>w.confidence==='low' && w.description.includes('did not agree'))).toBe(true);
 });
 
 it('stops after the second deadline instead of completing partial audio', async () => {
