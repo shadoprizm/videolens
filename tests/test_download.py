@@ -16,7 +16,7 @@ def _youtube_source() -> ResolvedSource:
     )
 
 
-def test_youtube_uses_embedded_client_tokens_and_ipv6(monkeypatch, tmp_path: Path) -> None:
+def test_youtube_uses_token_enabled_and_embedded_clients_with_ipv6(monkeypatch, tmp_path: Path) -> None:
     captured: dict = {}
 
     class FakeYoutubeDL:
@@ -42,7 +42,7 @@ def test_youtube_uses_embedded_client_tokens_and_ipv6(monkeypatch, tmp_path: Pat
     assert info["title"] == "test"
     assert captured["extractor_args"] == {
         "youtube": {
-            "player_client": ["web_embedded"],
+            "player_client": ["mweb", "web_embedded"],
             "fetch_pot": ["always"],
         },
         "youtubepot-bgutilhttp": {"base_url": ["http://127.0.0.1:4416"]},
