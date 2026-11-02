@@ -49,15 +49,15 @@ def fetch_to_local(source: ResolvedSource, dest_dir: Path) -> tuple[Path, dict[s
     }
 
     if source.source_type == SourceType.YOUTUBE:
-        # YouTube now requires an external JS challenge solver and proof-of-origin
-        # tokens for reliable server-side downloads. Railway's data-center IP is
-        # blocked without them. The image supplies Deno + yt-dlp-ejs and starts
-        # the pinned BgUtils provider on localhost.
+        # Prefer the token-enabled mobile-web client recommended by yt-dlp.
+        # Embedded-only extraction cannot fetch videos that disable embedding.
+        # Keep the embedded client as an alternate; neither route guarantees
+        # access when YouTube requires a signed-in session on the server IP.
         ydl_opts.update(
             {
                 "extractor_args": {
                     "youtube": {
-                        "player_client": ["web_embedded"],
+                        "player_client": ["mweb", "web_embedded"],
                         "fetch_pot": ["always"],
                     },
                     "youtubepot-bgutilhttp": {"base_url": ["http://127.0.0.1:4416"]},
@@ -74,8 +74,9 @@ def fetch_to_local(source: ResolvedSource, dest_dir: Path) -> tuple[Path, dict[s
     except yt_dlp.utils.DownloadError as exc:
         if source.source_type == SourceType.YOUTUBE and _is_youtube_access_error(str(exc)):
             raise DownloadError(
-                "YouTube blocked this video's embedded download. Try the Upload a video file tab "
-                "instead; some videos disable embedded playback."
+                "YouTube did not allow the server to download this video. Upload a video file "
+                "instead, or analyze the playing video with the browser extension. "
+                "Repeated retries may still be blocked; failed reports do not use your allowance."
             ) from exc
         raise DownloadError(f"yt-dlp failed: {exc}") from exc
 
