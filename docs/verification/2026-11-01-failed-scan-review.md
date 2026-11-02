@@ -57,7 +57,10 @@ Do not introduce account cookies, purchased proxies, or another processing
 provider without a separate reviewed decision. Keep failure history and restore
 allowance when source access or verified processing cannot complete.
 
-Live acceptance of the source repair is pending deployment.
+The full Python suite passed after the source change (76 tests). Deployment and
+post-deployment source acceptance are tracked in [PR #54](https://github.com/shadoprizm/videolens/pull/54).
+A source configuration change must not be described as a verified end-to-end fix
+unless that production retest passes.
 
 Extension impact: hosted downloader and documentation only; no extension code,
 permissions, package versions or processor destinations change.
